@@ -36,6 +36,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   sentry_flutter: ^9.19.0
   talker_flutter: ^5.1.17
+  google_fonts: ^8.1.0
+  flutter_screenutil: ^5.9.3
 
 dev_dependencies:
   flutter_test:
