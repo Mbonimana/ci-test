@@ -1,0 +1,42 @@
+reviews:
+  enabled: true
+
+  auto_review:
+    enabled: true
+    drafts: false
+
+ 
+  base_branches:
+    - develop
+    - main
+
+  request_changes_workflow: true
+  review_status: true
+  high_level_summary: true
+
+  # Branch-specific behavior (optional but aligned with your flow)
+  branch_rules:
+    develop:
+      review_level: strict   # feature → develop (strict review)
+    main:
+      review_level:  medium   # develop → main (review review)
+
+  # Focus on Flutter/Dart code only
+  path_filters:
+    include:
+      - "lib/**"
+      - "test/**"
+      - "pubspec.yaml"
+    exclude:
+      - "build/**"
+      - ".dart_tool/**"
+      - "ios/**"
+      - "android/**"
+
+ignore:
+  paths:
+    - build/**
+    - .dart_tool/**
+    - ios/Pods/**
+    - android/.gradle/**
+    - .git/**
