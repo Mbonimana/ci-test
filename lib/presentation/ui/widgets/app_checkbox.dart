@@ -33,8 +33,6 @@ class AppCheckbox extends StatelessWidget {
           side: WidgetStateBorderSide.resolveWith((states) {
             return BorderSide(color: AppColors.brandPrimary, width: 2);
           }),
-
-     
         ),
         if (label != null) ...[const SizedBox(width: 0), Text(label!)],
       ],
