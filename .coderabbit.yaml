@@ -14,12 +14,11 @@ reviews:
   review_status: true
   high_level_summary: true
 
-  # Branch-specific behavior (optional but aligned with your flow)
   branch_rules:
     develop:
-      review_level: strict   # feature → develop (strict review)
+      review_level: strict   
     main:
-      review_level:  medium   # develop → main (review review)
+      review_level: strict   
 
   # Focus on Flutter/Dart code only
   path_filters:
