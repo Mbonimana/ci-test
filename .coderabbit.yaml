@@ -1,3 +1,4 @@
+
 reviews:
   enabled: true
 
@@ -5,7 +6,7 @@ reviews:
     enabled: true
     drafts: false
 
- 
+  #  workflow branches
   base_branches:
     - develop
     - main
@@ -14,24 +15,17 @@ reviews:
   review_status: true
   high_level_summary: true
 
-  # Branch-specific behavior (optional but aligned with your flow)
-  branch_rules:
-    develop:
-      review_level: strict   # feature → develop (strict review)
-    main:
-      review_level:  medium   # develop → main (review review)
-
   # Focus on Flutter/Dart code only
   path_filters:
     include:
-      - "lib/**"
-      - "test/**"
-      - "pubspec.yaml"
+      - lib/**
+      - test/**
+      - pubspec.yaml
     exclude:
-      - "build/**"
-      - ".dart_tool/**"
-      - "ios/**"
-      - "android/**"
+      - build/**
+      - .dart_tool/**
+      - ios/**
+      - android/**
 
 ignore:
   paths:
