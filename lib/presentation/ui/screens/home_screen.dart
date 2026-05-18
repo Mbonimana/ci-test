@@ -1,83 +1,72 @@
 import 'package:flutter/material.dart';
-import 'package:street_team/core/utils/sentry_helper.dart';
-import 'package:street_team/core/utils/talker_helper.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:street_team/core/config/theme/app_color.dart';
+import 'package:street_team/core/config/theme/typography.dart';
+import 'package:street_team/core/routing/route_names.dart';
+import 'package:street_team/presentation/providers/home_screen_provider.dart';
+import 'package:street_team/presentation/ui/widgets/home_screen_widgets/category_selector.dart';
+import 'package:street_team/presentation/ui/widgets/home_screen_widgets/home_top_menu.dart';
+import 'package:street_team/presentation/ui/widgets/shared/app_button.dart';
 
-
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
-  void _throwError() {
-    try {
-      talker.error("User triggered error button");
-
-      throw Exception("Test exception from HomeScreen");
-    } catch (e, stack) {
-      talker.handle(e, stack, "Exception caught in HomeScreen");
-
-      SentryHelper.captureException(
-        e,
-        stackTrace: stack,
-        extras: {
-          "screen": "home",
-          "action": "throw_error_button",
-        },
-      );
-    }
-  }
-
-  void _sendMessage() {
-    talker.info("User sent test message to Sentry");
-
-    SentryHelper.captureMessage(
-      "Test message from HomeScreen",
-    );
-  }
-
-  void _setUser() {
-    talker.info("User set in Sentry scope: user_123");
-
-    SentryHelper.setUser(
-      id: "user_123",
-      email: "test@email.com",
-    );
-  }
-
-  void _clearUser() {
-    talker.warning("User cleared from Sentry scope");
-
-    SentryHelper.clearUser();
-  }
-
   @override
-  Widget build(BuildContext context) {
-    talker.debug("HomeScreen built");
+  Widget build(BuildContext context, WidgetRef ref) {
+    final categoryAsync = ref.watch(homeCategoryProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Sentry + Talker Test')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            ElevatedButton(
-              onPressed: _throwError,
-              child: const Text("Send Exception"),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: _sendMessage,
-              child: const Text("Send Message"),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: _setUser,
-              child: const Text("Set User"),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: _clearUser,
-              child: const Text("Clear User"),
-            ),
-          ],
+      backgroundColor: AppColors.backgroundBase,
+      appBar: AppBar(
+        backgroundColor: AppColors.backgroundBase,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16, top: 8),
+          child: AppButton(
+            onPressed: () => showHomeTopMenu(context),
+            variant: AppButtonVariant.leadingIcon,
+            icon: Icons.menu,
+          ),
+        ),
+      ),
+      body: categoryAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text("Error: $err")),
+        data: (stateData) => Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20.0.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 280.h),
+              Text(
+                "Category",
+                style: AppTypography.titleMedium.copyWith(
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              SizedBox(height: 15.h),
+
+              // Extracted Category Logic
+              CategorySelector(stateData: stateData),
+
+              const Spacer(),
+              SizedBox(
+                width: double.infinity,
+                height: 55.h,
+                child: AppButton(
+                  text: "Show Map",
+                  icon: Icons.map,
+                  onPressed: () => context.go(RouteNames.mapScreen),
+                  variant: AppButtonVariant.primary,
+                ),
+              ),
+              SizedBox(height: 40.h),
+            ],
+          ),
         ),
       ),
     );

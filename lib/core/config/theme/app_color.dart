@@ -10,4 +10,5 @@ class AppColors {
   static const Color buttonTextPrimary = Color(0xFFFFFFFF);
   static const Color placeholderText = Color(0xFFBABABA);
   static const Color statusError = Color(0xFFFF4D55);
+  static const Color murugoBlue = Color(0xFF00A3E4);
 }
