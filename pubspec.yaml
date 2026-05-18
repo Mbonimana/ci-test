@@ -36,5 +36,5 @@ flutter:
   assets:
     - assets/animation/loading_animation.json
     - assets/murugo/murugo_cloud_label.webp
-    - assets/murugo/murugo_clouds.svg
+    - assets/murugo/murugo_clouds.webp
     - assets/murugo/murugo_sun.svg
