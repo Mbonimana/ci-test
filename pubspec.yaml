@@ -3,31 +3,32 @@ description: "A new Flutter project."
 
 publish_to: 'none'
 
-
 version: 1.0.0+1
 
 environment:
   sdk: ^3.11.4
 
-
-
 dependencies:
   cupertino_icons: ^1.0.8
   flutter:
     sdk: flutter
+  flutter_riverpod: ^3.3.1
   flutter_screenutil: ^5.9.3
+  flutter_svg: ^2.3.0
+  geolocator: ^14.0.2
+  go_router: ^17.2.3
   google_fonts: ^8.1.0
+  latlong2: ^0.10.1
   lottie: ^3.3.3
+  mapbox_maps_flutter: ^2.23.0
   sentry_flutter: ^9.19.0
-  talker_flutter: ^5.1.17
+  talker_flutter: ^5.1.16
+  url_launcher: ^6.3.2
 
 dev_dependencies:
-
-
   flutter_lints: ^6.0.0
   flutter_test:
     sdk: flutter
-
 
 flutter:
 
@@ -35,5 +36,7 @@ flutter:
 
   assets:
     - assets/animation/loading_animation.json
-
-
+    - assets/murugo/murugo_cloud_label.webp
+    - assets/murugo/murugo_clouds.webp
+    - assets/murugo/murugo_sun.svg
+    - assets/mock/home_categories.json

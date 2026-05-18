@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:street_team/core/config/theme/app_color.dart';
 import 'package:street_team/core/config/theme/typography.dart';
-import 'package:street_team/presentation/ui/widgets/app_button.dart';
+import 'package:street_team/presentation/ui/widgets/shared/app_button.dart';
 
 class AppDialog {
   static Future<void> show({

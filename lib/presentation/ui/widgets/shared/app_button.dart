@@ -140,27 +140,29 @@ class _LeadingIconButton extends StatelessWidget {
   final VoidCallback onPressed;
 
   const _LeadingIconButton({required this.icon, required this.onPressed});
-
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 30.w,
-      height: 30.w,
-      decoration: BoxDecoration(
-        color: AppColors.backgroundBase,
-        borderRadius: BorderRadius.circular(12.r),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.textSecondary.withAlpha(60),
-            blurRadius: 10,
-            spreadRadius: 1,
-            offset: const Offset(0, 0),
-          ),
-        ],
-      ),
-      child: IconButton(
-        icon: Icon(icon, size: 30.sp, color: AppColors.brandPrimary),
-        onPressed: onPressed,
+    return Center(
+      child: Container(
+        width: 40.w,
+        height: 40.w,
+        decoration: BoxDecoration(
+          color: AppColors.backgroundBase,
+          borderRadius: BorderRadius.circular(10.r),
+          border: Border.all(color: AppColors.brandPrimary, width: 1.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(70),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10.r),
+          onTap: onPressed,
+          child: Icon(icon, size: 22.sp, color: AppColors.brandPrimary),
+        ),
       ),
     );
   }
