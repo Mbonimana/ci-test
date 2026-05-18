@@ -15,6 +15,7 @@ dependencies:
   flutter_screenutil: ^5.9.3
   flutter_svg: ^2.3.0
   geolocator: ^14.0.2
+  go_router: ^17.2.3
   google_fonts: ^8.1.0
   latlong2: ^0.10.1
   lottie: ^3.3.3
@@ -34,5 +35,6 @@ flutter:
 
   assets:
     - assets/animation/loading_animation.json
-    - assets/icons/ic_sun_large_icon.png
-    - assets/icons/murugo_cloud_label.png
+    - assets/murugo/murugo_cloud_label.webp
+    - assets/murugo/murugo_clouds.svg
+    - assets/murugo/murugo_sun.svg
