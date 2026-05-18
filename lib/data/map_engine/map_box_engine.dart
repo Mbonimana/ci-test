@@ -53,7 +53,7 @@ class _MapboxMapViewState extends State<_MapboxMapView> {
     return MapWidget(
       styleUri: widget.style,
       mapOptions: MapOptions(pixelRatio: 2.6),
-    
+
       onMapCreated: (map) async {
         map = map;
         widget.onMapCreated(map);
