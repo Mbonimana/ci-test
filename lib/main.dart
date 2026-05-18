@@ -4,7 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' hide Size;
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:street_team/core/config/env_config.dart';
-import 'package:street_team/presentation/ui/screens/auth/login_screen.dart';
+import 'package:street_team/core/routing/app_router.dart';
+import 'package:street_team/presentation/ui/screens/home_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,13 +41,13 @@ class MyApp extends StatelessWidget {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
-        return MaterialApp(
+        return MaterialApp.router(
           title: 'Street Team',
           debugShowCheckedModeBanner: false,
-          home: child,
+          routerConfig: AppRouter.router,
         );
       },
-      child: const LoginScreen(),
+      child: const HomeScreen(),
     );
   }
 }
