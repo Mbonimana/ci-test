@@ -12,6 +12,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter:
     sdk: flutter
+  flutter_riverpod: ^3.3.1
   flutter_screenutil: ^5.9.3
   flutter_svg: ^2.3.0
   geolocator: ^14.0.2
@@ -38,3 +39,4 @@ flutter:
     - assets/murugo/murugo_cloud_label.webp
     - assets/murugo/murugo_clouds.webp
     - assets/murugo/murugo_sun.svg
+    - assets/mock/home_categories.json
