@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' hide Size;
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -24,7 +25,7 @@ Future<void> main() async {
       options.replay.onErrorSampleRate = 1.0;
     },
     appRunner: () {
-      runApp(const MyApp());
+      runApp(const ProviderScope(child: MyApp()));
     },
   );
 }
