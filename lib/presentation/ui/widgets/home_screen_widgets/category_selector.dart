@@ -15,6 +15,9 @@ class CategorySelector extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final notifier = ref.read(homeCategoryProvider.notifier);
 
+    const Color surfaceGray = Color(0xFFF1F5F9);
+    const Color chipUnselectedGray = Color(0xFFE2E8F0);
+
     return Column(
       children: [
         GestureDetector(
@@ -22,10 +25,10 @@ class CategorySelector extends ConsumerWidget {
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
             decoration: BoxDecoration(
-              color: AppColors.backgroundBase,
+              color: surfaceGray,
               borderRadius: BorderRadius.circular(10.r),
               border: Border.all(
-                color: AppColors.placeholderText.withAlpha(25),
+                color: AppColors.placeholderText.withAlpha(40),
               ),
             ),
             child: Row(
@@ -34,7 +37,9 @@ class CategorySelector extends ConsumerWidget {
                   child: stateData.selectedCategories.isEmpty
                       ? Text(
                           "Select categories",
-                          style: AppTypography.captionSmall,
+                          style: AppTypography.captionSmall.copyWith(
+                            color: Colors.blueGrey,
+                          ),
                         )
                       : SizedBox(
                           height: 30.h,
@@ -66,10 +71,14 @@ class CategorySelector extends ConsumerWidget {
           Container(
             constraints: BoxConstraints(maxHeight: 280.h),
             decoration: BoxDecoration(
-              color: AppColors.backgroundBase,
+              color: surfaceGray,
               borderRadius: BorderRadius.circular(10.r),
               boxShadow: [
-                BoxShadow(color: Colors.black.withAlpha(12), blurRadius: 10),
+                BoxShadow(
+                  color: Colors.black.withAlpha(15),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
               ],
             ),
             child: GridView.builder(
@@ -87,30 +96,33 @@ class CategorySelector extends ConsumerWidget {
                 final isSelected = stateData.selectedCategories.contains(
                   category,
                 );
+
                 return GestureDetector(
                   onTap: () => notifier.toggleCategory(category),
                   child: Container(
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
+                       // selected and unselected states
                       color: isSelected
                           ? AppColors.brandPrimary
-                          : AppColors.backgroundBase,
+                          : chipUnselectedGray,
                       borderRadius: BorderRadius.circular(30.r),
                       border: isSelected
                           ? null
-                          : Border.all(color: Colors.blueGrey.withAlpha(12)),
+                          : Border.all(color: Colors.black.withAlpha(10)),
                     ),
                     child: Text(
                       category,
                       textAlign: TextAlign.center,
                       style: TextStyle(
+                        
                         color: isSelected
-                            ? AppColors.backgroundBase
-                            : AppColors.textPrimary,
+                            ? Colors.white
+                            : AppColors.textPrimary.withAlpha(200),
                         fontSize: 10.sp,
                         fontWeight: isSelected
                             ? FontWeight.bold
-                            : FontWeight.w400,
+                            : FontWeight.w500,
                       ),
                     ),
                   ),
