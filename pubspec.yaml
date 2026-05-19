@@ -24,6 +24,7 @@ dependencies:
   sentry_flutter: ^9.19.0
   talker_flutter: ^5.1.16
   url_launcher: ^6.3.2
+  vector_graphics: ^1.2.1
 
 dev_dependencies:
   flutter_lints: ^6.0.0
@@ -36,7 +37,9 @@ flutter:
 
   assets:
     - assets/animation/loading_animation.json
+    - assets/icons/
     - assets/murugo/murugo_cloud_label.webp
     - assets/murugo/murugo_clouds.webp
     - assets/murugo/murugo_sun.svg
     - assets/mock/home_categories.json
+    - assets/mock/mock_organizations.json

@@ -1,9 +1,9 @@
 import 'package:go_router/go_router.dart';
 import 'package:street_team/core/routing/route_names.dart';
 import 'package:street_team/presentation/ui/screens/auth/login_screen.dart';
+import 'package:street_team/presentation/ui/screens/map_screen.dart';
 import 'package:street_team/presentation/ui/screens/home_screen.dart';
 import 'package:street_team/presentation/ui/screens/location_screen.dart';
-import 'package:street_team/presentation/ui/screens/map_view_screen.dart';
 import 'package:street_team/presentation/ui/screens/organization_screen.dart';
 
 class AppRouter {
