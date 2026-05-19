@@ -11,4 +11,7 @@ class AppColors {
   static const Color placeholderText = Color(0xFFBABABA);
   static const Color statusError = Color(0xFFFF4D55);
   static const Color murugoBlue = Color(0xFF00A3E4);
+  static const Color success = Color(0xFF4CAF50);
+  static const Color warning = Color(0xFFFFC107);
+  static const Color error = Color(0xFFFF4D55);
 }
