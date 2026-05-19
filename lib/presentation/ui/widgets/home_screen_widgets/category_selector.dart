@@ -102,7 +102,7 @@ class CategorySelector extends ConsumerWidget {
                   child: Container(
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                       // selected and unselected states
+                      // selected and unselected states
                       color: isSelected
                           ? AppColors.brandPrimary
                           : chipUnselectedGray,
@@ -115,7 +115,6 @@ class CategorySelector extends ConsumerWidget {
                       category,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        
                         color: isSelected
                             ? Colors.white
                             : AppColors.textPrimary.withAlpha(200),

@@ -4,7 +4,7 @@ import 'package:street_team/presentation/ui/screens/home_screen.dart';
 import 'package:street_team/presentation/ui/widgets/loading_states/loading_indicator.dart';
 import 'package:street_team/presentation/ui/widgets/murugo_elements/murugo_clouds.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_button.dart';
-import 'package:street_team/presentation/ui/widgets/shared/app_dialoge.dart';
+import 'package:street_team/presentation/ui/widgets/shared/feedback_widgets/app_dialoge.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_text_field.dart';
 import 'package:url_launcher/url_launcher.dart';
 
