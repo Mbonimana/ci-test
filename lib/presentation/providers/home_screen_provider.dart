@@ -3,10 +3,9 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:street_team/data/repositories/category_repository.dart';
 import 'package:street_team/data/services/category_service.dart';
 
-
 class HomeCategoryState {
   final List<String> categories;
-  final List<String> selectedCategories; 
+  final List<String> selectedCategories;
   final bool isExpanded;
 
   HomeCategoryState({
