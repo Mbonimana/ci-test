@@ -228,7 +228,7 @@ class _SecondaryButton extends StatelessWidget {
         onPressed: onPressed,
         child: Text(
           text,
-          style: AppTypography.labelLarge.copyWith(
+          style: AppTypography.titleSmall.copyWith(
             color: AppColors.buttonTextPrimary,
           ),
         ),
