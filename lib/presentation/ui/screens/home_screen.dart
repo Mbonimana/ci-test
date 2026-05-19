@@ -9,6 +9,7 @@ import 'package:street_team/presentation/providers/home_screen_provider.dart';
 import 'package:street_team/presentation/ui/widgets/home_screen_widgets/category_selector.dart';
 import 'package:street_team/presentation/ui/widgets/home_screen_widgets/home_top_menu.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_button.dart';
+import 'package:street_team/presentation/ui/widgets/shared/feedback_widgets/app_snackbar.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -60,7 +61,18 @@ class HomeScreen extends ConsumerWidget {
                 child: AppButton(
                   text: "Show Map",
                   icon: Icons.map,
-                  onPressed: () => context.go(RouteNames.mapScreen),
+                  onPressed: () {
+                    final selected = stateData.selectedCategories;
+                    if (selected.isEmpty) {
+                      AppSnackbar.show(
+                        context: context,
+                        message: 'Please select at least one category',
+                        variant: SnackbarVariant.warning,
+                      );
+                      return;
+                    }
+                    context.go(RouteNames.mapScreen);
+                  },
                   variant: AppButtonVariant.primary,
                 ),
               ),
