@@ -1,27 +1,34 @@
 import 'dart:convert';
 
 import 'package:flutter/services.dart';
-import 'package:street_team/data/models/organization_feature.dart';
+import 'package:street_team/data/models/organization_model.dart';
 
 class OrganizationRepository {
-  Future<List<OrganizationFeature>> loadOrganizations() async {
-    final jsonString = await rootBundle.loadString(
-      'assets/mock/mock_organizations.json',
-    );
+  static const String _mockPath = 'assets/mock/mock_organizations.json';
 
-    final decoded = jsonDecode(jsonString);
-    final features = decoded is Map<String, dynamic>
-        ? decoded['features']
-        : null;
+  Future<List<OrganizationModel>> loadOrganizations() async {
+    try {
+      final jsonString = await rootBundle.loadString(_mockPath);
 
-    if (features is! List) {
-      return const <OrganizationFeature>[];
+      final decoded = jsonDecode(jsonString);
+
+      if (decoded is! Map<String, dynamic>) {
+        return const [];
+      }
+
+      final features = decoded['features'];
+
+      if (features is! List) {
+        return const [];
+      }
+
+      return features
+          .whereType<Map<String, dynamic>>()
+          .map(OrganizationModel.fromJson)
+          .where((organization) => organization.hasValidCoordinates)
+          .toList(growable: false);
+    } catch (e) {
+      return const [];
     }
-
-    return features
-        .whereType<Map<String, dynamic>>()
-        .map(OrganizationFeature.fromJson)
-        .where((feature) => feature.hasValidCoordinates)
-        .toList(growable: false);
   }
 }
