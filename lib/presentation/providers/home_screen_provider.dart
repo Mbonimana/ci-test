@@ -1,25 +1,25 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:street_team/data/repositories/category_repository.dart';
-import 'package:street_team/data/services/category_service.dart';
+import 'package:street_team/data/models/organization_model.dart';
+import 'package:street_team/presentation/providers/organization_provider.dart';
 
-class HomeCategoryState {
+class HomeState {
   final List<String> categories;
   final List<String> selectedCategories;
   final bool isExpanded;
 
-  HomeCategoryState({
+  HomeState({
     required this.categories,
     required this.selectedCategories,
     required this.isExpanded,
   });
 
-  HomeCategoryState copyWith({
+  HomeState copyWith({
     List<String>? categories,
     List<String>? selectedCategories,
     bool? isExpanded,
   }) {
-    return HomeCategoryState(
+    return HomeState(
       categories: categories ?? this.categories,
       selectedCategories: selectedCategories ?? this.selectedCategories,
       isExpanded: isExpanded ?? this.isExpanded,
@@ -27,59 +27,70 @@ class HomeCategoryState {
   }
 }
 
-final categoryServiceProvider = Provider((ref) => CategoryService());
-final categoryRepositoryProvider = Provider(
-  (ref) => CategoryRepository(ref.watch(categoryServiceProvider)),
-);
+class HomeNotifier extends StateNotifier<HomeState> {
+  final Ref ref;
 
-// The Notifier
-class HomeCategoryNotifier
-    extends StateNotifier<AsyncValue<HomeCategoryState>> {
-  final CategoryRepository _repository;
-
-  HomeCategoryNotifier(this._repository) : super(const AsyncValue.loading()) {
-    fetch();
+  HomeNotifier(this.ref)
+    : super(
+        HomeState(categories: [], selectedCategories: [], isExpanded: false),
+      ) {
+    _init();
   }
 
-  Future<void> fetch() async {
-    try {
-      final list = await _repository.getHomeCategories();
-      state = AsyncValue.data(
-        HomeCategoryState(
-          categories: list,
-          selectedCategories: [], // Initialized as empty list
-          isExpanded: false,
-        ),
-      );
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-    }
+  void _init() {
+    ref.listen<AsyncValue<List<OrganizationModel>>>(organizationsProvider, (
+      prev,
+      next,
+    ) {
+      next.whenData((orgs) {
+        final categories = orgs.map((e) => e.primaryType).toSet().toList()
+          ..sort();
+
+        state = state.copyWith(categories: categories);
+      });
+    });
   }
 
   void toggleExpansion() {
-    state.whenData(
-      (data) =>
-          state = AsyncValue.data(data.copyWith(isExpanded: !data.isExpanded)),
-    );
+    state = state.copyWith(isExpanded: !state.isExpanded);
   }
 
-  // multi-select toggle
   void toggleCategory(String category) {
-    state.whenData((data) {
-      final currentList = [...data.selectedCategories];
-      if (currentList.contains(category)) {
-        currentList.remove(category);
-      } else {
-        currentList.add(category);
-      }
-      state = AsyncValue.data(data.copyWith(selectedCategories: currentList));
-    });
+    final updated = [...state.selectedCategories];
+
+    if (updated.contains(category)) {
+      updated.remove(category);
+    } else {
+      updated.add(category);
+    }
+
+    state = state.copyWith(selectedCategories: updated);
+
+    // sync to global filter provider
+    ref.read(organizationTypeFilterProvider.notifier).state = updated.toSet();
   }
 }
 
-final homeCategoryProvider =
-    StateNotifierProvider<HomeCategoryNotifier, AsyncValue<HomeCategoryState>>((
-      ref,
-    ) {
-      return HomeCategoryNotifier(ref.watch(categoryRepositoryProvider));
-    });
+final homeProvider = StateNotifierProvider<HomeNotifier, HomeState>((ref) {
+  return HomeNotifier(ref);
+});
+final homeFilteredOrganizationsProvider = Provider<List<OrganizationModel>>((
+  ref,
+) {
+  final orgsAsync = ref.watch(organizationsProvider);
+  final homeState = ref.watch(homeProvider);
+
+  return orgsAsync.when(
+    data: (orgs) {
+      final selected = homeState.selectedCategories;
+
+      if (selected.isEmpty) return orgs;
+
+      return orgs
+          .where((o) => selected.contains(o.primaryType))
+          .toList(growable: false);
+    },
+    loading: () => const [],
+    error: (_, _) => const [],
+  );
+});
