@@ -1,36 +1,36 @@
 
-reviews:
-  enabled: true
+# reviews:
+#   enabled: true
 
-  auto_review:
-    enabled: true
-    drafts: false
+#   auto_review:
+#     enabled: true
+#     drafts: false
 
-  #  workflow branches
-  base_branches:
-    - develop
-    - main
+#   #  workflow branches
+#   base_branches:
+#     - develop
+#     - main
 
-  request_changes_workflow: true
-  review_status: true
-  high_level_summary: true
+#   request_changes_workflow: true
+#   review_status: true
+#   high_level_summary: true
 
-  # Focus on Flutter/Dart code only
-  path_filters:
-    include:
-      - lib/**
-      - test/**
-      - pubspec.yaml
-    exclude:
-      - build/**
-      - .dart_tool/**
-      - ios/**
-      - android/**
+#   # Focus on Flutter/Dart code only
+#   path_filters:
+#     include:
+#       - lib/**
+#       - test/**
+#       - pubspec.yaml
+#     exclude:
+#       - build/**
+#       - .dart_tool/**
+#       - ios/**
+#       - android/**
 
-ignore:
-  paths:
-    - build/**
-    - .dart_tool/**
-    - ios/Pods/**
-    - android/.gradle/**
-    - .git/**
+# ignore:
+#   paths:
+#     - build/**
+#     - .dart_tool/**
+#     - ios/Pods/**
+#     - android/.gradle/**
+#     - .git/**
