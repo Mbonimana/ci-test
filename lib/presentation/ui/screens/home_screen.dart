@@ -6,6 +6,7 @@ import 'package:street_team/core/config/theme/app_color.dart';
 import 'package:street_team/core/config/theme/typography.dart';
 import 'package:street_team/core/routing/route_names.dart';
 import 'package:street_team/presentation/providers/home_screen_provider.dart';
+import 'package:street_team/presentation/providers/organization_provider.dart';
 import 'package:street_team/presentation/ui/widgets/home_screen_widgets/category_selector.dart';
 import 'package:street_team/presentation/ui/widgets/home_screen_widgets/home_top_menu.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_button.dart';
@@ -16,7 +17,8 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final categoryAsync = ref.watch(homeCategoryProvider);
+    final homeState = ref.watch(homeProvider);
+    final orgAsync = ref.watch(organizationsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.backgroundBase,
@@ -34,52 +36,62 @@ class HomeScreen extends ConsumerWidget {
           ),
         ),
       ),
-      body: categoryAsync.when(
+      body: orgAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text("Error: $err")),
-        data: (stateData) => Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20.0.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 280.h),
-              Text(
-                "Category",
-                style: AppTypography.titleMedium.copyWith(
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              SizedBox(height: 15.h),
+        error: (err, _) => Center(child: Text("Error: $err")),
+        data: (_) {
+          final stateData = homeState;
 
-              // Extracted Category Logic
-              CategorySelector(stateData: stateData),
+          return Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20.0.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 280.h),
 
-              const Spacer(),
-              SizedBox(
-                width: double.infinity,
-                height: 55.h,
-                child: AppButton(
-                  text: "Show Map",
-                  icon: Icons.map,
-                  onPressed: () {
-                    final selected = stateData.selectedCategories;
-                    if (selected.isEmpty) {
-                      AppSnackbar.show(
-                        context: context,
-                        message: 'Please select at least one category',
-                        variant: SnackbarVariant.warning,
-                      );
-                      return;
-                    }
-                    context.go(RouteNames.mapScreen);
-                  },
-                  variant: AppButtonVariant.primary,
+                Text(
+                  "Category",
+                  style: AppTypography.titleMedium.copyWith(
+                    color: AppColors.textPrimary,
+                  ),
                 ),
-              ),
-              SizedBox(height: 40.h),
-            ],
-          ),
-        ),
+
+                SizedBox(height: 15.h),
+
+                // uses homeProvider state
+                CategorySelector(stateData: stateData),
+
+                const Spacer(),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 55.h,
+                  child: AppButton(
+                    text: "Show Map",
+                    icon: Icons.map,
+                    onPressed: () {
+                      final selected = stateData.selectedCategories;
+
+                      if (selected.isEmpty) {
+                        AppSnackbar.show(
+                          context: context,
+                          message: 'Please select at least one category',
+                          variant: SnackbarVariant.warning,
+                        );
+                        return;
+                      }
+
+                      context.go(RouteNames.mapScreen);
+                    },
+                    variant: AppButtonVariant.primary,
+                  ),
+                ),
+
+                SizedBox(height: 40.h),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
