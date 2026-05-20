@@ -126,8 +126,6 @@ class OrganizationModel {
   }
 }
 
-
-
 double _readLongitude(dynamic coordinates) {
   if (coordinates is List && coordinates.length >= 2) {
     final value = coordinates[0];

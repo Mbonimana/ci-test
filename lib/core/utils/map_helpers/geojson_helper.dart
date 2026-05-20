@@ -23,11 +23,7 @@ class GeoJsonHelper {
 
   // geojson string
 
-  static String buildGeoJson(
-    List<OrganizationModel> organizations,
-  ) {
-    return jsonEncode(
-      buildFeatureCollection(organizations),
-    );
+  static String buildGeoJson(List<OrganizationModel> organizations) {
+    return jsonEncode(buildFeatureCollection(organizations));
   }
 }
