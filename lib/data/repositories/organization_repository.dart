@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:street_team/data/models/organization_feature.dart';
 
-class MapRepository {
+class OrganizationRepository {
   Future<List<OrganizationFeature>> loadOrganizations() async {
     final jsonString = await rootBundle.loadString(
       'assets/mock/mock_organizations.json',
