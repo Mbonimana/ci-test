@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:street_team/core/config/theme/app_color.dart';
-import 'package:street_team/data/models/organization_feature.dart';
+import 'package:street_team/data/models/organization_model.dart';
 
 class ClusterHelper {
   const ClusterHelper._();
@@ -14,7 +14,7 @@ class ClusterHelper {
 
   static Future<void> applyClustering(
     MapboxMap map,
-    List<OrganizationFeature> organizations, {
+    List<OrganizationModel> organizations, {
     String assetPath = 'assets/mock/clustered_organizations.geojson',
   }) async {
     String geoJson;
