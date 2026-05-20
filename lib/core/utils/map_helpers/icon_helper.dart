@@ -5,7 +5,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart' as svg;
 import 'package:street_team/core/config/theme/app_color.dart';
-import 'package:street_team/data/models/organization_feature.dart';
+import 'package:street_team/data/models/organization_model.dart';
 import 'package:vector_graphics/vector_graphics.dart';
 
 class _WhiteIconColorMapper extends svg.ColorMapper {
@@ -88,7 +88,7 @@ class IconHelper {
   }
 
   Future<Uint8List> buildMarkerBytes(
-    OrganizationFeature organization, {
+    OrganizationModel organization, {
     required bool showLabel,
   }) {
     final cacheKey =
@@ -111,7 +111,7 @@ class IconHelper {
   }
 
   Future<Uint8List> _renderMarker({
-    required OrganizationFeature organization,
+    required OrganizationModel organization,
     required bool showLabel,
   }) async {
     const double markerDiameter = 80;
