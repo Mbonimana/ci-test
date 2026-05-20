@@ -4,10 +4,10 @@ import 'package:latlong2/latlong.dart' as geo;
 import 'package:street_team/data/map_engine/map_engine.dart';
 import 'package:street_team/data/map_engine/mapbox_map_engine.dart';
 import 'package:street_team/data/models/organization_feature.dart';
-import 'package:street_team/data/repositories/map_repository.dart';
+import 'package:street_team/data/repositories/organization_repository.dart';
 
-final mapRepositoryProvider = Provider<MapRepository>((ref) {
-  return MapRepository();
+final mapRepositoryProvider = Provider<OrganizationRepository>((ref) {
+  return OrganizationRepository();
 });
 
 final mapEngineProvider = Provider<MapEngine>((ref) {
