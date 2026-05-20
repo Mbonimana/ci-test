@@ -7,13 +7,13 @@ import 'package:street_team/presentation/providers/home_screen_provider.dart';
 import 'package:street_team/presentation/ui/widgets/home_screen_widgets/selected_chip.dart';
 
 class CategorySelector extends ConsumerWidget {
-  final HomeCategoryState stateData;
+  final HomeState stateData;
 
   const CategorySelector({super.key, required this.stateData});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notifier = ref.read(homeCategoryProvider.notifier);
+    final notifier = ref.read(homeProvider.notifier);
 
     const Color surfaceGray = Color(0xFFF1F5F9);
     const Color chipUnselectedGray = Color(0xFFE2E8F0);
