@@ -7,7 +7,7 @@ import 'package:street_team/core/utils/map_helpers/cluster_helper.dart';
 import 'package:street_team/core/utils/map_helpers/icon_helper.dart';
 import 'package:street_team/core/utils/map_helpers/label_style_helper.dart';
 import 'package:street_team/data/map_engine/map_engine.dart';
-import 'package:street_team/data/models/organization_feature.dart';
+import 'package:street_team/data/models/organization_model.dart';
 
 class MapboxMapEngine implements MapEngine {
   MapboxMap? _mapboxMap;
@@ -19,7 +19,7 @@ class MapboxMapEngine implements MapEngine {
   @override
   Widget buildMap({
     required geo.LatLng userLocation,
-    required List<OrganizationFeature> organizations,
+    required List<OrganizationModel> organizations,
   }) {
     _userLocation = userLocation;
     _iconHelper ??= IconHelper();
@@ -67,7 +67,7 @@ class _MapboxMapView extends StatefulWidget {
 
   final String style;
   final geo.LatLng userLocation;
-  final List<OrganizationFeature> organizations;
+  final List<OrganizationModel> organizations;
   final IconHelper iconHelper;
   final void Function(MapboxMap map) onMapCreated;
 
@@ -148,7 +148,10 @@ class _MapboxMapViewState extends State<_MapboxMapView> {
       );
     } catch (_) {}
 
-    await ClusterHelper.applyClustering(_map!, widget.organizations);
+    await ClusterHelper.applyClustering(
+      _map!,
+      widget.organizations.cast<OrganizationModel>(),
+    );
 
     _annotationManager ??= await _map!.annotations
         .createPointAnnotationManager();
