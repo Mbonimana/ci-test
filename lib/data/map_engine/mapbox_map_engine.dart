@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart' as geo;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:street_team/core/utils/map_helpers/camera_contols.dart';
 import 'package:street_team/core/utils/map_helpers/cluster_helper.dart';
 import 'package:street_team/core/utils/map_helpers/icon_helper.dart';
 import 'package:street_team/core/utils/map_helpers/label_style_helper.dart';
@@ -10,9 +11,9 @@ import 'package:street_team/data/map_engine/map_engine.dart';
 import 'package:street_team/data/models/organization_model.dart';
 
 class MapboxMapEngine implements MapEngine {
-  MapboxMap? _mapboxMap;
+  final MapCameraController cameraController = MapCameraController();
+
   IconHelper? _iconHelper;
-  geo.LatLng? _userLocation;
 
   static const String _style = MapboxStyles.MAPBOX_STREETS;
 
@@ -21,37 +22,46 @@ class MapboxMapEngine implements MapEngine {
     required geo.LatLng userLocation,
     required List<OrganizationModel> organizations,
   }) {
-    _userLocation = userLocation;
     _iconHelper ??= IconHelper();
+
+    cameraController.setUserLocation(userLocation);
 
     return _MapboxMapView(
       style: _style,
-      userLocation: userLocation,
       organizations: organizations,
       iconHelper: _iconHelper!,
-      onMapCreated: (map) {
-        _mapboxMap = map;
-      },
+      cameraController: cameraController,
     );
   }
 
   @override
   void goToUserLocation() {
-    if (_mapboxMap == null || _userLocation == null) {
-      return;
-    }
+    cameraController.goToUserLocation();
+  }
 
-    _mapboxMap!.flyTo(
-      CameraOptions(
-        center: Point(
-          coordinates: Position(
-            _userLocation!.longitude,
-            _userLocation!.latitude,
-          ),
-        ),
-        zoom: 16,
-      ),
-      MapAnimationOptions(duration: 800),
+  @override
+  void goToCoordinates({
+    required double latitude,
+    required double longitude,
+    double? zoom = 16,
+  }) {
+    cameraController.flyTo(
+      latitude: latitude,
+      longitude: longitude,
+      // zoom: zoom,
+    );
+  }
+
+  @override
+  void setInitialCamera({
+    required double latitude,
+    required double longitude,
+    double? zoom = 13,
+  }) {
+    cameraController.setInitialCamera(
+      latitude: latitude,
+      longitude: longitude,
+      // zoom: zoom,
     );
   }
 }
@@ -59,17 +69,18 @@ class MapboxMapEngine implements MapEngine {
 class _MapboxMapView extends StatefulWidget {
   const _MapboxMapView({
     required this.style,
-    required this.userLocation,
     required this.organizations,
     required this.iconHelper,
-    required this.onMapCreated,
+    required this.cameraController,
   });
 
   final String style;
-  final geo.LatLng userLocation;
+
   final List<OrganizationModel> organizations;
+
   final IconHelper iconHelper;
-  final void Function(MapboxMap map) onMapCreated;
+
+  final MapCameraController cameraController;
 
   @override
   State<_MapboxMapView> createState() => _MapboxMapViewState();
@@ -77,13 +88,17 @@ class _MapboxMapView extends StatefulWidget {
 
 class _MapboxMapViewState extends State<_MapboxMapView> {
   MapboxMap? _map;
+
   PointAnnotationManager? _annotationManager;
 
   bool _styleLoaded = false;
+
   bool _showLabels = true;
+
   bool _isRefreshing = false;
 
   static const double _labelZoomThreshold = 13;
+
   static const double _clusterBreakZoom = 14;
 
   late final CameraViewportState _viewportState;
@@ -95,11 +110,11 @@ class _MapboxMapViewState extends State<_MapboxMapView> {
     _viewportState = CameraViewportState(
       center: Point(
         coordinates: Position(
-          widget.userLocation.longitude,
-          widget.userLocation.latitude,
+          widget.cameraController.initialLongitude,
+          widget.cameraController.initialLatitude,
         ),
       ),
-      zoom: 13,
+      zoom: widget.cameraController.initialZoom,
     );
   }
 
@@ -116,14 +131,21 @@ class _MapboxMapViewState extends State<_MapboxMapView> {
   Widget build(BuildContext context) {
     return MapWidget(
       key: const ValueKey('mapbox-map-widget'),
+
       styleUri: widget.style,
+
       textureView: true,
+
       viewport: _viewportState,
+
       onMapCreated: (createdMap) {
         _map = createdMap;
-        widget.onMapCreated(createdMap);
+
+        widget.cameraController.attachMap(createdMap);
       },
+
       onStyleLoadedListener: _handleStyleLoaded,
+
       onCameraChangeListener: _handleCameraChanged,
     );
   }
@@ -135,26 +157,28 @@ class _MapboxMapViewState extends State<_MapboxMapView> {
       return;
     }
 
+    await _map!.location.updateSettings(
+      LocationComponentSettings(
+        enabled: true,
+        pulsingEnabled: true,
+        showAccuracyRing: true,
+      ),
+    );
+
     await LabelStyleHelper.applyMinimalLabels(_map!);
 
     try {
       await _map!.setBounds(
-        CameraBoundsOptions(
-          minZoom: 1.0,
-          maxZoom: 22.0,
-          minPitch: 0.0,
-          maxPitch: 85.0,
-        ),
+        CameraBoundsOptions(minZoom: 1, maxZoom: 22, minPitch: 0, maxPitch: 85),
       );
     } catch (_) {}
 
-    await ClusterHelper.applyClustering(
-      _map!,
-      widget.organizations.cast<OrganizationModel>(),
-    );
+    await ClusterHelper.applyClustering(_map!, widget.organizations);
 
     _annotationManager ??= await _map!.annotations
         .createPointAnnotationManager();
+
+    await _refreshAnnotations();
   }
 
   Future<void> _handleCameraChanged(CameraChangedEventData data) async {
@@ -205,8 +229,10 @@ class _MapboxMapViewState extends State<_MapboxMapView> {
                 organization.latitude,
               ),
             ),
+
             image: image,
-            iconSize: 1.0,
+
+            iconSize: 1,
           ),
         );
       }
