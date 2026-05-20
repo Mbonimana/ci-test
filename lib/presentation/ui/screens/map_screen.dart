@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:street_team/core/config/theme/app_color.dart';
 import 'package:street_team/core/config/theme/typography.dart';
 import 'package:street_team/presentation/providers/map_provider.dart';
+import 'package:street_team/presentation/providers/organization_provider.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_button.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
@@ -18,25 +19,22 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final organizationsAsync = ref.watch(organizationFeaturesProvider);
-    final filteredOrganizations = ref.watch(
-      filteredOrganizationFeaturesProvider,
-    );
     final mapEngine = ref.watch(mapEngineProvider);
     final userLocation = ref.watch(userLocationProvider);
 
+    final organizationsAsync = ref.watch(organizationsProvider);
+    final filteredOrganizations = ref.watch(filteredOrganizationsProvider);
+
     return Scaffold(
       backgroundColor: AppColors.backgroundBase,
-
       resizeToAvoidBottomInset: false,
 
       body: GestureDetector(
-        onTap: () {
-          FocusScope.of(context).unfocus();
-        },
+        onTap: () => FocusScope.of(context).unfocus(),
+
         child: Stack(
           children: [
-            //Map
+            /// MAP
             Positioned.fill(
               child: organizationsAsync.when(
                 data: (_) {
@@ -55,7 +53,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               ),
             ),
 
-            //TopBar
+            /// TOP BAR
             Positioned(
               top: 60.h,
               left: 20.w,
@@ -63,7 +61,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               child: Row(
                 children: [
                   AppButton(
-                    onPressed: () {},
+                    onPressed: () => Navigator.pop(context),
                     variant: AppButtonVariant.leadingIcon,
                     icon: Icons.arrow_back_ios_new_rounded,
                   ),
@@ -85,29 +83,16 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                         ],
                       ),
                       child: TextField(
-                        keyboardType: TextInputType.text,
-
                         style: AppTypography.captionSmall,
-
                         textAlignVertical: TextAlignVertical.center,
-
                         decoration: InputDecoration(
                           hintText: "Search locations or organizations",
-
-                          hintStyle: AppTypography.captionSmall.copyWith(
-                            color: AppColors.placeholderText,
-                          ),
-
-                          // ICON  ON RIGHT
                           suffixIcon: Icon(
                             Icons.search,
                             color: AppColors.brandPrimary,
                           ),
-
                           border: InputBorder.none,
-
                           isCollapsed: true,
-
                           contentPadding: EdgeInsets.symmetric(
                             horizontal: 18.w,
                             vertical: 16.h,
@@ -120,21 +105,18 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               ),
             ),
 
-            //Left actions
+            /// LEFT ACTION
             Positioned(
               bottom: 40.h,
               left: 20.w,
-              child: Container(
-                decoration: const BoxDecoration(shape: BoxShape.circle),
-                child: AppButton(
-                  onPressed: () {},
-                  variant: AppButtonVariant.circularIcon,
-                  icon: Icons.refresh_rounded,
-                ),
+              child: AppButton(
+                onPressed: () {},
+                variant: AppButtonVariant.circularIcon,
+                icon: Icons.refresh_rounded,
               ),
             ),
 
-            // Right actions
+            /// RIGHT ACTIONS
             Positioned(
               bottom: 40.h,
               right: 20.w,
@@ -142,85 +124,73 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 width: 200.w,
                 height: 200.h,
                 child: Stack(
-                  clipBehavior: Clip.none,
                   alignment: Alignment.bottomRight,
                   children: [
-                    //ButtonS Panel
                     AnimatedPositioned(
                       duration: const Duration(milliseconds: 250),
-                      curve: Curves.easeOut,
                       right: showCreateActions ? 60 : -90.w,
                       child: AnimatedOpacity(
                         duration: const Duration(milliseconds: 200),
                         opacity: showCreateActions ? 1 : 0,
-                        child: IgnorePointer(
-                          ignoring: !showCreateActions,
-                          child: Container(
-                            width: 180.w,
-                            padding: EdgeInsets.all(12.w),
-                            decoration: BoxDecoration(
-                              color: AppColors.backgroundBase,
-                              borderRadius: BorderRadius.circular(18.r),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.12),
-                                  blurRadius: 18,
-                                  offset: const Offset(0, 6),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                AppButton(
-                                  text: "New Location",
-                                  icon: Icons.location_on_outlined,
-                                  onPressed: () {},
-                                  variant: AppButtonVariant.secondary,
-                                ),
-                                SizedBox(height: 10.h),
-                                AppButton(
-                                  text: "New Organization",
-                                  icon: Icons.business_outlined,
-                                  onPressed: () {},
-                                  variant: AppButtonVariant.secondary,
-                                ),
-                              ],
-                            ),
+                        child: Container(
+                          width: 180.w,
+                          padding: EdgeInsets.all(12.w),
+                          decoration: BoxDecoration(
+                            color: AppColors.backgroundBase,
+                            borderRadius: BorderRadius.circular(18.r),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.12),
+                                blurRadius: 18,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              AppButton(
+                                text: "New Location",
+                                icon: Icons.location_on_outlined,
+                                onPressed: () {},
+                                variant: AppButtonVariant.secondary,
+                              ),
+                              SizedBox(height: 10.h),
+                              AppButton(
+                                text: "New Organization",
+                                icon: Icons.business_outlined,
+                                onPressed: () {},
+                                variant: AppButtonVariant.secondary,
+                              ),
+                            ],
                           ),
                         ),
                       ),
                     ),
 
-                    //GPS button
+                    /// GPS
                     Positioned(
                       bottom: 70.h,
                       right: 0,
-                      child: Container(
-                        decoration: const BoxDecoration(shape: BoxShape.circle),
-                        child: AppButton(
-                          onPressed: mapEngine.goToUserLocation,
-                          variant: AppButtonVariant.leadingIcon,
-                          icon: Icons.my_location,
-                        ),
+                      child: AppButton(
+                        onPressed: mapEngine.goToUserLocation,
+                        variant: AppButtonVariant.leadingIcon,
+                        icon: Icons.my_location,
                       ),
                     ),
 
-                    //toggle button
+                    /// TOGGLE
                     Positioned(
                       bottom: 0,
                       right: 0,
-                      child: Container(
-                        decoration: const BoxDecoration(shape: BoxShape.circle),
-                        child: AppButton(
-                          onPressed: () {
-                            setState(() {
-                              showCreateActions = !showCreateActions;
-                            });
-                          },
-                          variant: AppButtonVariant.circularIcon,
-                          icon: Icons.add_location_alt_outlined,
-                        ),
+                      child: AppButton(
+                        onPressed: () {
+                          setState(() {
+                            showCreateActions = !showCreateActions;
+                          });
+                        },
+                        variant: AppButtonVariant.circularIcon,
+                        icon: Icons.add_location_alt_outlined,
                       ),
                     ),
                   ],
