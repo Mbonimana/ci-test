@@ -48,7 +48,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   Widget build(BuildContext context) {
     final mapEngine = ref.watch(mapEngineProvider);
 
-    final userLocation = ref.watch(userLocationProvider);
+    final userLocationAsync = ref.watch(userLocationProvider);
 
     final organizationsAsync = ref.watch(organizationsProvider);
 
@@ -74,23 +74,34 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           children: [
             // map
             Positioned.fill(
-              child: organizationsAsync.when(
-                data: (_) {
-                  return mapEngine.buildMap(
-                    userLocation: userLocation,
-                    organizations: filteredOrganizations,
+              child: userLocationAsync.when(
+                data: (userLocation) {
+                  return organizationsAsync.when(
+                    data: (_) {
+                      return mapEngine.buildMap(
+                        userLocation: userLocation,
+                        organizations: filteredOrganizations,
+                      );
+                    },
+
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+
+                    error: (error, _) => Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Text(
+                          error.toString(),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
                   );
                 },
 
                 loading: () => const Center(child: CircularProgressIndicator()),
 
-                error: (error, _) => Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-
-                    child: Text(error.toString(), textAlign: TextAlign.center),
-                  ),
-                ),
+                error: (e, _) => Center(child: Text(e.toString())),
               ),
             ),
 
@@ -193,7 +204,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
                     FocusScope.of(context).unfocus();
 
-                    //TODO: animate camera to location
+                    mapEngine.goToCoordinates(
+                      latitude: organization.latitude,
+                      longitude: organization.longitude,
+                      // zoom: 17,
+                    );
                   },
                 ),
               ),

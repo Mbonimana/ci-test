@@ -9,4 +9,12 @@ abstract class MapEngine {
   });
 
   void goToUserLocation();
+
+  void goToCoordinates({
+    required double latitude,
+    required double longitude,
+    double? zoom = 16,
+  });
+
+  void setInitialCamera({required double latitude, required double longitude});
 }
