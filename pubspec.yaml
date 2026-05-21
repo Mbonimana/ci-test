@@ -36,11 +36,17 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/animation/loading_animation.json
-    - assets/icons/
-    - assets/murugo/murugo_cloud_label.webp
-    - assets/murugo/murugo_clouds.webp
-    - assets/murugo/murugo_sun.svg
-    - assets/mock/home_categories.json
-    - assets/mock/mock_organizations.json
+  - assets/animation/loading_animation.json
 
+  - assets/icons/
+
+  - assets/murugo/murugo_cloud_label.webp
+  - assets/murugo/murugo_clouds.webp
+  - assets/murugo/murugo_sun.svg
+  # MOCK DATA
+  - assets/mock/organization_examples.json
+  - assets/mock/location_examples.json
+
+  - assets/mock/organization_types.json
+  - assets/mock/organization_subtypes.json
+  - assets/mock/location_types.json
