@@ -23,14 +23,23 @@ class ClusterHelper {
       geoJson = await rootBundle.loadString(assetPath);
     } catch (_) {
       final features = organizations
-          .where((o) => o.hasValidCoordinates)
+          .where(
+            (o) => o.location.hasValidCoordinates,
+          ) // Accessing coordinates via Location
           .map(
             (o) => {
               'type': 'Feature',
-              'properties': {'type': o.primaryType, 'name': o.displayName},
+              'properties': {
+                'type': o.primaryType,
+                'name': o
+                    .organizationName,
+              },
               'geometry': {
                 'type': 'Point',
-                'coordinates': [o.longitude, o.latitude],
+                'coordinates': [
+                  o.location.longitude, // Nested Location model
+                  o.location.latitude, // Nested Location model
+                ],
               },
             },
           )
@@ -39,6 +48,7 @@ class ClusterHelper {
       geoJson = jsonEncode({'type': 'FeatureCollection', 'features': features});
     }
 
+    // Clean up existing layers/sources before adding new ones
     try {
       await map.style.removeStyleLayer(clusterCountLayerId);
     } catch (_) {}
@@ -51,6 +61,7 @@ class ClusterHelper {
       await map.style.removeStyleSource(sourceId);
     } catch (_) {}
 
+    // Create GeoJson Source with clustering enabled
     final source = GeoJsonSource(
       id: sourceId,
       data: geoJson,
@@ -61,6 +72,7 @@ class ClusterHelper {
 
     await map.style.addSource(source);
 
+    // Create the cluster circles layer
     final clusterLayer = CircleLayer(
       id: clusterLayerId,
       sourceId: sourceId,
@@ -83,6 +95,7 @@ class ClusterHelper {
 
     await map.style.addLayer(clusterLayer);
 
+    // Create the cluster count text layer
     final countLayer = SymbolLayer(
       id: clusterCountLayerId,
       sourceId: sourceId,
