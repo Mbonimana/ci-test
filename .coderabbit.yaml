@@ -1,36 +1,19 @@
 
-# reviews:
-#   enabled: true
 
-#   auto_review:
-#     enabled: true
-#     drafts: false
+language: "en-US"
 
-#   #  workflow branches
-#   base_branches:
-#     - develop
-#     - main
+reviews:
+  profile: "assertive" 
+  request_changes_workflow: true 
+  auto_review:
+    enabled: true
+    drafts: false 
+    base_branches:
+      - main
+      - develop
 
-#   request_changes_workflow: true
-#   review_status: true
-#   high_level_summary: true
-
-#   # Focus on Flutter/Dart code only
-#   path_filters:
-#     include:
-#       - lib/**
-#       - test/**
-#       - pubspec.yaml
-#     exclude:
-#       - build/**
-#       - .dart_tool/**
-#       - ios/**
-#       - android/**
-
-# ignore:
-#   paths:
-#     - build/**
-#     - .dart_tool/**
-#     - ios/Pods/**
-#     - android/.gradle/**
-#     - .git/**
+  pre_merge_checks:
+    title:
+      mode: error 
+    description:
+      mode: warning
