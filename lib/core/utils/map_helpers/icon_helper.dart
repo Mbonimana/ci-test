@@ -29,45 +29,39 @@ class IconHelper {
 
   static const Color markerColor = AppColors.mapMarkerBackground;
 
+  /// Updated mapping to match your new Organization and Location types
   static const Map<String, String> typeIcons = {
-    'Bar': 'assets/icons/bar.svg',
-    'Beauty and SPA': 'assets/icons/hotel.svg',
-    'Business Other':
-        'assets/icons/businessman-ceo-representative-boss-svgrepo-com.svg',
+    // Organization Types
+    'Restaurants': 'assets/icons/restaurant.svg',
     'Coffee': 'assets/icons/coffee.svg',
+    'Bar': 'assets/icons/bar.svg',
+    'Beauty & SPA': 'assets/icons/hotel.svg',
+    'Medical': 'assets/icons/medical.svg',
+    'Shopping': 'assets/icons/shopping.svg',
     'Corporate':
         'assets/icons/businessman-ceo-representative-boss-svgrepo-com.svg',
-    'Culture': 'assets/icons/tourism.svg',
     'Education': 'assets/icons/education.svg',
-    'Embassy': 'assets/icons/government.svg',
-    'FastFood': 'assets/icons/restaurant.svg',
-    'Government': 'assets/icons/government.svg',
-    'Accomodation': 'assets/icons/hotel.svg',
-    'Medical': 'assets/icons/medical.svg',
-    'Non profit': 'assets/icons/government.svg',
-    'Pharmacy': 'assets/icons/medical.svg',
-    'Religious': 'assets/icons/government.svg',
-    'Restaurants': 'assets/icons/restaurant.svg',
-    'Shopping': 'assets/icons/shopping.svg',
+    'Accommodation': 'assets/icons/hotel.svg',
     'Sports': 'assets/icons/sports.svg',
-    'commercial':
-        'assets/icons/businessman-ceo-representative-boss-svgrepo-com.svg',
-    'Insurance': 'assets/icons/bank.svg',
     'Technology': 'assets/icons/technology.svg',
-    'Construction': 'assets/icons/construction.svg',
-    'Coworking':
+
+    // Location Types (Mappings for Building-level categories)
+    'Food & Drink': 'assets/icons/restaurant.svg',
+    'Wellness & Personal Care': 'assets/icons/hotel.svg',
+    'Commercial & Retail Spaces': 'assets/icons/shopping.svg',
+    'Cultural & Creative Spaces': 'assets/icons/tourism.svg',
+    'Education & Learning Spaces': 'assets/icons/education.svg',
+    'Government & Public Administration': 'assets/icons/government.svg',
+    'Hospitality & Accommodation': 'assets/icons/hotel.svg',
+    'Healthcare Facilities': 'assets/icons/medical.svg',
+    'Religious Spaces': 'assets/icons/government.svg',
+    'Financial Services': 'assets/icons/bank.svg',
+    'Entertainment & Leisure Spaces': 'assets/icons/game.svg',
+    'Transport & Mobility Hubs': 'assets/icons/gas-station.svg',
+
+    // Fallback
+    'Business Other':
         'assets/icons/businessman-ceo-representative-boss-svgrepo-com.svg',
-    'Travel Agency': 'assets/icons/tourism.svg',
-    'Game Center': 'assets/icons/game.svg',
-    'Banking': 'assets/icons/bank.svg',
-    'Movie theater': 'assets/icons/movie.svg',
-    'Library': 'assets/icons/library.svg',
-    'Park': 'assets/icons/tourism.svg',
-    'Gas Station': 'assets/icons/gas-station.svg',
-    'Events Space': 'assets/icons/tourism.svg',
-    'Media': 'assets/icons/businessman-ceo-representative-boss-svgrepo-com.svg',
-    'Post Office': 'assets/icons/government.svg',
-    'Forex Bureau': 'assets/icons/bank.svg',
   };
 
   static final Map<String, String> _normalizedTypeIcons = {
@@ -91,8 +85,9 @@ class IconHelper {
     OrganizationModel organization, {
     required bool showLabel,
   }) {
+    // Cache key updated to use organizationName
     final cacheKey =
-        '${organization.id ?? organization.displayName}|${organization.primaryType}|$showLabel';
+        '${organization.id}|${organization.organizationName}|${organization.primaryType}|$showLabel';
 
     return _markerCache.putIfAbsent(cacheKey, () {
       return _renderMarker(organization: organization, showLabel: showLabel);
@@ -149,10 +144,11 @@ class IconHelper {
     );
 
     if (showLabel) {
+      // Use organizationName for the label
       final labelText = _truncateLabel(
-        organization.displayName.isEmpty
-            ? organization.id ?? ''
-            : organization.displayName,
+        organization.organizationName.isEmpty
+            ? organization.id
+            : organization.organizationName,
       );
       final textPainter = TextPainter(
         textDirection: TextDirection.ltr,
