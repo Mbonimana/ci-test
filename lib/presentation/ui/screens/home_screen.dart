@@ -50,7 +50,7 @@ class HomeScreen extends ConsumerWidget {
                 SizedBox(height: 280.h),
 
                 Text(
-                  "Category",
+                  "Select Type",
                   style: AppTypography.titleMedium.copyWith(
                     color: AppColors.textPrimary,
                   ),
@@ -58,7 +58,6 @@ class HomeScreen extends ConsumerWidget {
 
                 SizedBox(height: 15.h),
 
-                // uses homeProvider state
                 CategorySelector(stateData: stateData),
 
                 const Spacer(),
@@ -70,12 +69,10 @@ class HomeScreen extends ConsumerWidget {
                     text: "Show Map",
                     icon: Icons.map,
                     onPressed: () {
-                      final selected = stateData.selectedCategories;
-
-                      if (selected.isEmpty) {
+                      if (stateData.selectedTypes.isEmpty) {
                         AppSnackbar.show(
                           context: context,
-                          message: 'Please select at least one category',
+                          message: 'Please select at least one type',
                           variant: SnackbarVariant.warning,
                         );
                         return;

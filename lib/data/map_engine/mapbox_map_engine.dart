@@ -45,11 +45,7 @@ class MapboxMapEngine implements MapEngine {
     required double longitude,
     double? zoom = 16,
   }) {
-    cameraController.flyTo(
-      latitude: latitude,
-      longitude: longitude,
-      // zoom: zoom,
-    );
+    cameraController.flyTo(latitude: latitude, longitude: longitude);
   }
 
   @override
@@ -58,11 +54,7 @@ class MapboxMapEngine implements MapEngine {
     required double longitude,
     double? zoom = 13,
   }) {
-    cameraController.setInitialCamera(
-      latitude: latitude,
-      longitude: longitude,
-      // zoom: zoom,
-    );
+    cameraController.setInitialCamera(latitude: latitude, longitude: longitude);
   }
 }
 
@@ -75,11 +67,8 @@ class _MapboxMapView extends StatefulWidget {
   });
 
   final String style;
-
   final List<OrganizationModel> organizations;
-
   final IconHelper iconHelper;
-
   final MapCameraController cameraController;
 
   @override
@@ -88,17 +77,12 @@ class _MapboxMapView extends StatefulWidget {
 
 class _MapboxMapViewState extends State<_MapboxMapView> {
   MapboxMap? _map;
-
   PointAnnotationManager? _annotationManager;
-
   bool _styleLoaded = false;
-
   bool _showLabels = true;
-
   bool _isRefreshing = false;
 
   static const double _labelZoomThreshold = 13;
-
   static const double _clusterBreakZoom = 14;
 
   late final CameraViewportState _viewportState;
@@ -131,21 +115,14 @@ class _MapboxMapViewState extends State<_MapboxMapView> {
   Widget build(BuildContext context) {
     return MapWidget(
       key: const ValueKey('mapbox-map-widget'),
-
       styleUri: widget.style,
-
       textureView: true,
-
       viewport: _viewportState,
-
       onMapCreated: (createdMap) {
         _map = createdMap;
-
         widget.cameraController.attachMap(createdMap);
       },
-
       onStyleLoadedListener: _handleStyleLoaded,
-
       onCameraChangeListener: _handleCameraChanged,
     );
   }
@@ -153,9 +130,7 @@ class _MapboxMapViewState extends State<_MapboxMapView> {
   Future<void> _handleStyleLoaded(StyleLoadedEventData data) async {
     _styleLoaded = true;
 
-    if (_map == null) {
-      return;
-    }
+    if (_map == null) return;
 
     await _map!.location.updateSettings(
       LocationComponentSettings(
@@ -173,6 +148,7 @@ class _MapboxMapViewState extends State<_MapboxMapView> {
       );
     } catch (_) {}
 
+    // ClusterHelper already updated to handle nested location
     await ClusterHelper.applyClustering(_map!, widget.organizations);
 
     _annotationManager ??= await _map!.annotations
@@ -183,7 +159,6 @@ class _MapboxMapViewState extends State<_MapboxMapView> {
 
   Future<void> _handleCameraChanged(CameraChangedEventData data) async {
     final zoom = data.cameraState.zoom;
-
     final shouldShowLabels = zoom >= _labelZoomThreshold;
 
     if (shouldShowLabels != _showLabels) {
@@ -212,7 +187,8 @@ class _MapboxMapViewState extends State<_MapboxMapView> {
       await _annotationManager!.deleteAll();
 
       for (final organization in widget.organizations) {
-        if (!organization.hasValidCoordinates) {
+        // Access coordinate validation through nested location
+        if (!organization.location.hasValidCoordinates) {
           continue;
         }
 
@@ -225,13 +201,12 @@ class _MapboxMapViewState extends State<_MapboxMapView> {
           PointAnnotationOptions(
             geometry: Point(
               coordinates: Position(
-                organization.longitude,
-                organization.latitude,
+                //  Access coordinates via nested location
+                organization.location.longitude,
+                organization.location.latitude,
               ),
             ),
-
             image: image,
-
             iconSize: 1,
           ),
         );
