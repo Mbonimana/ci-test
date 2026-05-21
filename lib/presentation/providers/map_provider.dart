@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart' as geo;
 import 'package:street_team/core/utils/map_helpers/permission_request.dart';
@@ -35,3 +36,5 @@ final userLocationProvider = StreamProvider<geo.LatLng>((ref) async* {
     ),
   ).map((position) => geo.LatLng(position.latitude, position.longitude));
 });
+//picked coordinates
+final pickedLocationProvider = StateProvider<geo.LatLng?>((ref) => null);
