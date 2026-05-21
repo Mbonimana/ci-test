@@ -7,6 +7,7 @@ import 'package:street_team/core/config/theme/app_color.dart';
 import 'package:street_team/core/config/theme/typography.dart';
 import 'package:street_team/presentation/providers/map_provider.dart';
 import 'package:street_team/presentation/providers/organization_provider.dart';
+import 'package:street_team/presentation/ui/screens/location_screen.dart';
 import 'package:street_team/presentation/ui/widgets/map_screen_widgets/search_results_panel.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_button.dart';
 
@@ -67,7 +68,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   return organizationsAsync.when(
                     data: (_) {
                       return mapEngine.buildMap(
-                        userLocation: userLocation,             
+                        userLocation: userLocation,
                         organizations: filteredOrganizations,
                       );
                     },
@@ -163,7 +164,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
                     FocusScope.of(context).unfocus();
 
-                    // UPDATE: Use nested location coordinates for navigation
                     mapEngine.goToCoordinates(
                       latitude: organization.location.latitude,
                       longitude: organization.location.longitude,
@@ -224,14 +224,22 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 AppButton(
-                                  text: "New Building", // Updated Label
+                                  text: "New Location",
                                   icon: Icons.location_on_outlined,
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const LocationDetailsScreen(),
+                                      ),
+                                    );
+                                  },
                                   variant: AppButtonVariant.secondary,
                                 ),
                                 SizedBox(height: 10.h),
                                 AppButton(
-                                  text: "New Company", // Updated Label
+                                  text: "New Organization", 
                                   icon: Icons.business_outlined,
                                   onPressed: () {},
                                   variant: AppButtonVariant.secondary,
