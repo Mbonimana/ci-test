@@ -101,7 +101,7 @@ class SearchResultsPanel extends StatelessWidget {
                   ),
 
                   subtitle: Text(
-                    organization.locationName,
+                    organization.primaryType,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppTypography.captionSmall.copyWith(
