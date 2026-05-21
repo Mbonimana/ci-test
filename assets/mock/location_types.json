@@ -1,0 +1,19 @@
+[
+  { "id": 1, "name": "Food & Drink" },
+  { "id": 2, "name": "Wellness & Personal Care" },
+  { "id": 3, "name": "Commercial & Retail Spaces" },
+  { "id": 4, "name": "Cultural & Creative Spaces" },
+  { "id": 5, "name": "Education & Learning Spaces" },
+  { "id": 6, "name": "Government & Public Administration" },
+  { "id": 7, "name": "Hospitality & Accommodation" },
+  { "id": 8, "name": "Healthcare Facilities" },
+  { "id": 9, "name": "Community & Social Infrastructure" },
+  { "id": 10, "name": "Religious Spaces" },
+  { "id": 11, "name": "Financial Services" },
+  { "id": 12, "name": "Technology & Communication Services" },
+  { "id": 13, "name": "Industrial & Production" },
+  { "id": 14, "name": "Mobility Services" },
+  { "id": 15, "name": "Entertainment & Leisure Spaces" },
+  { "id": 16, "name": "Outdoor & Public Spaces" },
+  { "id": 17, "name": "Transport & Mobility Hubs" }
+]
