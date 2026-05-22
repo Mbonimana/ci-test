@@ -240,10 +240,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                 ),
                                 SizedBox(height: 10.h),
                                 AppButton(
-                                  text: "New Organization", 
+                                  text: "New Organization",
                                   icon: Icons.business_outlined,
                                   onPressed: () {
-                                     Navigator.push(
+                                    Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (_) =>
