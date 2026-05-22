@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:street_team/core/config/theme/app_color.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_button.dart';
+import 'package:street_team/presentation/ui/widgets/shared/app_drop_down.dart'; // Added this import
 import 'package:street_team/presentation/ui/widgets/shared/app_form_lable.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_text_field.dart';
 import 'package:street_team/presentation/ui/widgets/shared/hours_widget.dart';
@@ -135,7 +136,7 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
     return Scaffold(
       backgroundColor: AppColors.backgroundBase,
       appBar: AppBar(
-        title: Text('Organization Details'),
+        title: const Text('Organization Details'),
         leading: AppButton(
           onPressed: () {
             if (currentStep == 0) {
@@ -148,7 +149,7 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
           icon: Icons.arrow_back_ios_new_rounded,
         ),
         centerTitle: true,
-        backgroundColor:Colors.transparent,
+        backgroundColor: Colors.transparent,
         foregroundColor: AppColors.brandPrimary,
         elevation: 0,
       ),
@@ -204,79 +205,72 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppFormLable(text: 'Location '),
+        const AppFormLable(text: 'Location '),
         SizedBox(height: 15.h),
         AppTextField(controller: locationCtrl, hint: "Search location"),
         SizedBox(height: 15.h),
-        AppFormLable(text: 'Organization Name'),
+        const AppFormLable(text: 'Organization Name'),
         SizedBox(height: 12.h),
         AppTextField(controller: orgNameCtrl, hint: "Enter organization name"),
         SizedBox(height: 15.h),
-        AppFormLable(text: "Organization Type(s)"),
+        const AppFormLable(text: "Organization Type(s)"),
         SizedBox(height: 12.h),
-        _field(
+        AppDropdown<String>(
           label: "Select Organization Type",
-          expanded: expandOrg,
-          chips: selectedOrgTypes,
-          rawValues: selectedOrgTypes,
-          options: organizationOptions
-              .map((o) => o["type"].toString())
-              .toList(),
-          optionNames: organizationOptions
-              .map((o) => o["type"].toString())
-              .toList(),
+          items: organizationOptions.map((o) => o["type"].toString()).toList(),
+          selectedItems: selectedOrgTypes,
+          itemLabel: (s) => s,
+          onSelect: toggleOrg,
+          isExpanded: expandOrg,
           onToggle: () => setState(() {
             expandOrg = !expandOrg;
             expandSubtypes = false;
           }),
-          onSelect: toggleOrg,
-          isSelected: selectedOrgTypes.contains,
         ),
+
         SizedBox(height: 15.h),
-        AppFormLable(text: 'Organization Sub-type(s)'),
+        const AppFormLable(text: 'Organization Sub-type(s)'),
         SizedBox(height: 12.h),
-        _field(
+
+        AppDropdown<String>(
           label: "Select Subtypes",
-          expanded: expandSubtypes,
-          chips: selectedSubtypes,
-          rawValues: selectedSubtypes,
-          options: subtypeOptions,
-          optionNames: subtypeOptions,
+          items: subtypeOptions,
+          selectedItems: selectedSubtypes,
+          itemLabel: (s) => s,
+          onSelect: toggleSubtype,
+          isExpanded: expandSubtypes,
           onToggle: () => setState(() {
             expandSubtypes = !expandSubtypes;
             expandOrg = false;
           }),
-          onSelect: toggleSubtype,
-          isSelected: selectedSubtypes.contains,
         ),
-        SizedBox(height: 15.h),
 
-        AppFormLable(text: "Phone"),
+        SizedBox(height: 15.h),
+        const AppFormLable(text: "Phone"),
         SizedBox(height: 15.h),
         AppTextField(controller: phone, hint: "Enter phone number"),
         SizedBox(height: 15.h),
-        AppFormLable(text: "Website"),
+        const AppFormLable(text: "Website"),
         SizedBox(height: 15.h),
         AppTextField(controller: website, hint: "Enter website URL"),
       ],
     );
   }
 
-  // step 2 fields
   Widget _buildStepTwo() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppFormLable(text: "Quick Info"),
+        const AppFormLable(text: "Quick Info"),
         SizedBox(height: 12.h),
         AppTextField(controller: quickinfo, hint: "Quick Info"),
         SizedBox(height: 15.h),
-        AppFormLable(text: "Organization Options"),
+        const AppFormLable(text: "Organization Options"),
         BusinessHoursScreen(
           onSaved: (val) => setState(() => workingHoursSummary = val),
         ),
         SizedBox(height: 12.h),
-        AppFormLable(text: 'Organization has:'),
+        const AppFormLable(text: 'Organization has:'),
         SizedBox(height: 12.h),
         OrganizationOptions(
           onSelectionChanged: (val, onlineMenu) {
@@ -287,19 +281,18 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
           },
         ),
         SizedBox(height: 12.h),
-        AppFormLable(text: "Building Details"),
+        const AppFormLable(text: "Building Details"),
         SizedBox(height: 12.h),
         AppTextField(
           controller: buildingDetails,
           hint: 'eg: Floor 5 on Bloc C ',
         ),
-
         SizedBox(height: 12.h),
       ],
     );
   }
+  // ui components
 
-  // --- UI COMPONENTS ---
   Widget _stepNode(int step, String label) {
     bool isActive = currentStep == step;
     return GestureDetector(
@@ -323,103 +316,6 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _field({
-    required String label,
-    required bool expanded,
-    required List<String> chips,
-    required List<String> rawValues,
-    required List<String> options,
-    required List<String> optionNames,
-    required VoidCallback onToggle,
-    required Function(String) onSelect,
-    required bool Function(String) isSelected,
-  }) {
-    return Column(
-      children: [
-        GestureDetector(
-          onTap: onToggle,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: chips.isEmpty
-                      ? Text(label, style: const TextStyle(color: Colors.grey))
-                      : SizedBox(
-                          height: 30,
-                          child: ListView.separated(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: chips.length,
-                            separatorBuilder: (_, _) =>
-                                const SizedBox(width: 6),
-                            itemBuilder: (ctx, i) => Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.lightBlue,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Row(
-                                children: [
-                                  Text(
-                                    chips[i],
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  GestureDetector(
-                                    onTap: () => onSelect(rawValues[i]),
-                                    child: const Icon(
-                                      Icons.close,
-                                      size: 14,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                ),
-                const Icon(Icons.arrow_drop_down, color: Colors.lightBlue),
-              ],
-            ),
-          ),
-        ),
-        if (expanded)
-          Container(
-            constraints: const BoxConstraints(maxHeight: 250),
-            child: SingleChildScrollView(
-              child: Column(
-                children: List.generate(
-                  options.length,
-                  (i) => ListTile(
-                    dense: true,
-                    title: Text(
-                      optionNames[i],
-                      style: const TextStyle(fontSize: 13),
-                    ),
-                    trailing: isSelected(options[i])
-                        ? const Icon(Icons.check, color: Colors.blue)
-                        : null,
-                    onTap: () => onSelect(options[i]),
-                  ),
-                ),
-              ),
-            ),
-          ),
-      ],
     );
   }
 }
