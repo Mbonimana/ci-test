@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:street_team/core/config/theme/app_color.dart';
 import 'package:street_team/presentation/ui/screens/home_screen.dart';
 import 'package:street_team/presentation/ui/widgets/loading_states/loading_indicator.dart';
@@ -89,10 +90,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Form(
                         key: _formKey,
 
-                        autovalidateMode: AutovalidateMode.always,
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
                         child: Column(
                           children: [
-                            const SizedBox(height: 120),
+                            SizedBox(height: 100.h),
                             AppTextField(
                               controller: _emailController,
                               hint: 'Email',
@@ -109,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 return null;
                               },
                             ),
-                            const SizedBox(height: 12),
+                            SizedBox(height: 20.h),
                             AppTextField(
                               controller: _passwordController,
                               hint: 'Password',
@@ -124,12 +125,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                 return null;
                               },
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: 20.h),
                             AppButton(
                               text: 'Login',
                               onPressed: _onLoginPressed,
                             ),
-                            const SizedBox(height: 20),
+                            SizedBox(height: 20.h),
                             Align(
                               alignment: Alignment.centerRight,
                               child: InkWell(
