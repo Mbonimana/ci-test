@@ -1,0 +1,15 @@
+{
+  "locationCategories": [
+    { "id": "loc_01", "name": "Food & Drink" },
+    { "id": "loc_02", "name": "Wellness & Personal Care" },
+    { "id": "loc_03", "name": "Commercial & Retail Spaces" },
+    { "id": "loc_04", "name": "Cultural & Creative Spaces" },
+    { "id": "loc_05", "name": "Education & Learning Spaces" },
+    { "id": "loc_06", "name": "Government & Public Administration" },
+    { "id": "loc_07", "name": "Hospitality & Accommodation" },
+    { "id": "loc_08", "name": "Healthcare Facilities" },
+    { "id": "loc_09", "name": "Community & Social Infrastructure" },
+    { "id": "loc_10", "name": "Religious Spaces" },
+    { "id": "loc_11", "name": "Sports & Recreation Facilities" }
+  ]
+}

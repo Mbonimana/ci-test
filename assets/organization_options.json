@@ -1,0 +1,38 @@
+{
+  "org_options": [
+   
+    { "id": 2, "name": "Delivery Available" },
+   
+    { "id": 4, "name": "Brunch Available" },
+  
+
+    { "id": 6, "name": "Bar" },
+    { "id": 7, "name": "Work Friendly" },
+    { "id": 8, "name": "Wifi" },
+    { "id": 9, "name": "Reservation Required" },
+    { "id": 10, "name": "ATM" },
+    { "id": 11, "name": "Parking Available" },
+    { "id": 12, "name": "Coffee" },
+
+    { "id": 13, "name": "Wheelchair Accessible" },
+    { "id": 14, "name": "Family Friendly" },
+    { "id": 15, "name": "Swimming Pool" },
+    { "id": 16, "name": "Gym" },
+    { "id": 17, "name": "Spa" },
+    { "id": 18, "name": "Pool Table" },
+
+    { "id": 19, "name": "Tourism" },
+    { "id": 20, "name": "Nightlife" },
+    { "id": 21, "name": "Food" },
+    { "id": 22, "name": "Shopping" },
+
+    { "id": 23, "name": "Guhemba Menu" },
+    { "id": 24, "name": "Guhemba" },
+
+    { "id": 25, "name": "Takeaway" },
+    { "id": 26, "name": "Kids Activities" },
+    { "id": 27, "name": "Sunday School" },
+    { "id": 28, "name": "Outdoor Activities" },
+    {"id": 29, "name": "Online Menu" }
+  ]
+}
