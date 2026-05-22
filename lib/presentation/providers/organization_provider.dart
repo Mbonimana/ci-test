@@ -1,23 +1,19 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:street_team/core/utils/talker_helper.dart';
-import 'package:street_team/data/models/entiry_model.dart'; // Updated as per your file name
+import 'package:street_team/data/models/entiry_model.dart';
 import 'package:street_team/data/models/organization_model.dart';
-import 'package:street_team/data/repositories/category_repository.dart'; // Ensure TypeRepository is here
+import 'package:street_team/data/repositories/category_repository.dart';
 import 'package:street_team/data/repositories/organization_repository.dart';
-import 'package:street_team/data/services/category_service.dart'; // Ensure TypeService is here
-
-
+import 'package:street_team/data/services/category_service.dart';
 
 final organizationRepositoryProvider = Provider<OrganizationRepository>((ref) {
   return OrganizationRepository();
 });
 
-
 final typeRepositoryProvider = Provider<TypeRepository>((ref) {
   return TypeRepository(TypeService());
 });
-
 
 final organizationsProvider = FutureProvider<List<OrganizationModel>>((
   ref,
@@ -34,7 +30,6 @@ final organizationsProvider = FutureProvider<List<OrganizationModel>>((
   }
 });
 
-
 final organizationTypesListProvider = FutureProvider<List<EntityType>>((
   ref,
 ) async {
@@ -48,22 +43,18 @@ final locationTypesListProvider = FutureProvider<List<EntityType>>((ref) async {
   return repo.getLocationTypes();
 });
 
-
 final organizationTypeFilterProvider = StateProvider<Set<int>>((ref) {
   return <int>{};
 });
-
 
 final organizationSearchProvider = StateProvider<String>((ref) => '');
 
 /// Active state for search mode
 final isSearchingProvider = StateProvider<bool>((ref) => false);
 
-
 final selectedOrganizationProvider = StateProvider<OrganizationModel?>(
   (ref) => null,
 );
-
 
 final filteredOrganizationsProvider = Provider<List<OrganizationModel>>((ref) {
   final organizationsAsync = ref.watch(organizationsProvider);
