@@ -19,7 +19,7 @@ class _MurugoCloudsUIState extends State<MurugoCloudsUI> {
     super.initState();
 
     // Label fade in
-    Future.delayed(const Duration(milliseconds: 800), () {
+    Future.delayed(const Duration(milliseconds:1200), () {
       if (!mounted) return;
 
       setState(() {
@@ -27,7 +27,7 @@ class _MurugoCloudsUIState extends State<MurugoCloudsUI> {
       });
     });
     //show sun
-    Future.delayed(const Duration(milliseconds: 800), () {
+    Future.delayed(const Duration(milliseconds: 1400), () {
       if (!mounted) return;
 
       setState(() {
@@ -79,7 +79,7 @@ class _MurugoCloudsUIState extends State<MurugoCloudsUI> {
 
             child: AnimatedOpacity(
               opacity: showCloudLabel ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 2000),
+              duration: const Duration(milliseconds: 1500),
               child: Image.asset(
                 'assets/murugo/murugo_cloud_label.webp',
                 height: 38.h,
