@@ -20,75 +20,78 @@ class HomeScreen extends ConsumerWidget {
     final homeState = ref.watch(homeProvider);
     final orgAsync = ref.watch(organizationsProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.backgroundBase,
-      appBar: AppBar(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
         backgroundColor: AppColors.backgroundBase,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        surfaceTintColor: Colors.transparent,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16, top: 8),
-          child: AppButton(
-            onPressed: () => showHomeTopMenu(context),
-            variant: AppButtonVariant.leadingIcon,
-            icon: Icons.menu,
+        appBar: AppBar(
+          backgroundColor: AppColors.backgroundBase,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          surfaceTintColor: Colors.transparent,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 16, top: 8),
+            child: AppButton(
+              onPressed: () => showHomeTopMenu(context),
+              variant: AppButtonVariant.leadingIcon,
+              icon: Icons.menu,
+            ),
           ),
         ),
-      ),
-      body: orgAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text("Error: $err")),
-        data: (_) {
-          final stateData = homeState;
+        body: orgAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, _) => Center(child: Text("Error: $err")),
+          data: (_) {
+            final stateData = homeState;
 
-          return Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.0.w),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 280.h),
+            return Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.0.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 280.h),
 
-                Text(
-                  "Select Type",
-                  style: AppTypography.titleMedium.copyWith(
-                    color: AppColors.textPrimary,
+                  Text(
+                    "Select Type",
+                    style: AppTypography.titleMedium.copyWith(
+                      color: AppColors.textPrimary,
+                    ),
                   ),
-                ),
 
-                SizedBox(height: 15.h),
+                  SizedBox(height: 15.h),
 
-                CategorySelector(stateData: stateData),
+                  CategorySelector(stateData: stateData),
 
-                const Spacer(),
+                  const Spacer(),
 
-                SizedBox(
-                  width: double.infinity,
-                  height: 55.h,
-                  child: AppButton(
-                    text: "Show Map",
-                    icon: Icons.map,
-                    onPressed: () {
-                      if (stateData.selectedTypes.isEmpty) {
-                        AppSnackbar.show(
-                          context: context,
-                          message: 'Please select at least one type',
-                          variant: SnackbarVariant.warning,
-                        );
-                        return;
-                      }
+                  SizedBox(
+                    width: double.infinity,
+                    height: 55.h,
+                    child: AppButton(
+                      text: "Show Map",
+                      icon: Icons.map,
+                      onPressed: () {
+                        if (stateData.selectedTypes.isEmpty) {
+                          AppSnackbar.show(
+                            context: context,
+                            message: 'Please select at least one type',
+                            variant: SnackbarVariant.warning,
+                          );
+                          return;
+                        }
 
-                      context.go(RouteNames.mapScreen);
-                    },
-                    variant: AppButtonVariant.primary,
+                        context.go(RouteNames.mapScreen);
+                      },
+                      variant: AppButtonVariant.primary,
+                    ),
                   ),
-                ),
 
-                SizedBox(height: 40.h),
-              ],
-            ),
-          );
-        },
+                  SizedBox(height: 40.h),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

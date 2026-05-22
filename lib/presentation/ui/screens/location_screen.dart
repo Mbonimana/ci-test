@@ -57,163 +57,170 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
     //picked coordinates
     final pickedCoords = ref.watch(pickedLocationProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.backgroundBase,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                children: [
-                  AppButton(
-                    variant: AppButtonVariant.leadingIcon,
-                    icon: Icons.arrow_back_ios_new_rounded,
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  SizedBox(width: 20.w),
-                  Text(
-                    "LOCATION DETAILS",
-                    style: AppTypography.titleMedium.copyWith(
-                      color: AppColors.brandSecondary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-
-              SizedBox(height: 20.h),
-
-              // Coordinates  Card
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(20.r),
-                decoration: BoxDecoration(
-                  color: AppColors.placeholderText.withAlpha(20),
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundBase,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
                   children: [
+                    AppButton(
+                      variant: AppButtonVariant.leadingIcon,
+                      icon: Icons.arrow_back_ios_new_rounded,
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    SizedBox(width: 20.w),
                     Text(
-                      "Latitude",
-                      style: AppTypography.titleSmall.copyWith(
-                        color: Colors.lightBlue,
+                      "LOCATION DETAILS",
+                      style: AppTypography.titleMedium.copyWith(
+                        color: AppColors.brandPrimary,
                         fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    //picked latitude
-                    Text(
-                      pickedCoords != null
-                          ? pickedCoords.latitude.toString()
-                          : "0.0",
-                      style: AppTypography.bodyMedium.copyWith(
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                    SizedBox(height: 10.h),
-                    Text(
-                      "Longitude",
-                      style: AppTypography.titleSmall.copyWith(
-                        color: Colors.lightBlue,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      pickedCoords != null
-                          ? pickedCoords.longitude.toString()
-                          : "0.0",
-                      style: AppTypography.bodyMedium.copyWith(
-                        color: Colors.grey.shade600,
                       ),
                     ),
                   ],
                 ),
-              ),
 
-              SizedBox(height: 15.h),
+                SizedBox(height: 20.h),
 
-              // Pin Point Button
-              AppButton(
-                text: "Pin point",
-                icon: Icons.location_on_outlined,
-                onPressed: () {
-                 //navigate to the picker
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const MapPinPickerScreen(),
-                    ),
-                  );
-                },
-                variant: AppButtonVariant.primary,
-              ),
+                // Coordinates  Card
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(20.r),
+                  decoration: BoxDecoration(
+                    color: AppColors.placeholderText.withAlpha(20),
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Latitude",
+                        style: AppTypography.titleSmall.copyWith(
+                          color: Colors.lightBlue,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      //picked latitude
+                      Text(
+                        pickedCoords != null
+                            ? pickedCoords.latitude.toString()
+                            : "0.0",
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      SizedBox(height: 10.h),
+                      Text(
+                        "Longitude",
+                        style: AppTypography.titleSmall.copyWith(
+                          color: Colors.lightBlue,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        pickedCoords != null
+                            ? pickedCoords.longitude.toString()
+                            : "0.0",
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
-              SizedBox(height: 10.h),
+                SizedBox(height: 15.h),
 
-              // Form Inputs
-              const AppFormLable(text: "Location name"),
-              SizedBox(height: 8.h),
-              AppTextField(controller: nameController, hint: "Location name"),
+                // Pin Point Button
+                AppButton(
+                  text: "Pin point",
+                  icon: Icons.location_on_outlined,
+                  onPressed: () {
+                    //navigate to the picker
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const MapPinPickerScreen(),
+                      ),
+                    );
+                  },
+                  variant: AppButtonVariant.primary,
+                ),
 
-              SizedBox(height: 10.h),
+                SizedBox(height: 10.h),
 
-              const AppFormLable(text: "Physical address"),
-              SizedBox(height: 8.h),
-              AppTextField(
-                controller: addressController,
-                hint: "Physical address",
-              ),
+                // Form Inputs
+                const AppFormLable(text: "Location name"),
+                SizedBox(height: 8.h),
+                AppTextField(controller: nameController, hint: "Location name"),
 
-              SizedBox(height: 10.h),
+                SizedBox(height: 10.h),
 
-              const AppFormLable(text: "Short name"),
-              SizedBox(height: 8.h),
-              AppTextField(controller: shortNameController, hint: "Short name"),
+                const AppFormLable(text: "Physical address"),
+                SizedBox(height: 8.h),
+                AppTextField(
+                  controller: addressController,
+                  hint: "Physical address",
+                ),
 
-              SizedBox(height: 10.h),
+                SizedBox(height: 10.h),
 
-              const AppFormLable(text: "Nick name"),
-              SizedBox(height: 8.h),
-              AppTextField(controller: nicknameController, hint: "Nick name"),
+                const AppFormLable(text: "Short name"),
+                SizedBox(height: 8.h),
+                AppTextField(
+                  controller: shortNameController,
+                  hint: "Short name",
+                ),
 
-              SizedBox(height: 10.h),
+                SizedBox(height: 10.h),
 
-              // Location Type Dropdown (Multi-select)
-              const AppFormLable(text: "Location type"),
-              SizedBox(height: 8.h),
-              locationTypesAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (err, _) => const Text("Error loading types"),
-                data: (types) => AppDropdown<EntityType>(
-                  label: "Select location types",
-                  items: types,
-                  selectedItems: selectedLocationTypes,
-                  itemLabel: (type) => type.name,
-                  onSelect: (type) => _toggleType(type),
-                  isExpanded: isTypeDropdownExpanded,
-                  onToggle: () {
-                    setState(() {
-                      isTypeDropdownExpanded = !isTypeDropdownExpanded;
-                    });
+                const AppFormLable(text: "Nick name"),
+                SizedBox(height: 8.h),
+                AppTextField(controller: nicknameController, hint: "Nick name"),
+
+                SizedBox(height: 10.h),
+
+                // Location Type Dropdown (Multi-select)
+                const AppFormLable(text: "Location type"),
+                SizedBox(height: 8.h),
+                locationTypesAsync.when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (err, _) => const Text("Error loading types"),
+                  data: (types) => AppDropdown<EntityType>(
+                    label: "Select location types",
+                    items: types,
+                    selectedItems: selectedLocationTypes,
+                    itemLabel: (type) => type.name,
+                    onSelect: (type) => _toggleType(type),
+                    isExpanded: isTypeDropdownExpanded,
+                    onToggle: () {
+                      setState(() {
+                        isTypeDropdownExpanded = !isTypeDropdownExpanded;
+                      });
+                    },
+                  ),
+                ),
+
+                SizedBox(height: 10.h),
+
+                // Bottom Action Button
+                AppButton(
+                  text: "Done",
+                  onPressed: () {
+                    // TODO:Collect data and save
                   },
                 ),
-              ),
 
-              SizedBox(height: 10.h),
-
-              // Bottom Action Button
-              AppButton(
-                text: "Done",
-                onPressed: () {
-                  // TODO:Collect data and save
-                },
-              ),
-
-              SizedBox(height: 20.h),
-            ],
+                SizedBox(height: 20.h),
+              ],
+            ),
           ),
         ),
       ),

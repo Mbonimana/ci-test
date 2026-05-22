@@ -8,13 +8,19 @@ import 'package:street_team/core/config/env_config.dart';
 import 'package:street_team/core/routing/app_router.dart';
 
 Future<void> main() async {
- 
   WidgetsFlutterBinding.ensureInitialized();
-  
-   SystemChrome.setPreferredOrientations([
+
+  SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Color(0x00000000),
+      statusBarIconBrightness: Brightness.light, // Android
+      statusBarBrightness: Brightness.light, // iOS
+    ),
+  );
 
   MapboxOptions.setAccessToken(EnvConfig.mapBoxToken);
 
@@ -61,6 +67,16 @@ class MyApp extends StatelessWidget {
             scaffoldBackgroundColor: Colors.white,
             splashFactory: InkRipple.splashFactory,
             visualDensity: VisualDensity.adaptivePlatformDensity,
+
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Colors.white,
+              elevation: 0,
+              systemOverlayStyle: SystemUiOverlayStyle(
+                statusBarColor: Colors.transparent,
+                statusBarIconBrightness: Brightness.dark,
+                statusBarBrightness: Brightness.light,
+              ),
+            ),
           ),
 
           // BUILDER

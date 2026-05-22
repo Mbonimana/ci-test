@@ -8,6 +8,7 @@ import 'package:street_team/core/config/theme/typography.dart';
 import 'package:street_team/presentation/providers/map_provider.dart';
 import 'package:street_team/presentation/providers/organization_provider.dart';
 import 'package:street_team/presentation/ui/screens/location_screen.dart';
+import 'package:street_team/presentation/ui/screens/organization_screen.dart';
 import 'package:street_team/presentation/ui/widgets/map_screen_widgets/search_results_panel.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_button.dart';
 
@@ -239,9 +240,17 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                 ),
                                 SizedBox(height: 10.h),
                                 AppButton(
-                                  text: "New Organization", 
+                                  text: "New Organization",
                                   icon: Icons.business_outlined,
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const OrganizationScreen(),
+                                      ),
+                                    );
+                                  },
                                   variant: AppButtonVariant.secondary,
                                 ),
                               ],

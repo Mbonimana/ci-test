@@ -118,10 +118,18 @@ class _MapboxMapViewState extends State<_MapboxMapView> {
       styleUri: widget.style,
       textureView: true,
       viewport: _viewportState,
-      onMapCreated: (createdMap) {
+      onMapCreated: (createdMap) async {
         _map = createdMap;
+
         widget.cameraController.attachMap(createdMap);
+        //Keyboard dismissal on map tap
+        final tapInteraction = TapInteraction.onMap((context) {
+          FocusManager.instance.primaryFocus?.unfocus();
+        });
+
+        createdMap.addInteraction(tapInteraction);
       },
+
       onStyleLoadedListener: _handleStyleLoaded,
       onCameraChangeListener: _handleCameraChanged,
     );

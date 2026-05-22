@@ -50,3 +50,8 @@ flutter:
   - assets/mock/organization_types.json
   - assets/mock/organization_subtypes.json
   - assets/mock/location_types.json
+  #New Data Files
+  - assets/organization_options.json
+  - assets/organization_types.json
+  - assets/location_types.json
+

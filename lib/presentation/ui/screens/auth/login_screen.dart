@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:street_team/core/config/theme/app_color.dart';
 import 'package:street_team/presentation/ui/screens/home_screen.dart';
 import 'package:street_team/presentation/ui/widgets/loading_states/loading_indicator.dart';
 import 'package:street_team/presentation/ui/widgets/murugo_elements/murugo_clouds.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_button.dart';
-import 'package:street_team/presentation/ui/widgets/shared/feedback_widgets/app_dialoge.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_text_field.dart';
+import 'package:street_team/presentation/ui/widgets/shared/feedback_widgets/app_dialoge.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -72,93 +73,99 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundBase,
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              const MurugoCloudsUI(),
-              Expanded(
-                child: SafeArea(
-                  top: false,
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
-                    child: Form(
-                      key: _formKey,
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundBase,
+        body: Stack(
+          children: [
+            Column(
+              children: [
+                const MurugoCloudsUI(),
+                Expanded(
+                  child: SafeArea(
+                    top: false,
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: Form(
+                        key: _formKey,
 
-                      autovalidateMode: AutovalidateMode.always,
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 120),
-                          AppTextField(
-                            controller: _emailController,
-                            hint: 'Email',
-                            keyboardType: TextInputType.emailAddress,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Email is required';
-                              }
-                              if (!RegExp(
-                                r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                              ).hasMatch(value)) {
-                                return 'Please enter a valid email';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          AppTextField(
-                            controller: _passwordController,
-                            hint: 'Password',
-                            obscureText: true,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Password is required';
-                              }
-                              if (value.length < 6) {
-                                return 'Password must be at least 6 characters';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          AppButton(text: 'Login', onPressed: _onLoginPressed),
-                          const SizedBox(height: 20),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: InkWell(
-                              onTap: _launchForgotPassword,
-                              splashColor: Colors.transparent,
-                              highlightColor: Colors.transparent,
-                              child: const Padding(
-                                padding: EdgeInsets.symmetric(vertical: 8.0),
-                                child: Text(
-                                  'Forgot Password?',
-                                  style: TextStyle(
-                                    color: AppColors.brandPrimary,
-                                    fontWeight: FontWeight.w500,
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        child: Column(
+                          children: [
+                            SizedBox(height: 100.h),
+                            AppTextField(
+                              controller: _emailController,
+                              hint: 'Email',
+                              keyboardType: TextInputType.emailAddress,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Email is required';
+                                }
+                                if (!RegExp(
+                                  r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                                ).hasMatch(value)) {
+                                  return 'Please enter a valid email';
+                                }
+                                return null;
+                              },
+                            ),
+                            SizedBox(height: 20.h),
+                            AppTextField(
+                              controller: _passwordController,
+                              hint: 'Password',
+                              obscureText: true,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Password is required';
+                                }
+                                if (value.length < 6) {
+                                  return 'Password must be at least 6 characters';
+                                }
+                                return null;
+                              },
+                            ),
+                            SizedBox(height: 20.h),
+                            AppButton(
+                              text: 'Login',
+                              onPressed: _onLoginPressed,
+                            ),
+                            SizedBox(height: 20.h),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: InkWell(
+                                onTap: _launchForgotPassword,
+                                splashColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
+                                child: const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 8.0),
+                                  child: Text(
+                                    'Forgot Password?',
+                                    style: TextStyle(
+                                      color: AppColors.brandPrimary,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-          if (_isLoading)
-            const Positioned.fill(
-              child: ColoredBox(
-                color: Colors.transparent,
-                child: LoadingIndicator(),
-              ),
+              ],
             ),
-        ],
+            if (_isLoading)
+              const Positioned.fill(
+                child: ColoredBox(
+                  color: Colors.transparent,
+                  child: LoadingIndicator(),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

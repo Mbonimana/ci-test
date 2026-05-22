@@ -48,6 +48,8 @@ class AppButton extends StatelessWidget {
         return _LeadingIconButton(
           icon: icon ?? Icons.arrow_back,
           onPressed: onPressed,
+          color: color,
+          textColor: textColor,
         );
 
       case AppButtonVariant.circularIcon:
@@ -138,16 +140,26 @@ class _PrimaryButton extends StatelessWidget {
 class _LeadingIconButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onPressed;
+  final Color? color;
+  final Color? textColor;
 
-  const _LeadingIconButton({required this.icon, required this.onPressed});
+  const _LeadingIconButton({
+    required this.icon,
+    required this.onPressed,
+    this.color,
+    this.textColor,
+  });
   @override
   Widget build(BuildContext context) {
+    final backgroundColor = color ?? AppColors.backgroundBase;
+    final foregroundColor = textColor ?? AppColors.brandPrimary;
+
     return Center(
       child: Container(
         width: 40.w,
         height: 40.w,
         decoration: BoxDecoration(
-          color: AppColors.backgroundBase,
+          color: backgroundColor,
           borderRadius: BorderRadius.circular(10.r),
           border: Border.all(color: AppColors.brandPrimary, width: 1.0),
           boxShadow: [
@@ -161,7 +173,7 @@ class _LeadingIconButton extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(10.r),
           onTap: onPressed,
-          child: Icon(icon, size: 22.sp, color: AppColors.brandPrimary),
+          child: Icon(icon, size: 22.sp, color: foregroundColor),
         ),
       ),
     );

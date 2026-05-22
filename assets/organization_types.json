@@ -1,0 +1,174 @@
+{
+  "organizationTypes": [
+    {
+      "id": "org_01",
+      "name": "Bar",
+      "subtypes": ["Rooftop", "Club", "Lounge", "Pub", "Pool Bar"]
+    },
+    {
+      "id": "org_02",
+      "name": "Coffee",
+      "subtypes": [
+        "Rooftop Café",
+        "Espresso Bar",
+        "Quiet Cafe",
+        "Modern Cafe",
+        "Quick grab-and-go coffee",
+        "Garden cafés",
+        "Book cafés"
+      ]
+    },
+    {
+      "id": "org_03",
+      "name": "FastFood",
+      "subtypes": ["Burgers", "Pizzas", "Chicken", "Sandwiches"]
+    },
+    {
+      "id": "org_04",
+      "name": "Restaurants",
+      "subtypes": [
+        "African",
+        "Ethiopian",
+        "Indian",
+        "Chinese",
+        "Italian",
+        "MiddleEastern",
+        "French",
+        "Vegetarian",
+        "Rooftop",
+        "Buffet",
+        "Outdoor",
+        "Kids Menu"
+      ]
+    },
+    {
+      "id": "org_05",
+      "name": "Beauty and SPA",
+      "subtypes": ["Salon", "Spa", "Sauna", "Massage", "Skincare"]
+    },
+    {
+      "id": "org_06",
+      "name": "Business",
+      "subtypes": ["Corporate", "SME", "Enterprise", "Startup", "Consultancy", "Forex Bureau"]
+    },
+    {
+      "id": "org_07",
+      "name": "Shopping",
+      "subtypes": [
+        "Supermarket",
+        "Market",
+        "Malls",
+        "Electronics Store",
+        "Furniture Store",
+        "Clothing Store",
+        "Liquor Store",
+        "Arts Centers"
+      ]
+    },
+    {
+      "id": "org_08",
+      "name": "Culture",
+      "subtypes": [
+        "Arts Center",
+        "Cultural Centers",
+        "Theater",
+        "Exhibition Spaces",
+        "Gallery",
+        "Museum"
+      ]
+    },
+    {
+      "id": "org_09",
+      "name": "Education",
+      "subtypes": [
+        "Nursery",
+        "School (Primary & Secondary)",
+        "Training Center",
+        "University",
+        "Driving Schools",
+        "Language Centers"
+      ]
+    },
+    {
+      "id": "org_10",
+      "name": "Embassy",
+      "subtypes": ["Consulate", "HighCommission", "Visa Office"]
+    },
+    {
+      "id": "org_11",
+      "name": "Government",
+      "subtypes": [
+        "Ministry",
+        "District Office",
+        "Public Service Center",
+        "Immigration Office",
+        "City Hall",
+        "Police Station",
+        "Court"
+      ]
+    },
+    {
+      "id": "org_12",
+      "name": "Hotel",
+      "subtypes": [
+        "Apartment",
+        "Boutique Hotel",
+        "Conference Hotel",
+        "Resort",
+        "Guesthouse",
+        "BnB"
+      ]
+    },
+    {
+      "id": "org_13",
+      "name": "Medical",
+      "subtypes": [
+        "Hospital",
+        "Health Center",
+        "Pharmacy",
+        "Clinics",
+        "Wellness Center",
+        "Mental Health Services"
+      ]
+    },
+    {
+      "id": "org_14",
+      "name": "Pharmacy",
+      "subtypes": [
+        "Hospital Pharmacy",
+        "Retail Pharmacy",
+        "24/7 Pharmacy"
+      ]
+    },
+    {
+      "id": "org_15",
+      "name": "Non profit",
+      "subtypes": [
+        "NGO",
+        "Charity",
+        "Foundation",
+        "Community Organization",
+        "Advocacy Group"
+      ]
+    },
+    {
+      "id": "org_16",
+      "name": "Religious",
+      "subtypes": ["Church", "Mosque"]
+    },
+    {
+      "id": "org_17",
+      "name": "Sports",
+      "subtypes": [
+        "Football Court",
+        "Tennis Court",
+        "Basketball",
+        "Golf Course",
+        "Cricket Court",
+        "Stadiums",
+        "Sport complex",
+        "Gym"
+      ]
+    }
+  ]
+}
