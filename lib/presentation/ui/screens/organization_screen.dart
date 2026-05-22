@@ -134,70 +134,79 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundBase,
-      appBar: AppBar(
-        title: const Text('Organization Details'),
-        leading: AppButton(
-          onPressed: () {
-            if (currentStep == 0) {
-              Navigator.pop(context);
-            } else {
-              setState(() => currentStep = 0);
-            }
-          },
-          variant: AppButtonVariant.leadingIcon,
-          icon: Icons.arrow_back_ios_new_rounded,
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundBase,
+        appBar: AppBar(
+          title: const Text('Organization Details'),
+          leading: AppButton(
+            onPressed: () {
+              if (currentStep == 0) {
+                Navigator.pop(context);
+              } else {
+                setState(() => currentStep = 0);
+              }
+            },
+            variant: AppButtonVariant.leadingIcon,
+            icon: Icons.arrow_back_ios_new_rounded,
+          ),
+          centerTitle: true,
+          backgroundColor: Colors.transparent,
+          foregroundColor: AppColors.brandPrimary,
+          elevation: 0,
         ),
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
-        foregroundColor: AppColors.brandPrimary,
-        elevation: 0,
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // STEP INDICATOR (Step 1 ------ Step 2)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 10),
-              child: Row(
-                children: [
-                  _stepNode(0, "Step 1"),
-                  Expanded(
-                    child: Container(height: 2, color: Colors.grey.shade200),
-                  ),
-                  _stepNode(1, "Step 2"),
-                ],
+        bottomNavigationBar: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // STEP INDICATOR (Step 1 ------ Step 2)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 40,
+                  vertical: 10,
+                ),
+                child: Row(
+                  children: [
+                    _stepNode(0, "Step 1"),
+                    Expanded(
+                      child: Container(height: 2, color: Colors.grey.shade200),
+                    ),
+                    _stepNode(1, "Step 2"),
+                  ],
+                ),
               ),
-            ),
-            // Navigator Button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              child: AppButton(
-                onPressed: currentStep == 0
-                    ? () => setState(() => currentStep = 1)
-                    : _save,
-                variant: AppButtonVariant.primary,
-                text: currentStep == 0 ? "Next" : "Submit",
+              // Navigator Button
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
+                child: AppButton(
+                  onPressed: currentStep == 0
+                      ? () => setState(() => currentStep = 1)
+                      : _save,
+                  variant: AppButtonVariant.primary,
+                  text: currentStep == 0 ? "Next" : "Submit",
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-      body: categories.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (currentStep == 0) _buildStepOne(),
-                  if (currentStep == 1) _buildStepTwo(),
-                  SizedBox(height: 20.h),
-                ],
+        body: categories.isEmpty
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (currentStep == 0) _buildStepOne(),
+                    if (currentStep == 1) _buildStepTwo(),
+                    SizedBox(height: 20.h),
+                  ],
+                ),
               ),
-            ),
+      ),
     );
   }
 
@@ -211,7 +220,7 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
 
         // Seach row
         const LocationSearchWidget(),
-      
+
         SizedBox(height: 15.h),
         const AppFormLable(text: 'Organization Name'),
         SizedBox(height: 12.h),
