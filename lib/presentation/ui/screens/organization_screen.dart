@@ -8,8 +8,8 @@ import 'package:street_team/presentation/ui/widgets/shared/app_button.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_drop_down.dart'; // Added this import
 import 'package:street_team/presentation/ui/widgets/shared/app_form_lable.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_text_field.dart';
-import 'package:street_team/presentation/ui/widgets/shared/hours_widget.dart';
-import 'package:street_team/presentation/ui/widgets/shared/org_options.dart';
+import 'package:street_team/presentation/ui/widgets/shared/organization_screen/working_hours.dart';
+import 'package:street_team/presentation/ui/widgets/shared/organization_screen/org_options.dart';
 
 class OrganizationScreen extends StatefulWidget {
   const OrganizationScreen({super.key});
@@ -266,7 +266,7 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
         AppTextField(controller: quickinfo, hint: "Quick Info"),
         SizedBox(height: 15.h),
         const AppFormLable(text: "Organization Options"),
-        BusinessHoursScreen(
+        WorkingHours(
           onSaved: (val) => setState(() => workingHoursSummary = val),
         ),
         SizedBox(height: 12.h),
