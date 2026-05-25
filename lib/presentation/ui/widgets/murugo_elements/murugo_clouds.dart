@@ -18,16 +18,15 @@ class _MurugoCloudsUIState extends State<MurugoCloudsUI> {
   void initState() {
     super.initState();
 
-    // Label fade in
-    Future.delayed(const Duration(milliseconds: 1200), () {
+    Future.delayed(const Duration(milliseconds: 750), () {
       if (!mounted) return;
 
       setState(() {
         showCloudLabel = true;
       });
     });
-    //show sun
-    Future.delayed(const Duration(milliseconds: 1400), () {
+
+    Future.delayed(const Duration(milliseconds: 750), () {
       if (!mounted) return;
 
       setState(() {
