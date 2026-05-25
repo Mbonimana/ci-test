@@ -15,6 +15,14 @@ class EnvConfig {
     'MAP_BOX_ACCESS_TOKEN',
     defaultValue: '',
   );
+  static const String baseUrl = String.fromEnvironment(
+    'BASE_URL',
+    defaultValue: '',
+  );
+  static const String murugoUrl = String.fromEnvironment(
+    'MURUGO_URL',
+    defaultValue: '',
+  );
   static bool get isDevelopment => environment == 'development';
   static bool get isBeta => environment == 'beta';
   static bool get isProduction => environment == 'production';
