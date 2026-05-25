@@ -41,54 +41,34 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _onLoginPressed() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
-    try {
-      final success = await ref
-          .read(authProvider.notifier)
-          .login(email: email, password: password);
+    final result = await ref
+        .read(authProvider.notifier)
+        .login(email: email, password: password);
 
-      if (!mounted) return;
+    if (!mounted) return;
 
-      setState(() {
-        _isLoading = false;
-      });
+    setState(() => _isLoading = false);
 
-      if (success) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute<void>(builder: (context) => const HomeScreen()),
-        );
-
-        return;
-      }
-
-      await AppDialog.show(
-        context: context,
-        title: 'Authentication Failed',
-        message: 'Invalid email or password. Please try again.',
-      );
-    } catch (e) {
-      if (!mounted) return;
-
-      setState(() {
-        _isLoading = false;
-      });
-
-      await AppDialog.show(
-        context: context,
-        title: 'Something went wrong',
-        message: e.toString(),
-      );
+    if (result.success) {
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
+      return;
     }
+
+
+    await AppDialog.show(
+      context: context,
+      title: 'Login Failed',
+      message: result.message,
+    );
   }
 
   @override
