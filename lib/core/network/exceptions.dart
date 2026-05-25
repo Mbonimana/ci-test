@@ -1,27 +1,24 @@
-import 'package:street_team/core/utils/talker_helper.dart';
-
 class AppException implements Exception {
   final String message;
-  final String? prefix;
 
-  AppException(this.message, [this.prefix]);
+  const AppException(this.message);
 
   @override
-  String toString() {
-    talker.error("$prefix $message");
-    return "$prefix$message";
-  }
+  String toString() => message;
 }
 
-class FetchDataException extends AppException {
-  FetchDataException(String message)
-    : super(message, "Error During Communication: ");
+class NetworkException extends AppException {
+  const NetworkException(super.message);
 }
 
-class BadRequestException extends AppException {
-  BadRequestException(String message) : super(message, "Invalid Request: ");
+class UnauthorizedException extends AppException {
+  const UnauthorizedException(super.message);
 }
 
-class UnauthorisedException extends AppException {
-  UnauthorisedException(String message) : super(message, "Unauthorised: ");
+class ServerException extends AppException {
+  const ServerException(super.message);
+}
+
+class ValidationException extends AppException {
+  const ValidationException(super.message);
 }
