@@ -19,10 +19,32 @@ class EnvConfig {
     'BASE_URL',
     defaultValue: '',
   );
-  static const String murugoUrl = String.fromEnvironment(
-    'MURUGO_URL',
+  static const String murugoBaseUrl = String.fromEnvironment(
+    'MURUGO_BASE_URL',
     defaultValue: '',
   );
+
+  static const String appKey = String.fromEnvironment(
+    'APP_KEY',
+    defaultValue: '',
+  );
+  static const String streetTeamClientId = String.fromEnvironment(
+    'STREET_TEAM_CLIENT_ID',
+    defaultValue: '',
+  );
+  static const String streetTeamClientSecret = String.fromEnvironment(
+    'STREET_TEAM_CLIENT_SECRET',
+    defaultValue: '',
+  );
+  static const String murugoClientId = String.fromEnvironment(
+    'MURUGO_CLIENT_ID',
+    defaultValue: '',
+  );
+  static const String murugoClientSecret = String.fromEnvironment(
+    'MURUGO_CLIENT_SECRET',
+    defaultValue: '',
+  );
+
   static bool get isDevelopment => environment == 'development';
   static bool get isBeta => environment == 'beta';
   static bool get isProduction => environment == 'production';
