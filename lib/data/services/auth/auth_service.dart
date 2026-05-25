@@ -50,7 +50,12 @@ class AuthService {
                 'Unknown error'
           : 'Unknown error';
 
-      throw Exception(apiMessage);
+      throw DioException(
+        requestOptions: e.requestOptions,
+        response: e.response,
+        type: e.type,
+        error: apiMessage, 
+      );
     }
   }
   // Get User Information
@@ -197,7 +202,6 @@ $e
         'Content-Type': 'application/json',
       });
 
-  
       AuthStorageService.clear();
 
       talker.info('LOGOUT SUCCESS');
