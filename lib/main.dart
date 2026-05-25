@@ -14,6 +14,7 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Color(0x00000000),
@@ -29,7 +30,7 @@ Future<void> main() async {
     Sentry.captureException(details.exception, stackTrace: details.stack);
   };
 
-  // SENTRY INIT
+//sentry init
   await SentryFlutter.init(
     (options) {
       options.dsn = EnvConfig.sentryDsn;
@@ -44,24 +45,27 @@ Future<void> main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(goRouterProvider);
+
     return ScreenUtilInit(
       designSize: const Size(411, 869),
       minTextAdapt: true,
       splitScreenMode: true,
+
       builder: (_, _) {
         return MaterialApp.router(
           title: 'Street Team',
           debugShowCheckedModeBanner: false,
 
-          // ROUTER
-          routerConfig: AppRouter.router,
+          //router
+          routerConfig: router,
 
-          // THEME
+          //theme
           theme: ThemeData(
             useMaterial3: false,
             scaffoldBackgroundColor: Colors.white,
@@ -79,12 +83,13 @@ class MyApp extends StatelessWidget {
             ),
           ),
 
-          // BUILDER
+          /// GLOBAL BUILDER
           builder: (context, child) {
             return MediaQuery(
               data: MediaQuery.of(
                 context,
               ).copyWith(textScaler: const TextScaler.linear(1.0)),
+
               child: child!,
             );
           },
