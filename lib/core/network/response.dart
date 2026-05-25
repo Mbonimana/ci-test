@@ -1,15 +1,15 @@
-enum Status { initial, loading, completed, error }
-
 class ApiResponse<T> {
-  Status status;
-  T? data;
-  String? message;
+  final bool success;
+  final T? data;
+  final String? message;
 
-  ApiResponse.initial() : status = Status.initial;
-  ApiResponse.loading() : status = Status.loading;
-  ApiResponse.completed(this.data) : status = Status.completed;
-  ApiResponse.error(this.message) : status = Status.error;
+  const ApiResponse({required this.success, this.data, this.message});
 
-  @override
-  String toString() => "Status : $status \n Message : $message \n Data : $data";
+  factory ApiResponse.success(T data) {
+    return ApiResponse(success: true, data: data);
+  }
+
+  factory ApiResponse.failure(String message) {
+    return ApiResponse(success: false, message: message);
+  }
 }
