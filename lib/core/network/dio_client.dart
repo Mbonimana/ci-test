@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:street_team/core/utils/log_colors.dart';
+import 'package:street_team/core/utils/logger_colors.dart';
 
 class DioClient {
   static final Dio dio =
