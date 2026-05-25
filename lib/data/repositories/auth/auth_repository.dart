@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:street_team/core/network/exceptions.dart';
 import 'package:street_team/core/network/response.dart';
 import 'package:street_team/core/network/status_codes.dart';
 import 'package:street_team/core/utils/talker_helper.dart';
@@ -55,7 +54,7 @@ class AuthRepo {
 
       final streetTeamAccessToken = streetTeamResponse.data['access_token'];
 
-      talker.log('AUTH FLOW SUCCESS');
+      talker.log('Auth flow sucessed');
 
       // save session
       await AuthStorageService.write(
@@ -82,13 +81,29 @@ class AuthRepo {
 
       return ApiResponse.success(null);
     } on DioException catch (e) {
-      if (e.response?.statusCode == StatusCodes.unauthorized) {
-        throw const UnauthorizedException('Invalid email or password');
+      final data = e.response?.data;
+
+      //  network erro
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.connectionError) {
+        return ApiResponse.failure(' Please check your internet connection.');
       }
 
-      throw NetworkException(e.message ?? 'Network error occurred');
-    } catch (e) {
-      throw ServerException(e.toString());
+      // http error
+      if (data is Map<String, dynamic>) {
+        final message =
+            data['message'] ?? data['error_description'] ?? data['error'];
+
+        if (message != null) {
+          return ApiResponse.failure(message);
+        }
+      }
+
+      // fallback
+      return ApiResponse.failure(
+        'Unexpected error occurred. Please try again.',
+      );
     }
   }
 
