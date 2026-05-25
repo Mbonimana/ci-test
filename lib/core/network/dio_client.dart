@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'package:street_team/core/utils/log_colors.dart';
 
 class DioClient {
   static final Dio dio =
@@ -15,15 +15,32 @@ class DioClient {
           ),
         )
         ..interceptors.add(
-          PrettyDioLogger(
-            request: true,
-            requestHeader: true,
-            requestBody: true,
-            responseHeader: true,
-            responseBody: true,
-            error: true,
-            compact: false,
-            maxWidth: 120,
+          InterceptorsWrapper(
+            onRequest: (options, handler) {
+              PrettyDioLogger.request(
+                options.method,
+                options.uri.toString(),
+                options.headers,
+                options.data,
+              );
+              return handler.next(options);
+            },
+            onResponse: (response, handler) {
+              PrettyDioLogger.success(
+                response.statusCode ?? 0,
+                response.requestOptions.uri.toString(),
+                response.data,
+              );
+              return handler.next(response);
+            },
+            onError: (error, handler) {
+              PrettyDioLogger.error(
+                error.response?.statusCode,
+                error.requestOptions.uri.toString(),
+                error.response?.data ?? error.message,
+              );
+              return handler.next(error);
+            },
           ),
         );
 }
