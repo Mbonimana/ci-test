@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:street_team/core/config/env_config.dart';
 import 'package:street_team/core/config/theme/app_color.dart';
 import 'package:street_team/presentation/providers/auth/auth_provider.dart';
 import 'package:street_team/presentation/ui/screens/home_screen.dart';
@@ -33,7 +34,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _launchForgotPassword() async {
-    final Uri url = Uri.parse('https://murugotestcloud.com');
+    final Uri url = Uri.parse(EnvConfig.murugoPasswordResetUrl);
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       throw Exception('Could not launch $url');
     }
