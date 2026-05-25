@@ -1,7 +1,7 @@
 import 'package:street_team/core/config/env_config.dart';
 
 class Endpoints {
-  // Base URLs from your EnvConfig
+  //base urls
   static const String murugoBaseUrl = EnvConfig.murugoUrl;
   static const String apiBaseUrl = EnvConfig.baseUrl;
 
