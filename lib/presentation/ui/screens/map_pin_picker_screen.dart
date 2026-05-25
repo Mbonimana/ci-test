@@ -91,7 +91,7 @@ class _MapPinPickerScreenState extends ConsumerState<MapPinPickerScreen> {
             ),
           ),
 
-         // Center Pin Indicator 
+          // Center Pin Indicator
           IgnorePointer(
             child: Center(
               child: Stack(
@@ -141,8 +141,7 @@ class _MapPinPickerScreenState extends ConsumerState<MapPinPickerScreen> {
             bottom: 220.h,
             right: 20.w,
             child: AppButton(
-              onPressed: () =>
-                  mapEngine.goToUserLocation(), 
+              onPressed: () => mapEngine.goToUserLocation(),
               variant: AppButtonVariant.leadingIcon,
               icon: Icons.my_location,
             ),

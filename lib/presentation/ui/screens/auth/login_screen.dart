@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:street_team/core/config/theme/app_color.dart';
+import 'package:street_team/presentation/providers/auth/auth_provider.dart';
 import 'package:street_team/presentation/ui/screens/home_screen.dart';
 import 'package:street_team/presentation/ui/widgets/loading_states/loading_indicator.dart';
 import 'package:street_team/presentation/ui/widgets/murugo_elements/murugo_clouds.dart';
@@ -9,14 +11,14 @@ import 'package:street_team/presentation/ui/widgets/shared/app_text_field.dart';
 import 'package:street_team/presentation/ui/widgets/shared/feedback_widgets/app_dialoge.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -49,26 +51,43 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
-    await Future<void>.delayed(const Duration(seconds: 6));
+    try {
+      final success = await ref
+          .read(authProvider.notifier)
+          .login(email: email, password: password);
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    setState(() {
-      _isLoading = false;
-    });
+      setState(() {
+        _isLoading = false;
+      });
 
-    if (email == 'demo@murugo.com' && password == '123456') {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(builder: (context) => const HomeScreen()),
+      if (success) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute<void>(builder: (context) => const HomeScreen()),
+        );
+
+        return;
+      }
+
+      await AppDialog.show(
+        context: context,
+        title: 'Authentication Failed',
+        message: 'Invalid email or password. Please try again.',
       );
-      return;
-    }
+    } catch (e) {
+      if (!mounted) return;
 
-    await AppDialog.show(
-      context: context,
-      title: 'Something went wrong',
-      message: 'Invalid email or password. Please try again.',
-    );
+      setState(() {
+        _isLoading = false;
+      });
+
+      await AppDialog.show(
+        context: context,
+        title: 'Something went wrong',
+        message: e.toString(),
+      );
+    }
   }
 
   @override

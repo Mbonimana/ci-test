@@ -5,9 +5,6 @@ class EntityType {
   EntityType({required this.id, required this.name});
 
   factory EntityType.fromJson(Map<String, dynamic> json) {
-    return EntityType(
-      id: json['id'] as int,
-      name: json['name'] as String,
-    );
+    return EntityType(id: json['id'] as int, name: json['name'] as String);
   }
 }

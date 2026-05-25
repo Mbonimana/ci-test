@@ -32,7 +32,7 @@ class HomeScreen extends ConsumerWidget {
           leading: Padding(
             padding: const EdgeInsets.only(left: 16, top: 8),
             child: AppButton(
-              onPressed: () => showHomeTopMenu(context),
+              onPressed: () => showHomeTopMenu(context, ref),
               variant: AppButtonVariant.leadingIcon,
               icon: Icons.menu,
             ),

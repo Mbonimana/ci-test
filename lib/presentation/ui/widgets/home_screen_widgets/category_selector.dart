@@ -111,7 +111,6 @@ class CategorySelector extends ConsumerWidget {
                   itemBuilder: (context, index) {
                     final int typeId = stateData.types[index];
 
-                   
                     final String typeName = typeMap[typeId] ?? "Unknown";
 
                     final isSelected = stateData.selectedTypes.contains(typeId);

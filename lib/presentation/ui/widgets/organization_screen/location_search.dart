@@ -141,7 +141,7 @@ class _LocationSearchWidgetState extends ConsumerState<LocationSearchWidget> {
               variant: AppButtonVariant.leadingIcon,
               icon: Icons.add_location_alt_outlined,
               color: AppColors.brandPrimary,
-              textColor: AppColors.backgroundBase, 
+              textColor: AppColors.backgroundBase,
               onPressed: () {
                 Navigator.push(
                   context,
@@ -167,10 +167,7 @@ class _LocationSearchWidgetState extends ConsumerState<LocationSearchWidget> {
                 color: AppColors.placeholderText.withAlpha(50),
               ),
               boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withAlpha(12),
-                  blurRadius: 10,
-                ),
+                BoxShadow(color: Colors.black.withAlpha(12), blurRadius: 10),
               ],
             ),
             child: ListView.separated(

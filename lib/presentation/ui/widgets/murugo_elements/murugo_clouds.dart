@@ -19,7 +19,7 @@ class _MurugoCloudsUIState extends State<MurugoCloudsUI> {
     super.initState();
 
     // Label fade in
-    Future.delayed(const Duration(milliseconds:1200), () {
+    Future.delayed(const Duration(milliseconds: 1200), () {
       if (!mounted) return;
 
       setState(() {
