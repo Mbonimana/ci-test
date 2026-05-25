@@ -6,5 +6,4 @@ class RouteNames {
   static const String location = '/location-screen';
   static const String organization = '/organization-screen';
   static const String none = '/none-screen';
-
 }
