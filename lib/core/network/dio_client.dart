@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:street_team/core/utils/logger_colors.dart';
+import 'package:street_team/core/utils/logger_helper.dart';
 import 'package:street_team/data/services/auth/storage/auth_storage_keys.dart';
 import 'package:street_team/data/services/auth/storage/auth_storage_service.dart';
 
@@ -28,29 +28,31 @@ class DioClient {
                 options.headers['Authorization'] = 'Bearer $token';
               }
 
-              PrettyDioLogger.request(
-                options.method,
-                options.uri.toString(),
-                options.headers,
-                options.data,
+              AppLogger.request(
+                method: options.method,
+                url: options.uri.toString(),
+                headers: options.headers,
+                body: options.data,
               );
 
               return handler.next(options);
             },
+
             onResponse: (response, handler) {
-              PrettyDioLogger.success(
-                response.statusCode ?? 0,
-                response.requestOptions.uri.toString(),
-                response.data,
+              AppLogger.response(
+                statusCode: response.statusCode ?? 0,
+                url: response.requestOptions.uri.toString(),
+                data: response.data,
               );
 
               return handler.next(response);
             },
+
             onError: (error, handler) {
-              PrettyDioLogger.error(
-                error.response?.statusCode,
-                error.requestOptions.uri.toString(),
-                error.response?.data ?? error.message,
+              AppLogger.error(
+                statusCode: error.response?.statusCode,
+                url: error.requestOptions.uri.toString(),
+                error: error.response?.data ?? error.message,
               );
 
               return handler.next(error);
