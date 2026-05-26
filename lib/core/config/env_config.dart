@@ -46,6 +46,11 @@ class EnvConfig {
     'MURUGO_CLIENT_SECRET',
     defaultValue: '',
   );
+  static const String publicKey = String.fromEnvironment(
+    'PUBLIC_KEY',
+    defaultValue: '',
+  );
+  
 
   static bool get isDevelopment => environment == 'development';
   static bool get isBeta => environment == 'beta';
