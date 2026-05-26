@@ -6,8 +6,7 @@ import 'package:street_team/core/config/theme/app_color.dart';
 import 'package:street_team/core/config/theme/typography.dart';
 import 'package:street_team/core/routing/route_names.dart';
 import 'package:street_team/presentation/providers/home_screen_provider.dart';
-import 'package:street_team/presentation/providers/organization_provider.dart';
-import 'package:street_team/presentation/ui/widgets/home_screen_widgets/category_selector.dart';
+import 'package:street_team/presentation/ui/widgets/home_screen_widgets/type_selector.dart';
 import 'package:street_team/presentation/ui/widgets/home_screen_widgets/home_top_menu.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_button.dart';
 import 'package:street_team/presentation/ui/widgets/shared/feedback_widgets/app_snackbar.dart';
@@ -18,12 +17,12 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final homeState = ref.watch(homeProvider);
-    final orgAsync = ref.watch(organizationsProvider);
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         backgroundColor: AppColors.backgroundBase,
+
         appBar: AppBar(
           backgroundColor: AppColors.backgroundBase,
           elevation: 0,
@@ -38,19 +37,18 @@ class HomeScreen extends ConsumerWidget {
             ),
           ),
         ),
-        body: orgAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, _) => Center(child: Text("Error: $err")),
-          data: (_) {
-            final stateData = homeState;
 
-            return Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.0.w),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: 280.h),
-
+                  SizedBox(height: 230.h),
                   Text(
                     "Select Type",
                     style: AppTypography.titleMedium.copyWith(
@@ -59,11 +57,9 @@ class HomeScreen extends ConsumerWidget {
                   ),
 
                   SizedBox(height: 15.h),
+                  CategorySelector(stateData: homeState),
 
-                  CategorySelector(stateData: stateData),
-
-                  const Spacer(),
-
+                  SizedBox(height: 30.h),
                   SizedBox(
                     width: double.infinity,
                     height: 55.h,
@@ -71,7 +67,7 @@ class HomeScreen extends ConsumerWidget {
                       text: "Show Map",
                       icon: Icons.map,
                       onPressed: () {
-                        if (stateData.selectedTypes.isEmpty) {
+                        if (homeState.selectedTypes.isEmpty) {
                           AppSnackbar.show(
                             context: context,
                             message: 'Please select at least one type',
@@ -89,8 +85,8 @@ class HomeScreen extends ConsumerWidget {
                   SizedBox(height: 40.h),
                 ],
               ),
-            );
-          },
+            ),
+          ),
         ),
       ),
     );
