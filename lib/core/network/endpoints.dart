@@ -18,7 +18,8 @@ class Endpoints {
 
   // Types and Sub types:
   static const String getLocationTypes =
-      '$apiBaseUrl/api/api/v2/types?category=location';
+      '$apiBaseUrl/api/v2/types?category=location';
+
   static const String getOrganizationTypes =
       '$apiBaseUrl/api/v2/types?category=organization';
 
@@ -37,5 +38,3 @@ class Endpoints {
   static String getLocationById(String id) =>
       '$apiBaseUrl/api/v2/locations/$id?app_key=$publicKey';
 }
-
-
