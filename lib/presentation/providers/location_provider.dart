@@ -1,49 +1,65 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:street_team/data/models/location_model.dart';
-import 'package:street_team/data/models/organization_model.dart';
 import 'package:street_team/data/repositories/location_repository.dart';
-import 'package:street_team/data/services/location_service.dart';
-import 'package:street_team/presentation/providers/organization_provider.dart';
 
-final locationServiceProvider = Provider((ref) => LocationService());
-
-final locationRepositoryProvider = Provider((ref) {
-  return LocationRepository(ref.watch(locationServiceProvider));
+// Repository provider
+final locationRepoProvider = Provider<LocationRepository>((ref) {
+  return LocationRepository();
 });
 
-//locations list
-final locationsProvider = FutureProvider<List<LocationModel>>((ref) async {
-  return ref.watch(locationRepositoryProvider).getLocations();
-});
+//state
+class LocationFormState {
+  final LocationModel? initial;
+  final bool loading;
 
-final selectedLocationProvider = StateProvider<LocationModel?>((ref) => null);
+  LocationFormState({this.initial, this.loading = false});
 
-final organizationsByLocationProvider =
-    Provider.family<List<OrganizationModel>, String>((ref, locationId) {
-      final allOrgsAsync = ref.watch(organizationsProvider);
+  LocationFormState copyWith({LocationModel? initial, bool? loading}) {
+    return LocationFormState(
+      initial: initial ?? this.initial,
+      loading: loading ?? this.loading,
+    );
+  }
+}
 
-      return allOrgsAsync.maybeWhen(
-        data: (orgs) =>
-            orgs.where((org) => org.location.id == locationId).toList(),
-        orElse: () => [],
-      );
+//notifier
+class LocationFormNotifier extends StateNotifier<LocationFormState> {
+  final LocationRepository repo;
+
+  LocationFormNotifier(this.repo) : super(LocationFormState());
+
+  Future<void> loadLocation(String id) async {
+    state = state.copyWith(loading: true);
+    final data = await repo.getLocationById(id);
+    state = LocationFormState(initial: data, loading: false);
+  }
+
+  Future<void> submitLocation(LocationModel model, {String? editId}) async {
+    try {
+      Response response;
+      if (editId == null) {
+        response = await repo.submitLocation(model);
+      } else {
+        response = await repo.updateLocation(editId, model);
+      }
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception(
+          "Server Error: ${response.data['message'] ?? 'Unknown error'}",
+        );
+      }
+    } on DioException catch (e) {
+      final errorMsg = e.response?.data['message'] ?? e.message;
+      throw Exception(errorMsg);
+    } catch (e) {
+      rethrow;
+    }
+  }
+}
+
+final locationFormProvider =
+    StateNotifierProvider<LocationFormNotifier, LocationFormState>((ref) {
+      final repo = ref.watch(locationRepoProvider);
+      return LocationFormNotifier(repo);
     });
-
-final searchedLocationsProvider = Provider<List<LocationModel>>((ref) {
-  final query = ref.watch(organizationSearchProvider).toLowerCase();
-  final locationsAsync = ref.watch(locationsProvider);
-
-  if (query.isEmpty) return [];
-
-  return locationsAsync.maybeWhen(
-    data: (locs) => locs
-        .where(
-          (l) =>
-              l.name.toLowerCase().contains(query) ||
-              l.physicalAddress.toLowerCase().contains(query),
-        )
-        .toList(),
-    orElse: () => [],
-  );
-});
