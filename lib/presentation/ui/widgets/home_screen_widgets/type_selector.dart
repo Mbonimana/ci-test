@@ -257,7 +257,7 @@ class _Tab extends StatelessWidget {
               title,
               style: AppTypography.titleMedium.copyWith(
                 color: active ? Colors.white : AppColors.brandSecondary,
-                fontWeight: FontWeight.w600,
+                
               ),
             ),
           ),
