@@ -13,7 +13,7 @@ class OrganizationRepository {
 
   Future<List<OrganizationModel>> loadOrganizations() async {
     try {
-      talker.info("Loading Data: Organizations & Locations...");
+      talker.info("Loading mock organizations...");
 
       final orgString = await rootBundle.loadString(_orgPath);
       final locString = await rootBundle.loadString(_locPath);
@@ -23,32 +23,37 @@ class OrganizationRepository {
       final locDecoded = jsonDecode(locString);
       final typeDecoded = jsonDecode(typeString) as List;
 
-      // 1. Process Locations
+      // locations
       final List<dynamic> locList = _extractList(locDecoded);
-      final Map<String, LocationModel> locationMap = {};
 
-      for (var locJson in locList) {
-        final loc = LocationModel.fromJson(locJson, locJson);
-        locationMap[loc.id] = loc;
-      }
-      talker.info("Indexed ${locationMap.length} locations.");
+      final Map<String, LocationModel> locationMap = {
+        for (final locJson in locList)
+          locJson['id'].toString(): LocationModel.fromJson(locJson),
+      };
 
-      // 2. Process Organizations and Join
+      talker.info("Indexed ${locationMap.length} locations");
+
+      // organization
       final List<dynamic> orgList = _extractList(orgDecoded);
+
       final List<OrganizationModel> organizations = [];
 
-      for (var orgJson in orgList) {
-        final String locId = orgJson['location_id'] ?? '';
-        final linkedLocation = locationMap[locId];
+      for (final orgJson in orgList) {
+        final String locId = orgJson['location_id']?.toString() ?? '';
 
-        if (linkedLocation == null) continue;
+        final location = locationMap[locId];
+
+        // skip invalid links
+        if (location == null) continue;
 
         organizations.add(
           OrganizationModel(
             id: orgJson['id']?.toString() ?? '',
             organizationName: orgJson['organization_name'] ?? 'Unknown',
-            location: linkedLocation,
+            location: location,
+
             organizationTypes: _parseTypes(orgJson['type_id'], typeDecoded),
+
             status: orgJson['status'],
             phoneNumber: orgJson['phone'],
             website: orgJson['website'],
@@ -58,17 +63,19 @@ class OrganizationRepository {
         );
       }
 
-      talker.info("Successfully joined ${organizations.length} organizations.");
+      talker.info("Loaded ${organizations.length} organizations");
       return organizations;
     } catch (e, st) {
-      talker.handle(e, st, "Join Error");
+      talker.handle(e, st, "OrganizationRepository.loadOrganizations");
       return [];
     }
   }
 
   List<dynamic> _extractList(dynamic decoded) {
     if (decoded is List) return decoded;
-    if (decoded is Map<String, dynamic>) return decoded['features'] ?? [];
+    if (decoded is Map<String, dynamic>) {
+      return decoded['data'] ?? decoded['features'] ?? [];
+    }
     return [];
   }
 
@@ -77,15 +84,19 @@ class OrganizationRepository {
       (t) => t['id'] == typeId,
       orElse: () => {'id': 0, 'name': 'Business'},
     );
+
     return [EntityType(id: typeData['id'], name: typeData['name'])];
   }
 
   Map<String, List<String>> _parseHours(dynamic raw) {
     if (raw is! Map) return {};
+
     return raw.map((key, value) {
       if (value is List) {
-        final times = value.map((v) => "${v['open']}-${v['close']}").toList();
-        return MapEntry(key.toString(), times);
+        return MapEntry(
+          key.toString(),
+          value.map((v) => "${v['open']}-${v['close']}").toList(),
+        );
       }
       return MapEntry(key.toString(), []);
     });
