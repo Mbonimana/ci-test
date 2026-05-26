@@ -1,19 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:street_team/core/config/theme/app_color.dart';
 import 'package:street_team/core/config/theme/typography.dart';
-import 'package:street_team/data/models/entiry_model.dart';
+import 'package:street_team/core/routing/route_names.dart';
+import 'package:street_team/data/models/location_model.dart';
+import 'package:street_team/data/models/types_model.dart';
+import 'package:street_team/data/models/user_model.dart';
+import 'package:street_team/presentation/providers/location_provider.dart';
 import 'package:street_team/presentation/providers/map_provider.dart';
-import 'package:street_team/presentation/providers/organization_provider.dart';
+import 'package:street_team/presentation/providers/types_provider.dart';
 import 'package:street_team/presentation/ui/screens/map_pin_picker_screen.dart';
+import 'package:street_team/presentation/ui/widgets/loading_states/loading_indicator.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_button.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_drop_down.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_form_lable.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_text_field.dart';
 
 class LocationDetailsScreen extends ConsumerStatefulWidget {
-  const LocationDetailsScreen({super.key});
+  final String? editId;
+  const LocationDetailsScreen({super.key, this.editId});
 
   @override
   ConsumerState<LocationDetailsScreen> createState() =>
@@ -21,15 +28,86 @@ class LocationDetailsScreen extends ConsumerStatefulWidget {
 }
 
 class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
-  // Form Controllers
+  // Controllers
+
   final nameController = TextEditingController();
   final addressController = TextEditingController();
   final shortNameController = TextEditingController();
   final nicknameController = TextEditingController();
 
   // Dropdown State
+
   bool isTypeDropdownExpanded = false;
-  List<EntityType> selectedLocationTypes = [];
+
+  // Selected Types
+
+  List<TypeModel> selectedLocationTypes = [];
+
+  Future<void> submitLocation() async {
+    //  Get current coordinates and data
+    final coords = ref.read(pickedLocationProvider);
+    if (coords == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Please pick a location")));
+      return;
+    }
+
+    //  Show Loading Indicator (Dialog)
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) =>
+          const PopScope(canPop: false, child: LoadingIndicator()),
+    );
+
+    try {
+      //  model
+      final model = LocationModel(
+        name: nameController.text,
+        physicalAddress: addressController.text,
+        shortName: shortNameController.text,
+        nickname: nicknameController.text,
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        types: selectedLocationTypes.map((e) => e.id).toList(),
+        submitterServer: "street_team_app",
+        submitterAtName: "Manasseh",
+        userLocation: UserLocation(
+          street: "GPS Street",
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+        ),
+      );
+
+      //  Call notifier and AWAIT it
+      final notifier = ref.read(locationFormProvider.notifier);
+      await notifier.submitLocation(model, editId: widget.editId);
+
+      //  Close the Loading Dialog
+      if (mounted) Navigator.of(context).pop();
+
+      // Show actual success and navigate
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Location saved successfully")),
+        );
+        context.go(RouteNames.location);
+      }
+    } catch (e) {
+      //  close loading dialog and show error message
+      if (mounted) Navigator.of(context).pop();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error: ${e.toString()}"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -37,13 +115,16 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
     addressController.dispose();
     shortNameController.dispose();
     nicknameController.dispose();
+
     super.dispose();
   }
 
-  void _toggleType(EntityType type) {
+  void _toggleType(TypeModel type) {
     setState(() {
-      if (selectedLocationTypes.contains(type)) {
-        selectedLocationTypes.remove(type);
+      final exists = selectedLocationTypes.any((e) => e.id == type.id);
+
+      if (exists) {
+        selectedLocationTypes.removeWhere((e) => e.id == type.id);
       } else {
         selectedLocationTypes.add(type);
       }
@@ -51,35 +132,70 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+
+    final editId = widget.editId;
+
+    if (editId != null) {
+      Future.microtask(() {
+        ref.read(locationFormProvider.notifier).loadLocation(editId);
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Watch the location types provider
-    final locationTypesAsync = ref.watch(locationTypesListProvider);
-    //picked coordinates
+    final locationTypesAsync = ref.watch(locationTypesProvider);
+
     final pickedCoords = ref.watch(pickedLocationProvider);
 
+    final formState = ref.watch(locationFormProvider);
+
+    if (formState.initial != null) {
+      nameController.text = formState.initial!.name;
+      addressController.text = formState.initial!.physicalAddress;
+      shortNameController.text = formState.initial!.shortName;
+      nicknameController.text = formState.initial!.nickname;
+    }
+
     return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
+      onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+
       child: Scaffold(
         backgroundColor: AppColors.backgroundBase,
+
         body: SafeArea(
           child: SingleChildScrollView(
             padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+
               children: [
-                // Header
+                // header
                 Row(
                   children: [
                     AppButton(
                       variant: AppButtonVariant.leadingIcon,
+
                       icon: Icons.arrow_back_ios_new_rounded,
-                      onPressed: () => Navigator.pop(context),
+
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
                     ),
+
                     SizedBox(width: 20.w),
+
                     Text(
                       "LOCATION DETAILS",
+
                       style: AppTypography.titleMedium.copyWith(
                         color: AppColors.brandPrimary,
+
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -91,42 +207,55 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
                 // Coordinates  Card
                 Container(
                   width: double.infinity,
+
                   padding: EdgeInsets.all(20.r),
+
                   decoration: BoxDecoration(
                     color: AppColors.placeholderText.withAlpha(20),
+
                     borderRadius: BorderRadius.circular(12.r),
                   ),
+
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+
                     children: [
                       Text(
                         "Latitude",
+
                         style: AppTypography.titleSmall.copyWith(
                           color: Colors.lightBlue,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+
                       //picked latitude
                       Text(
                         pickedCoords != null
                             ? pickedCoords.latitude.toString()
                             : "0.0",
+
                         style: AppTypography.bodyMedium.copyWith(
                           color: Colors.grey.shade600,
                         ),
                       ),
+
                       SizedBox(height: 10.h),
+
                       Text(
                         "Longitude",
+
                         style: AppTypography.titleSmall.copyWith(
                           color: Colors.lightBlue,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+
                       Text(
                         pickedCoords != null
                             ? pickedCoords.longitude.toString()
                             : "0.0",
+
                         style: AppTypography.bodyMedium.copyWith(
                           color: Colors.grey.shade600,
                         ),
@@ -141,15 +270,17 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
                 AppButton(
                   text: "Pin point",
                   icon: Icons.location_on_outlined,
+                  //navigate to the picker
                   onPressed: () {
-                    //navigate to the picker
                     Navigator.push(
                       context,
+
                       MaterialPageRoute(
                         builder: (_) => const MapPinPickerScreen(),
                       ),
                     );
                   },
+
                   variant: AppButtonVariant.primary,
                 ),
 
@@ -157,13 +288,17 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
 
                 // Form Inputs
                 const AppFormLable(text: "Location name"),
+
                 SizedBox(height: 8.h),
+
                 AppTextField(controller: nameController, hint: "Location name"),
 
                 SizedBox(height: 10.h),
 
                 const AppFormLable(text: "Physical address"),
+
                 SizedBox(height: 8.h),
+
                 AppTextField(
                   controller: addressController,
                   hint: "Physical address",
@@ -172,7 +307,9 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
                 SizedBox(height: 10.h),
 
                 const AppFormLable(text: "Short name"),
+
                 SizedBox(height: 8.h),
+
                 AppTextField(
                   controller: shortNameController,
                   hint: "Short name",
@@ -181,25 +318,37 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
                 SizedBox(height: 10.h),
 
                 const AppFormLable(text: "Nick name"),
+
                 SizedBox(height: 8.h),
+
                 AppTextField(controller: nicknameController, hint: "Nick name"),
 
                 SizedBox(height: 10.h),
 
                 // Location Type Dropdown (Multi-select)
                 const AppFormLable(text: "Location type"),
+
                 SizedBox(height: 8.h),
+
                 locationTypesAsync.when(
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
-                  error: (err, _) => const Text("Error loading types"),
-                  data: (types) => AppDropdown<EntityType>(
+
+                  error: (err, _) => Text(err.toString()),
+
+                  data: (types) => AppDropdown<TypeModel>(
                     label: "Select location types",
+
                     items: types,
+
                     selectedItems: selectedLocationTypes,
+
                     itemLabel: (type) => type.name,
+
                     onSelect: (type) => _toggleType(type),
+
                     isExpanded: isTypeDropdownExpanded,
+
                     onToggle: () {
                       setState(() {
                         isTypeDropdownExpanded = !isTypeDropdownExpanded;
@@ -210,13 +359,8 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
 
                 SizedBox(height: 10.h),
 
-                // Bottom Action Button
-                AppButton(
-                  text: "Done",
-                  onPressed: () {
-                    // TODO:Collect data and save
-                  },
-                ),
+                /// submitBUTTON
+                AppButton(text: "Done", onPressed: submitLocation),
 
                 SizedBox(height: 20.h),
               ],
