@@ -7,7 +7,6 @@ import 'package:street_team/data/models/organization_model.dart';
 class GeoJsonHelper {
   const GeoJsonHelper._();
 
-
   /// It checks the nested [location] object for valid coordinates.
   static Map<String, dynamic> buildFeatureCollection(
     List<OrganizationModel> organizations,

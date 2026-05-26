@@ -19,7 +19,7 @@ class WorkingHours extends StatefulWidget {
 }
 
 class _WorkingHoursState extends State<WorkingHours> {
-  bool isActive = false; 
+  bool isActive = false;
   bool isOpen24 = false;
   bool isTempClosed = false;
   bool isExpanded = false;
@@ -186,7 +186,6 @@ class _WorkingHoursState extends State<WorkingHours> {
           ],
         ),
         if (isTempClosed) ...[
-          
           AppFormLable(text: "Possible return date (optional)"),
           SizedBox(height: 12.h),
           dateBox(possibleReturnDate, (date) {
@@ -194,7 +193,7 @@ class _WorkingHoursState extends State<WorkingHours> {
             _syncToParent();
           }),
         ],
-        
+
         buildDefaultRow(),
         SizedBox(height: 15.h),
         if (reportSummary != null && !isExpanded)

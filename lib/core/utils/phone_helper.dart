@@ -6,10 +6,7 @@ class PhoneHelper {
   static Future<void> call(String number) async {
     final clean = number.replaceAll(' ', '').trim();
 
-    final Uri uri = Uri(
-      scheme: 'tel',
-      path: clean,
-    );
+    final Uri uri = Uri(scheme: 'tel', path: clean);
 
     try {
       final canLaunch = await canLaunchUrl(uri);

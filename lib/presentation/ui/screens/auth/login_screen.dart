@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:street_team/core/config/env_config.dart';
 import 'package:street_team/core/config/theme/app_color.dart';
+import 'package:street_team/presentation/providers/auth/auth_provider.dart';
 import 'package:street_team/presentation/ui/screens/home_screen.dart';
 import 'package:street_team/presentation/ui/widgets/loading_states/loading_indicator.dart';
 import 'package:street_team/presentation/ui/widgets/murugo_elements/murugo_clouds.dart';
@@ -9,14 +12,14 @@ import 'package:street_team/presentation/ui/widgets/shared/app_text_field.dart';
 import 'package:street_team/presentation/ui/widgets/shared/feedback_widgets/app_dialoge.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
@@ -31,43 +34,40 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _launchForgotPassword() async {
-    final Uri url = Uri.parse('https://murugotestcloud.com');
+    final Uri url = Uri.parse(EnvConfig.murugoPasswordResetUrl);
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       throw Exception('Could not launch $url');
     }
   }
 
   Future<void> _onLoginPressed() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
-    await Future<void>.delayed(const Duration(seconds: 6));
+    final result = await ref
+        .read(authProvider.notifier)
+        .login(email: email, password: password);
 
     if (!mounted) return;
 
-    setState(() {
-      _isLoading = false;
-    });
+    setState(() => _isLoading = false);
 
-    if (email == 'demo@murugo.com' && password == '123456') {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(builder: (context) => const HomeScreen()),
-      );
+    if (result.success) {
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
       return;
     }
 
+
     await AppDialog.show(
       context: context,
-      title: 'Something went wrong',
-      message: 'Invalid email or password. Please try again.',
+      title: 'Login Failed',
+      message: result.message,
     );
   }
 

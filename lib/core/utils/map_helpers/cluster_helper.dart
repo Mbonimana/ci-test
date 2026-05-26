@@ -29,11 +29,7 @@ class ClusterHelper {
           .map(
             (o) => {
               'type': 'Feature',
-              'properties': {
-                'type': o.primaryType,
-                'name': o
-                    .organizationName,
-              },
+              'properties': {'type': o.primaryType, 'name': o.organizationName},
               'geometry': {
                 'type': 'Point',
                 'coordinates': [
