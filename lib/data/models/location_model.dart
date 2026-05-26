@@ -1,74 +1,66 @@
-class LocationType {
-  final int id;
-  final String name;
-
-  LocationType({required this.id, required this.name});
-
-  factory LocationType.fromJson(Map<String, dynamic> json) =>
-      LocationType(id: json['id'] as int, name: json['name'] as String);
-}
+import 'package:street_team/data/models/user_model.dart';
 
 class LocationModel {
-  final String id;
   final String name;
+  final String physicalAddress;
+  final String shortName;
+  final String nickname;
   final double latitude;
   final double longitude;
-  final String physicalAddress;
-  final List<LocationType> locationTypes;
-  final String? buildingDetails;
+  final List<int> types;
+
+  final String submitterServer;
+  final String submitterAtName;
+
+  final UserLocation userLocation;
 
   LocationModel({
-    required this.id,
     required this.name,
+    required this.physicalAddress,
+    required this.shortName,
+    required this.nickname,
     required this.latitude,
     required this.longitude,
-    required this.physicalAddress,
-    required this.locationTypes,
-    this.buildingDetails,
+    required this.types,
+    required this.submitterServer,
+    required this.submitterAtName,
+    required this.userLocation,
   });
 
-  factory LocationModel.fromJson(
-    Map<String, dynamic> json,
-    Map<String, dynamic> props,
-  ) {
-    //  Coordinates logic
-    double lat = (props['latitude'] as num?)?.toDouble() ?? 0.0;
-    double lng = (props['longitude'] as num?)?.toDouble() ?? 0.0;
-
-    // Fallback for GeoJSON structure
-    if (lat == 0.0 && json['geometry'] != null) {
-      final coords = json['geometry']['coordinates'] as List?;
-      if (coords != null && coords.length >= 2) {
-        lng = (coords[0] as num).toDouble();
-        lat = (coords[1] as num).toDouble();
-      }
-    }
-
-    //types
-    final typesData =
-        props['location_type_ids'] ?? props['locationTypes'] as List? ?? [];
-    final List<LocationType> types = (typesData as List).map<LocationType>((e) {
-      if (e is Map<String, dynamic>) return LocationType.fromJson(e);
-      if (e is int) return LocationType(id: e, name: 'Type $e');
-      return LocationType(id: 0, name: e.toString());
-    }).toList(); // This now returns List<LocationType>
-
+  bool get hasValidCoordinates => latitude != 0 && longitude != 0;
+  factory LocationModel.fromJson(Map<String, dynamic> json) {
     return LocationModel(
-      id: props['id'] ?? props['location_id'] ?? '',
-      name:
-          props['location_name'] ?? props['locationName'] ?? 'Unknown Building',
-      latitude: lat,
-      longitude: lng,
-      physicalAddress:
-          props['physical_address'] ?? props['physicalAddress'] ?? '',
-      locationTypes: types,
-      buildingDetails: props['building_details'] ?? props['buildingDetails'],
+      name: json['name'] ?? '',
+      physicalAddress: json['physical_address'] ?? '',
+      shortName: json['short_name'] ?? '',
+      nickname: json['nickname'] ?? '',
+
+      latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
+      longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
+
+      types: (json['types'] as List? ?? []).map((e) => e as int).toList(),
+
+      submitterServer: json['submitter_server'] ?? '',
+      submitterAtName: json['submitter_at_name'] ?? '',
+
+      userLocation: json['user_location'] != null
+          ? UserLocation.fromJson(json['user_location'])
+          : UserLocation(street: '', latitude: 0.0, longitude: 0.0),
     );
   }
 
-  bool get hasValidCoordinates =>
-      longitude >= -180 &&
-      longitude <= 180 &&
-      latitude >= -90 &&
-      latitude <= 90;
+  Map<String, dynamic> toJson() {
+    return {
+      "name": name,
+      "physical_address": physicalAddress,
+      "short_name": shortName,
+      "nickname": nickname,
+      "latitude": latitude,
+      "longitude": longitude,
+      "types": types,
+      "submitter_server": submitterServer,
+      "submitter_at_name": submitterAtName,
+      "user_location": userLocation.toJson(),
+    };
+  }
 }
