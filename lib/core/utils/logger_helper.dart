@@ -6,6 +6,30 @@ class AppLogger {
   static const String _line =
       '────────────────────────────────────────────────────────';
 
+  static const int _chunkSize = 800;
+  static const int _maxLogLength = 4000;
+
+  static void _printLong(String text) {
+    if (text.length > _maxLogLength) {
+      text = '${text.substring(0, _maxLogLength)}\n...[TRUNCATED]';
+    }
+
+    for (int i = 0; i < text.length; i += _chunkSize) {
+      final end = (i + _chunkSize < text.length) ? i + _chunkSize : text.length;
+
+      debugPrint(text.substring(i, end));
+    }
+  }
+
+  static String _pretty(dynamic data) {
+    try {
+      const encoder = JsonEncoder.withIndent('  ');
+      return encoder.convert(data);
+    } catch (_) {
+      return data.toString();
+    }
+  }
+
   static void request({
     required String method,
     required String url,
@@ -35,8 +59,7 @@ class AppLogger {
     debugPrint('│ Body:');
 
     if (body != null) {
-      const encoder = JsonEncoder.withIndent('  ');
-      debugPrint(encoder.convert(body));
+      _printLong(_pretty(body));
     } else {
       debugPrint('│ null');
     }
@@ -54,16 +77,15 @@ class AppLogger {
     debugPrint('│ ✅ RESPONSE [$statusCode]');
     debugPrint('├$_line');
     debugPrint('│ URL: $url');
+
+    if (data is Map && data['data'] is List) {
+      debugPrint('│ Items: ${(data['data'] as List).length}');
+    }
+
     debugPrint('│');
     debugPrint('│ Data:');
 
-    const encoder = JsonEncoder.withIndent('  ');
-
-    try {
-      debugPrint(encoder.convert(data));
-    } catch (_) {
-      debugPrint(data.toString());
-    }
+    _printLong(_pretty(data));
 
     debugPrint('└$_line');
   }
@@ -77,12 +99,7 @@ class AppLogger {
     debugPrint('│');
     debugPrint('│ Message:');
 
-    try {
-      const encoder = JsonEncoder.withIndent('  ');
-      debugPrint(encoder.convert(error));
-    } catch (_) {
-      debugPrint(error.toString());
-    }
+    _printLong(_pretty(error));
 
     debugPrint('└$_line');
   }
