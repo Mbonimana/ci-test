@@ -36,11 +36,13 @@ class LocationResponse {
 
   bool get hasValidCoordinates => latitude != 0.0 && longitude != 0.0;
 
-  String get mapLabel => (nickname != null && nickname!.isNotEmpty)
+  String get mapLabel => name.isNotEmpty
+      ? name
+      : (nickname != null && nickname!.isNotEmpty)
       ? nickname!
       : (shortName != null && shortName!.isNotEmpty)
       ? shortName!
-      : name;
+      : '';
 
   String get primaryTypeName =>
       types.isNotEmpty ? types.first.name : 'Location';
