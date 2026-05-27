@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:street_team/core/network/response.dart';
 import 'package:street_team/core/network/status_codes.dart';
+import 'package:street_team/core/utils/sentry_helper.dart';
 import 'package:street_team/core/utils/talker_helper.dart';
+import 'package:street_team/data/models/user_model.dart';
 import 'package:street_team/data/services/auth/auth_service.dart';
 import 'package:street_team/data/services/auth/storage/auth_storage_keys.dart';
 import 'package:street_team/data/services/auth/storage/auth_storage_service.dart';
@@ -29,8 +31,6 @@ class AuthRepo {
 
       final murugoAccessToken = authResponse.data['access_token'];
 
-      talker.info('Murugo access token received');
-
       // step 2
       final userResponse = await _service.getUserInfo(
         accessToken: murugoAccessToken,
@@ -40,8 +40,9 @@ class AuthRepo {
         return ApiResponse.failure('Failed to fetch user info');
       }
 
-      final userIdentifier = userResponse.data['murugo_user_id'];
-      talker.info('Murugo User ID ==> $userIdentifier');
+      final userData = userResponse.data;
+
+      final userIdentifier = userData['murugo_user_id'].toString();
 
       // step 3
       final streetTeamResponse = await _service.loginStreetTeam(
@@ -54,9 +55,7 @@ class AuthRepo {
 
       final streetTeamAccessToken = streetTeamResponse.data['access_token'];
 
-      talker.log('Auth flow sucessed');
-
-      // save session
+      // save sessions
       await AuthStorageService.write(
         key: AuthStorageKeys.murugoAccessToken,
         value: murugoAccessToken,
@@ -74,23 +73,40 @@ class AuthRepo {
 
       await AuthStorageService.write(
         key: AuthStorageKeys.userProfile,
-        value: jsonEncode(userResponse.data),
+        value: jsonEncode(userData),
       );
 
-      talker.log('AUTH SESSION SAVED');
+      //user
+      final user = UserModel(
+        identifier: userIdentifier,
+        name: userData['name'] ?? '',
+        email: userData['email'],
+        street: '',
+        latitude: 0.0,
+        longitude: 0.0,
+      );
+
+      // sentery
+      await SentryHelper.setUser(
+        id: user.identifier,
+        username: user.name,
+        email: user.email,
+      );
+
+      talker.info('AUTH FLOW SUCCESS');
 
       return ApiResponse.success(null);
     } on DioException catch (e) {
       final data = e.response?.data;
 
-      //  network erro
+      // network erro
       if (e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout ||
           e.type == DioExceptionType.connectionError) {
-        return ApiResponse.failure(' Please check your internet connection.');
+        return ApiResponse.failure('Please check your internet connection.');
       }
 
-      // http error
+      //http error
       if (data is Map<String, dynamic>) {
         final message =
             data['message'] ?? data['error_description'] ?? data['error'];
@@ -100,33 +116,61 @@ class AuthRepo {
         }
       }
 
-      // fallback
       return ApiResponse.failure(
         'Unexpected error occurred. Please try again.',
       );
     }
   }
 
-  // check seesion
+  // CHECK SESSION
   Future<bool> isLoggedIn() async {
     final token = await AuthStorageService.read(
       AuthStorageKeys.streetTeamAccessToken,
     );
 
-    return token != null && token.isNotEmpty;
+    if (token == null || token.isEmpty) {
+      return false;
+    }
+
+    final userProfileJson = await AuthStorageService.read(
+      AuthStorageKeys.userProfile,
+    );
+
+    if (userProfileJson != null) {
+      final decoded = jsonDecode(userProfileJson);
+
+      final user = UserModel(
+        identifier: decoded['murugo_user_id'].toString(),
+        name: decoded['name'] ?? '',
+        email: decoded['email'],
+        street: '',
+        latitude: 0.0,
+        longitude: 0.0,
+      );
+
+      await SentryHelper.setUser(
+        id: user.identifier,
+        username: user.name,
+        email: user.email,
+      );
+    }
+
+    return true;
   }
 
   Future<String?> getAccessToken() async {
     return AuthStorageService.read(AuthStorageKeys.streetTeamAccessToken);
   }
-
+  
   //get user identifier(murugo user id)
   Future<String?> getUserIdentifier() async {
     return AuthStorageService.read(AuthStorageKeys.userIdentifier);
   }
 
-  //logout
+   //logout
   Future<void> logout() async {
+    await SentryHelper.clearUser();
+
     await AuthStorageService.clear();
 
     talker.warning('USER LOGGED OUT');
