@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import 'package:street_team/core/utils/map_helpers/icon_helper.dart';
 import 'package:street_team/core/utils/map_helpers/label_style_helper.dart';
 import 'package:street_team/data/map_engine/map_engine.dart';
 import 'package:street_team/data/models/location_response.dart';
+import 'package:street_team/presentation/ui/widgets/shared/location_details_sheet.dart';
 
 class MapboxMapEngine implements MapEngine {
   final MapCameraController cameraController = MapCameraController();
@@ -100,6 +102,70 @@ class _MapboxMapViewState extends State<_MapboxMapView> {
     }
   }
 
+  void _showDetailsSheet(LocationResponse location) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => LocationDetailsSheet(location: location),
+    );
+  }
+
+  Future<void> _zoomIntoCluster() async {
+    if (_map == null) return;
+
+    final cameraState = await _map!.getCameraState();
+    await _map!.flyTo(
+      CameraOptions(center: cameraState.center, zoom: cameraState.zoom + 2),
+      null,
+    );
+  }
+
+  Future<void> _processMapTap(ScreenCoordinate coordinate) async {
+    if (_map == null) return;
+
+    final features = await _map!.queryRenderedFeatures(
+      RenderedQueryGeometry.fromScreenCoordinate(coordinate),
+      RenderedQueryOptions(
+        layerIds: [ClusterHelper.unclusteredLayerId],
+        filter: null,
+      ),
+    );
+
+    if (features.isNotEmpty) {
+      final queriedFeature = features.first?.queriedFeature;
+      if (queriedFeature != null) {
+        final properties = queriedFeature.feature['properties'] as Map?;
+        final locationId = properties?['id']?.toString();
+
+        if (locationId != null) {
+          try {
+            final tappedLocation = widget.locations.firstWhere(
+              (location) => location.id.toString() == locationId,
+            );
+            _showDetailsSheet(tappedLocation);
+            return;
+          } catch (_) {}
+        }
+      }
+    }
+
+    final clusters = await _map!.queryRenderedFeatures(
+      RenderedQueryGeometry.fromScreenCoordinate(coordinate),
+      RenderedQueryOptions(
+        layerIds: [ClusterHelper.clusterLayerId],
+        filter: null,
+      ),
+    );
+
+    if (clusters.isNotEmpty) {
+      await _zoomIntoCluster();
+      return;
+    }
+
+    FocusManager.instance.primaryFocus?.unfocus();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MapWidget(
@@ -110,6 +176,10 @@ class _MapboxMapViewState extends State<_MapboxMapView> {
       onMapCreated: (createdMap) {
         _map = createdMap;
         widget.cameraController.attachMap(createdMap);
+
+        createdMap.setOnMapTapListener((context) {
+          unawaited(_processMapTap(context.touchPosition));
+        });
       },
       onStyleLoadedListener: _handleStyleLoaded,
     );
@@ -126,6 +196,7 @@ class _MapboxMapViewState extends State<_MapboxMapView> {
     await _loadIconsIntoMapStyle();
     await ClusterHelper.setup(_map!, widget.locations, widget.iconHelper);
   }
+
   Future<void> _loadIconsIntoMapStyle() async {
     final types = IconHelper.typeIcons.keys.toList();
     for (final typeKey in types) {
