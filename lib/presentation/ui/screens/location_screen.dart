@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart' as geo;
 import 'package:street_team/core/config/theme/app_color.dart';
 import 'package:street_team/core/config/theme/typography.dart';
 import 'package:street_team/core/routing/route_names.dart';
 import 'package:street_team/data/models/location_model.dart';
+import 'package:street_team/data/models/location_response.dart';
 import 'package:street_team/data/models/types_model.dart';
 import 'package:street_team/data/services/location_capture_service.dart';
 import 'package:street_team/presentation/providers/location_provider.dart';
@@ -20,7 +22,9 @@ import 'package:street_team/presentation/ui/widgets/shared/app_text_field.dart';
 
 class LocationDetailsScreen extends ConsumerStatefulWidget {
   final String? editId;
-  const LocationDetailsScreen({super.key, this.editId});
+  final LocationResponse? initialLocation;
+
+  const LocationDetailsScreen({super.key, this.editId, this.initialLocation});
 
   @override
   ConsumerState<LocationDetailsScreen> createState() =>
@@ -38,8 +42,44 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
 
   // Selected Types
   List<TypeModel> selectedLocationTypes = [];
+  bool _hasAppliedInitialLocation = false;
+  bool _hasAppliedInitialTypes = false;
 
   final _locationService = LocationCaptureService();
+
+  void _applyInitialLocation(LocationResponse initialLocation) {
+    if (_hasAppliedInitialLocation) {
+      return;
+    }
+
+    _hasAppliedInitialLocation = true;
+
+    nameController.text = initialLocation.name;
+    addressController.text = initialLocation.physicalAddress;
+    shortNameController.text = initialLocation.shortName ?? '';
+    nicknameController.text = initialLocation.nickname ?? '';
+
+    ref.read(pickedLocationProvider.notifier).state = geo.LatLng(
+      initialLocation.latitude,
+      initialLocation.longitude,
+    );
+  }
+
+  void _applyInitialTypes(
+    List<TypeModel> types,
+    LocationResponse initialLocation,
+  ) {
+    if (_hasAppliedInitialTypes) {
+      return;
+    }
+
+    final initialTypeIds = initialLocation.types.map((type) => type.id).toSet();
+
+    selectedLocationTypes = types
+        .where((type) => initialTypeIds.contains(type.id))
+        .toList();
+    _hasAppliedInitialTypes = true;
+  }
 
   Future<void> submitLocation() async {
     final coords = ref.read(pickedLocationProvider);
@@ -122,6 +162,17 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
   void initState() {
     super.initState();
 
+    final initialLocation = widget.initialLocation;
+
+    if (initialLocation != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+
+        _applyInitialLocation(initialLocation);
+      });
+      return;
+    }
+
     final editId = widget.editId;
 
     if (editId != null) {
@@ -139,7 +190,21 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
 
     final formState = ref.watch(locationFormProvider);
 
-    if (formState.initial != null) {
+    final initialLocation = widget.initialLocation;
+
+    if (initialLocation != null &&
+        locationTypesAsync.hasValue &&
+        !_hasAppliedInitialTypes) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+
+        setState(() {
+          _applyInitialTypes(locationTypesAsync.requireValue, initialLocation);
+        });
+      });
+    }
+
+    if (formState.initial != null && initialLocation == null) {
       nameController.text = formState.initial!.name;
       addressController.text = formState.initial!.physicalAddress;
       shortNameController.text = formState.initial!.shortName ?? '';
