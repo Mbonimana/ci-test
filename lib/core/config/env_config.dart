@@ -50,6 +50,10 @@ class EnvConfig {
     'PUBLIC_KEY',
     defaultValue: '',
   );
+  static const String submitterServer = String.fromEnvironment(
+    'SUBMITTER_SERVER',
+    defaultValue: 'Street Team App',
+  );
   
 
   static bool get isDevelopment => environment == 'development';
