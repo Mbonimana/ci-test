@@ -13,7 +13,7 @@ class LocationService {
 
   LocationService(Dio dio);
 
- String _handleError(dynamic e) {
+  String _handleError(dynamic e) {
     if (e is DioException) {
       if (e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.sendTimeout ||
@@ -60,6 +60,19 @@ class LocationService {
         data: model.toJson(),
       );
       return res;
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<List<LocationResponse>> searchLocations(String query) async {
+    try {
+      final response = await _dio.post(
+        Endpoints.searchLocation,
+        data: {"key": "name", "entry": query},
+      );
+      final List data = response.data;
+      return data.map((json) => LocationResponse.fromJson(json)).toList();
     } catch (e) {
       throw _handleError(e);
     }
