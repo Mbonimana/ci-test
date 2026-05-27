@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:street_team/core/network/dio_client.dart';
 import 'package:street_team/core/network/endpoints.dart';
 import 'package:street_team/data/models/location_model.dart';
+import 'package:street_team/data/models/location_response.dart';
 import 'package:street_team/data/services/auth/storage/auth_storage_keys.dart';
 import 'package:street_team/data/services/auth/storage/auth_storage_service.dart';
 
@@ -63,4 +64,12 @@ class LocationService {
           : {},
     );
   }
+
+  Future<List<LocationResponse>> getPaginatedLocations() async {
+    final response = await _dio.get(Endpoints.getLocations);
+    final List data = response.data['data'];
+    return data.map((json) => LocationResponse.fromJson(json)).toList();
+  }
+
+  
 }
