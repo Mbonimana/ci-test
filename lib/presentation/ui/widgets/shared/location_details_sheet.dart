@@ -22,8 +22,10 @@ class LocationDetailsSheet extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) =>
-                  LocationDetailsScreen(editId: location.id.toString()),
+              builder: (_) => LocationDetailsScreen(
+                editId: location.id.toString(),
+                initialLocation: location,
+              ),
             ),
           );
         },
@@ -178,12 +180,11 @@ class _BaseScrollSheet extends StatelessWidget {
                     padding: EdgeInsets.symmetric(horizontal: 110.w),
                     child: Text(
                       title,
-                      textAlign: TextAlign
-                          .left, 
+                      textAlign: TextAlign.left,
                       style: AppTypography.titleMedium.copyWith(
-                        fontSize: 17.sp, 
+                        fontSize: 17.sp,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.brandPrimary
+                        color: AppColors.brandPrimary,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -195,9 +196,6 @@ class _BaseScrollSheet extends StatelessWidget {
               ),
             ),
           ),
-
-        
-          
 
           // SCROLLABLE CONTENT
           Expanded(
