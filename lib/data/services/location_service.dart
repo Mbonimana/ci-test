@@ -4,7 +4,6 @@ import 'package:dio/dio.dart';
 import 'package:street_team/core/network/dio_client.dart';
 import 'package:street_team/core/network/endpoints.dart';
 import 'package:street_team/data/models/location_model.dart';
-import 'package:street_team/data/models/user_model.dart';
 import 'package:street_team/data/services/auth/storage/auth_storage_keys.dart';
 import 'package:street_team/data/services/auth/storage/auth_storage_service.dart';
 
@@ -12,7 +11,6 @@ class LocationService {
   final Dio _dio = DioClient.dio;
 
   LocationService(Dio dio);
-
 
   Future<Response> submitLocation(LocationModel model) async {
     final token = await AuthStorageService.read(
@@ -60,11 +58,9 @@ class LocationService {
       types: List<int>.from(data["types"]),
       submitterServer: data["submitter_server"],
       submitterAtName: data["submitter_at_name"],
-      userLocation: UserLocation(
-        street: data["user_location"]["street"],
-        latitude: data["user_location"]["latitude"],
-        longitude: data["user_location"]["longitude"],
-      ),
+      userLocation: data["user_location"] != null
+          ? Map<String, dynamic>.from(data["user_location"])
+          : {},
     );
   }
 }
