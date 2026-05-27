@@ -1,3 +1,5 @@
+import 'package:street_team/data/models/organization_response.dart';
+
 class LocationTypeResponse {
   final int id;
   final String name;
@@ -18,6 +20,7 @@ class LocationResponse {
   final double latitude;
   final double longitude;
   final List<LocationTypeResponse> types;
+  final List<OrganizationResponseModel> organizations;
 
   LocationResponse({
     required this.id,
@@ -28,6 +31,7 @@ class LocationResponse {
     required this.latitude,
     required this.longitude,
     required this.types,
+    required this.organizations,
   });
 
   bool get hasValidCoordinates => latitude != 0.0 && longitude != 0.0;
@@ -53,6 +57,15 @@ class LocationResponse {
       types:
           (json['types'] as List?)
               ?.map((t) => LocationTypeResponse.fromJson(t))
+              .toList() ??
+          [],
+      organizations:
+          (json['organizations'] as List?)
+              ?.map(
+                (organization) => OrganizationResponseModel.fromJson(
+                  Map<String, dynamic>.from(organization),
+                ),
+              )
               .toList() ??
           [],
     );
