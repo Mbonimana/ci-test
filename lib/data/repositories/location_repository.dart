@@ -22,6 +22,10 @@ class LocationRepository {
     return _service.updateLocation(id, model);
   }
 
+  Future<List<LocationResponse>> searchLocations(String query) {
+    return _service.searchLocations(query);
+  }
+
   Future<List<LocationResponse>> fetchLocationsForMap() =>
       _service.getPaginatedLocations(page: 1);
 
