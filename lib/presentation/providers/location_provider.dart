@@ -97,6 +97,10 @@ class LocationFormNotifier extends StateNotifier<LocationFormState> {
     state = LocationFormState(initial: data, loading: false);
   }
 
+  void resetFormState() {
+    state = LocationFormState();
+  }
+
   Future<void> submitLocation(LocationModel model, {String? editId}) async {
     try {
       Response response;
