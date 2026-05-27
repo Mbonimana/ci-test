@@ -17,6 +17,7 @@ dependencies:
   flutter_screenutil: ^5.9.3
   flutter_secure_storage: ^10.3.0
   flutter_svg: ^2.3.0
+  geocoding: ^4.0.0
   geolocator: ^14.0.2
   go_router: ^17.2.3
   google_fonts: ^8.1.0
