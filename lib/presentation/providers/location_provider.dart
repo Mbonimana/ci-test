@@ -16,6 +16,18 @@ final locationsProvider = FutureProvider<List<LocationResponse>>((ref) async {
   return await repo.fetchLocationsForMap();
 });
 
+//search
+final remoteSearchResultsProvider = FutureProvider<List<LocationResponse>>((
+  ref,
+) async {
+  final query = ref.watch(locationSearchProvider);
+  final repo = ref.watch(locationRepoProvider);
+
+  if (query.isEmpty || query.length < 2) return [];
+
+  return await repo.searchLocations(query);
+});
+
 class DiscoveryNotifier extends StateNotifier<List<LocationResponse>> {
   final LocationRepository repo;
   int _currentPage = 1;
@@ -28,6 +40,13 @@ class DiscoveryNotifier extends StateNotifier<List<LocationResponse>> {
 
     state = [...state, ...results];
   }
+
+  void injectLocation(LocationResponse location) {
+    // Check if it already exists to avoid unnecessary state updates
+    if (state.any((loc) => loc.id == location.id)) return;
+
+    state = [...state, location];
+  }
 }
 
 final otherResultsProvider =
@@ -39,24 +58,13 @@ final otherResultsProvider =
 //  Combined Provider for the Map
 final filteredLocationsProvider = Provider<List<LocationResponse>>((ref) {
   final locationsAsync = ref.watch(locationsProvider);
-  final otherResults = ref.watch(otherResultsProvider);
-  final search = ref.watch(locationSearchProvider).toLowerCase();
+  final healthResults = ref.watch(otherResultsProvider);
 
-  List<LocationResponse> allAvailable = [];
+  List<LocationResponse> all = [];
+  locationsAsync.whenData((list) => all.addAll(list));
+  all.addAll(healthResults);
 
-  // Add Page 1 data
-  locationsAsync.whenData((list) => allAvailable.addAll(list));
-  allAvailable.addAll(otherResults);
-  final uniqueMap = {for (var item in allAvailable) item.id: item};
-  final uniqueList = uniqueMap.values.toList();
-
-  if (search.isEmpty) return uniqueList;
-
-  return uniqueList.where((loc) {
-    return loc.name.toLowerCase().contains(search) ||
-        (loc.nickname?.toLowerCase().contains(search) ?? false) ||
-        (loc.shortName?.toLowerCase().contains(search) ?? false);
-  }).toList();
+  return all; // Usually, we want all markers visible on the map
 });
 
 final locationSearchProvider = StateProvider<String>((ref) => "");
