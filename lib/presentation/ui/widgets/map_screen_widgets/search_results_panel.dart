@@ -10,8 +10,8 @@ class SearchResultsPanel extends StatelessWidget {
     required this.results,
     required this.onSelect,
   });
-  final List<LocationResponse> results;
 
+  final List<LocationResponse> results;
   final Function(LocationResponse location) onSelect;
 
   @override
@@ -30,26 +30,7 @@ class SearchResultsPanel extends StatelessWidget {
         ],
       ),
       child: results.isEmpty
-          ? Padding(
-              padding: EdgeInsets.all(24.w),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.search_off_rounded,
-                    size: 32.r,
-                    color: AppColors.placeholderText,
-                  ),
-                  SizedBox(height: 12.h),
-                  Text(
-                    "No results found",
-                    style: AppTypography.captionSmall.copyWith(
-                      color: AppColors.placeholderText,
-                    ),
-                  ),
-                ],
-              ),
-            )
+          ? _buildEmptyState()
           : ListView.separated(
               shrinkWrap: true,
               padding: EdgeInsets.symmetric(vertical: 8.h),
@@ -60,27 +41,18 @@ class SearchResultsPanel extends StatelessWidget {
               ),
               itemBuilder: (context, index) {
                 final location = results[index];
-
                 return ListTile(
                   dense: true,
                   leading: CircleAvatar(
                     radius: 18.r,
-                    backgroundColor: AppColors.brandPrimary.withValues(
-                      alpha: 0.1,
-                    ),
-                    child: Icon(
-                      Icons.location_on_outlined,
-                      color: AppColors.brandPrimary,
-                      size: 18.r,
-                    ),
+                    backgroundColor: AppColors.brandPrimary.withValues(alpha: 0.1),
+                    child: Icon(Icons.location_on_outlined, color: AppColors.brandPrimary, size: 18.r),
                   ),
                   title: Text(
                     location.mapLabel,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTypography.captionSmall.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: AppTypography.captionSmall.copyWith(fontWeight: FontWeight.w600),
                   ),
                   subtitle: Text(
                     "${location.physicalAddress} • ${location.primaryTypeName}",
@@ -95,6 +67,23 @@ class SearchResultsPanel extends StatelessWidget {
                 );
               },
             ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Padding(
+      padding: EdgeInsets.all(24.w),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.search_off_rounded, size: 32.r, color: AppColors.placeholderText),
+          SizedBox(height: 12.h),
+          Text(
+            "No results found",
+            style: AppTypography.captionSmall.copyWith(color: AppColors.placeholderText),
+          ),
+        ],
+      ),
     );
   }
 }
