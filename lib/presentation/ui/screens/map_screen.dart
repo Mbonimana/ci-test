@@ -8,6 +8,8 @@ import 'package:street_team/core/config/theme/app_color.dart';
 import 'package:street_team/core/config/theme/typography.dart';
 import 'package:street_team/presentation/providers/location_provider.dart';
 import 'package:street_team/presentation/providers/map_provider.dart';
+import 'package:street_team/presentation/ui/screens/location_screen.dart';
+import 'package:street_team/presentation/ui/screens/organization_screen.dart';
 import 'package:street_team/presentation/ui/widgets/map_screen_widgets/search_results_panel.dart'; // Ensure this path is correct
 import 'package:street_team/presentation/ui/widgets/shared/app_button.dart';
 import 'package:street_team/presentation/ui/widgets/shared/feedback_widgets/app_snackbar.dart';
@@ -162,9 +164,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                         longitude: loc.longitude,
                         zoom: 16, // Zoom in close so they see the icon
                       );
-
-                      // 3. Automatically open the detail sheet
-                     
                     },
                   ),
                   loading: () => Container(
@@ -211,26 +210,118 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 icon: Icons.refresh_rounded,
               ),
             ),
+            // action buttons
+            Positioned(
+              bottom: 40.h,
+              right: 20.w,
+              child: SizedBox(
+                width: 250.w,
+                height: 200.h,
+                child: Stack(
+                  alignment: Alignment.bottomRight,
+                  children: [
+                    AnimatedPositioned(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeOut,
+                      right: showCreateActions ? 70 : -90.w,
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 200),
+                        opacity: showCreateActions ? 1 : 0,
+                        child: IgnorePointer(
+                          ignoring: !showCreateActions,
+                          child: Container(
+                            width: 180.w,
+                            padding: EdgeInsets.all(12.w),
+                            decoration: BoxDecoration(
+                              color: AppColors.backgroundBase,
+                              borderRadius: BorderRadius.circular(18.r),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withAlpha(30),
+                                  blurRadius: 18,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                AppButton(
+                                  text: "New Location",
+                                  icon: Icons.location_on_outlined,
+                                  onPressed: () {
+                                    ref
+                                        .read(locationFormProvider.notifier)
+                                        .resetFormState();
+                                    ref
+                                            .read(
+                                              pickedLocationProvider.notifier,
+                                            )
+                                            .state =
+                                        null;
 
-            // Action FAB (Add Location/Org)
-            Positioned(bottom: 40.h, right: 20.w, child: _buildActionButtons()),
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const LocationDetailsScreen(),
+                                      ),
+                                    );
+                                  },
+                                  variant: AppButtonVariant.secondary,
+                                ),
+                                SizedBox(height: 10.h),
+                                AppButton(
+                                  text: "New Organization",
+                                  icon: Icons.business_outlined,
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const OrganizationScreen(),
+                                      ),
+                                    );
+                                  },
+                                  variant: AppButtonVariant.secondary,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    //location
+                    Positioned(
+                      bottom: 70.h,
+                      right: 10.h,
+                      child: AppButton(
+                        onPressed: mapEngine.goToUserLocation,
+                        variant: AppButtonVariant.leadingIcon,
+                        icon: Icons.my_location,
+                      ),
+                    ),
+
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: AppButton(
+                        onPressed: () {
+                          setState(() {
+                            showCreateActions = !showCreateActions;
+                          });
+                        },
+                        variant: AppButtonVariant.circularIcon,
+                        icon: Icons.add_location_alt_outlined,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildActionButtons() {
-    // ... logic for showCreateActions remains same as your original snippet ...
-    return SizedBox(
-      width: 250.w,
-      height: 200.h,
-      child: Stack(
-        alignment: Alignment.bottomRight,
-        children: [
-          // (Keep your existing AnimatedPositioned and FAB code here)
-          // ...
-        ],
       ),
     );
   }
