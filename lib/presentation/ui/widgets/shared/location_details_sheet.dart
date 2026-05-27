@@ -5,7 +5,6 @@ import 'package:street_team/core/config/theme/typography.dart';
 import 'package:street_team/data/models/location_response.dart';
 import 'package:street_team/data/models/organization_response.dart';
 import 'package:street_team/presentation/ui/screens/location_screen.dart';
-import 'package:street_team/presentation/ui/screens/organization_screen.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_button.dart';
 
 class LocationDetailsSheet extends StatelessWidget {
@@ -15,79 +14,71 @@ class LocationDetailsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _SheetSurface(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const _SheetHandle(),
-          SizedBox(height: 16.h),
-          _HeaderBlock(
-            title: location.mapLabel,
-            subtitle: location.physicalAddress,
-            action: AppButton(
-              text: 'Edit Location',
-              variant: AppButtonVariant.secondary,
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => LocationDetailsScreen(
-                      editId: location.id.toString(),
-                      initialLocation: location,
-                    ),
+    return _BaseScrollSheet(
+      title: 'Location Details',
+      action: _ModernEditButton(
+        onPressed: () {
+          Navigator.pop(context);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  LocationDetailsScreen(editId: location.id.toString()),
+            ),
+          );
+        },
+      ),
+      children: [
+        // Location block
+        _SimpleBlock("Location Name", location.name),
+        if (location.nickname?.isNotEmpty == true)
+          _SimpleBlock("Nickname", location.nickname!),
+        _SimpleBlock("Physical Address", location.physicalAddress),
+
+        _SimpleBlock("Short Name", " ${location.shortName}"),
+
+        // Types
+        if (location.types.isNotEmpty) ...[
+          _SectionTitle(title: "Types"),
+          Wrap(
+            spacing: 6.w,
+            runSpacing: 6.h,
+            children: location.types
+                .map((t) => _ChipPill(text: t.name))
+                .toList(),
+          ),
+        ],
+
+        SizedBox(height: 16.h),
+
+        //orgs
+        _SectionTitle(
+          title: "Organizations (${location.organizations.length})",
+        ),
+
+        SizedBox(height: 8.h),
+
+        if (location.organizations.isEmpty)
+          Text("No organizations", style: AppTypography.bodyMedium)
+        else
+          ...location.organizations.map(
+            (org) => _CompactOrgCard(
+              name: org.name,
+              type: org.type ?? "General",
+              onTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (_) => OrganizationDetailsSheet(
+                    location: location,
+                    organization: org,
                   ),
                 );
               },
             ),
           ),
-          SizedBox(height: 18.h),
-          _InfoRow(
-            label: 'Coordinates',
-            value: '${location.latitude}, ${location.longitude}',
-          ),
-          SizedBox(height: 16.h),
-          if (location.types.isNotEmpty) ...[
-            Text('Types', style: AppTypography.titleSmall),
-            SizedBox(height: 10.h),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: location.types
-                  .map((type) => _ChipPill(text: type.name, filled: true))
-                  .toList(),
-            ),
-            SizedBox(height: 18.h),
-          ],
-          Text('Organizations', style: AppTypography.titleSmall),
-          SizedBox(height: 10.h),
-          if (location.organizations.isEmpty)
-            _EmptyState(
-              text: 'No organizations are registered at this location yet.',
-            )
-          else
-            ...location.organizations.map(
-              (organization) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: _OrganizationCard(
-                  organization: organization,
-                  onTap: () {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      builder: (_) => OrganizationDetailsSheet(
-                        location: location,
-                        organization: organization,
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-        ],
-      ),
+      ],
     );
   }
 }
@@ -104,182 +95,132 @@ class OrganizationDetailsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _SheetSurface(
+    return _BaseScrollSheet(
+      title: 'Organization Info',
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
+        onPressed: () => Navigator.pop(context),
+      ),
+      action: _ModernEditButton(onPressed: () {}),
+
+      children: [
+        // ================= SIMPLE BLOCKS ONLY =================
+        _SectionTitle(title: "Organization Details"),
+
+        _SimpleBlock("Name", organization.name),
+        _SimpleBlock("Type", organization.type ?? "N/A"),
+        _SimpleBlock("Phone", organization.phone ?? "No phone"),
+        _SimpleBlock("Website", organization.website ?? "No website"),
+        if (organization.quickInfo != null)
+          _SimpleBlock("Info", organization.quickInfo!),
+
+        SizedBox(height: 10.h),
+
+        _SectionTitle(title: "Facilities"),
+
+        Wrap(
+          spacing: 6.w,
+          runSpacing: 6.h,
+          children: _orgFlags(
+            organization,
+          ).map((t) => _ChipPill(text: t, isOutline: true)).toList(),
+        ),
+      ],
+    );
+  }
+}
+
+class _BaseScrollSheet extends StatelessWidget {
+  final String title;
+  final Widget? action;
+  final Widget? leading;
+  final List<Widget> children;
+
+  const _BaseScrollSheet({
+    required this.title,
+    required this.children,
+    this.action,
+    this.leading,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // FORCE 60% HEIGHT
+    final height = MediaQuery.of(context).size.height * 0.60;
+
+    return Container(
+      height: height,
+      decoration: BoxDecoration(
+        color: const Color(0xfff6f7fb),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+      ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const _SheetHandle(),
-          SizedBox(height: 16.h),
-          _HeaderBlock(
-            title: organization.name,
-            subtitle: organization.type ?? location.mapLabel,
-            action: AppButton(
-              text: 'Edit Organization',
-              variant: AppButtonVariant.secondary,
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => OrganizationScreen(
-                      initialOrganization: organization,
-                      initialLocationName: location.mapLabel,
-                    ),
-                  ),
-                );
-              },
+          Container(
+            margin: EdgeInsets.symmetric(vertical: 10.h),
+            width: 40.w,
+            height: 4.h,
+            decoration: BoxDecoration(
+              color: Colors.grey.withAlpha(50),
+              borderRadius: BorderRadius.circular(10),
             ),
           ),
-          SizedBox(height: 18.h),
-          _InfoRow(
-            label: 'Phone',
-            value: organization.phone?.isNotEmpty == true
-                ? organization.phone!
-                : 'No phone provided',
+
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 14.w),
+            child: SizedBox(
+              height: 40.h,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  if (leading != null) Positioned(left: 0, child: leading!),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 110.w),
+                    child: Text(
+                      title,
+                      textAlign: TextAlign
+                          .left, 
+                      style: AppTypography.titleMedium.copyWith(
+                        fontSize: 17.sp, 
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.brandPrimary
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+
+                  if (action != null) Positioned(right: 0, child: action!),
+                ],
+              ),
+            ),
           ),
-          _InfoRow(
-            label: 'Website',
-            value: organization.website?.isNotEmpty == true
-                ? organization.website!
-                : 'No website provided',
-          ),
-          _InfoRow(
-            label: 'Submitter',
-            value: organization.submitterAtName?.isNotEmpty == true
-                ? organization.submitterAtName!
-                : 'Unknown',
-          ),
-          if (organization.quickInfo?.isNotEmpty == true) ...[
-            SizedBox(height: 14.h),
-            Text('Quick Info', style: AppTypography.titleSmall),
-            SizedBox(height: 8.h),
-            Text(organization.quickInfo!, style: AppTypography.bodyMedium),
-          ],
-          if (organization.onlineMenu?.isNotEmpty == true) ...[
-            SizedBox(height: 14.h),
-            Text('Online Menu', style: AppTypography.titleSmall),
-            SizedBox(height: 8.h),
-            Text(organization.onlineMenu!, style: AppTypography.bodyMedium),
-          ],
-          SizedBox(height: 18.h),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _organizationFlags(
-              organization,
-            ).map((tag) => _ChipPill(text: tag)).toList(),
+
+        
+          
+
+          // SCROLLABLE CONTENT
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 30.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: children,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 }
+// ================= SIMPLE BLOCK (NO CARD UI) =================
 
-List<String> _organizationFlags(OrganizationResponseModel organization) {
-  final flags = <String>[];
-
-  void addIfActive(int? value, String label) {
-    if (value == 1) {
-      flags.add(label);
-    }
-  }
-
-  addIfActive(organization.isActive, 'Active');
-  addIfActive(organization.isBest, 'Best');
-  addIfActive(organization.isNew, 'New');
-  addIfActive(organization.isOpen24Hours, '24 Hours');
-  addIfActive(organization.hasBar, 'Bar');
-  addIfActive(organization.hasFood, 'Food');
-  addIfActive(organization.hasCoffee, 'Coffee');
-  addIfActive(organization.hasWifi, 'Wifi');
-  addIfActive(organization.hasAtm, 'ATM');
-  addIfActive(organization.hasShopping, 'Shopping');
-  addIfActive(organization.isTourism, 'Tourism');
-  addIfActive(organization.isNightLife, 'Nightlife');
-  addIfActive(organization.hasGuhemba, 'Guhemba');
-  addIfActive(organization.hasGuhembaMenu, 'Guhemba Menu');
-
-  return flags;
-}
-
-class _SheetSurface extends StatelessWidget {
-  final Widget child;
-
-  const _SheetSurface({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 24.h),
-        decoration: BoxDecoration(
-          color: AppColors.backgroundBase,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28.r)),
-        ),
-        child: SingleChildScrollView(child: child),
-      ),
-    );
-  }
-}
-
-class _SheetHandle extends StatelessWidget {
-  const _SheetHandle();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        width: 44,
-        height: 4,
-        decoration: BoxDecoration(
-          color: AppColors.placeholderText.withAlpha(70),
-          borderRadius: BorderRadius.circular(999),
-        ),
-      ),
-    );
-  }
-}
-
-class _HeaderBlock extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final Widget action;
-
-  const _HeaderBlock({
-    required this.title,
-    required this.subtitle,
-    required this.action,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: AppTypography.titleMedium),
-              SizedBox(height: 6.h),
-              Text(subtitle, style: AppTypography.bodyMedium),
-            ],
-          ),
-        ),
-        SizedBox(width: 12.w),
-        action,
-      ],
-    );
-  }
-}
-
-class _InfoRow extends StatelessWidget {
+class _SimpleBlock extends StatelessWidget {
   final String label;
   final String value;
 
-  const _InfoRow({required this.label, required this.value});
+  const _SimpleBlock(this.label, this.value);
 
   @override
   Widget build(BuildContext context) {
@@ -288,21 +229,30 @@ class _InfoRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 92,
-            child: Text(
-              label,
-              style: AppTypography.labelLarge.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ),
+          SizedBox(width: 8.w),
+
           Expanded(
-            child: Text(
-              value,
-              style: AppTypography.bodyMedium.copyWith(
-                color: AppColors.textPrimary,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.brandPrimary,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                SizedBox(height: 2.h),
+                Text(
+                  value,
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.brandSecondary,
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -311,119 +261,149 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
-class _ChipPill extends StatelessWidget {
-  final String text;
-  final bool filled;
+// organization card
+class _CompactOrgCard extends StatelessWidget {
+  final String name;
+  final String type;
+  final VoidCallback onTap;
 
-  const _ChipPill({required this.text, this.filled = false});
+  const _CompactOrgCard({
+    required this.name,
+    required this.type,
+    required this.onTap,
+  });
 
   @override
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-      decoration: BoxDecoration(
-        color: filled
-            ? AppColors.brandPrimary.withAlpha(18)
-            : AppColors.placeholderText.withAlpha(28),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        text,
-        style: AppTypography.labelSmall.copyWith(
-          color: filled ? AppColors.brandPrimary : AppColors.textSecondary,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(
+        10.r,
+      ), // Added to keep ripple contained
+      child: Container(
+        margin: EdgeInsets.only(bottom: 8.h),
+        // Increased vertical padding from 10 to 14 for extra height
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10.r),
+          // Added a very subtle border or shadow to make the increased height feel distinct
+          border: Border.all(color: AppColors.placeholderText.withAlpha(25)),
+        ),
+        child: Row(
+          children: [
+            // Increased icon size slightly for better alignment with new height
+            Icon(
+              Icons.business_rounded,
+              size: 18.sp,
+              color: AppColors.brandPrimary,
+            ),
+            SizedBox(width: 10.w),
+            Expanded(
+              child: Text(
+                name,
+                style: AppTypography.titleSmall.copyWith(
+                  fontSize: 13.5.sp,
+                  fontWeight: FontWeight.w700,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            SizedBox(width: 8.w),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(4.r),
+              ),
+              child: Text(
+                type,
+                style: AppTypography.labelSmall.copyWith(
+                  fontSize: 10.sp,
+                  color: AppColors.brandSecondary.withAlpha(153),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _EmptyState extends StatelessWidget {
+// type chip
+class _ChipPill extends StatelessWidget {
   final String text;
+  final bool isOutline;
 
-  const _EmptyState({required this.text});
+  const _ChipPill({required this.text, this.isOutline = false});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 18.h),
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
       decoration: BoxDecoration(
-        color: AppColors.placeholderText.withAlpha(18),
-        borderRadius: BorderRadius.circular(16.r),
+        color: isOutline
+            ? Colors.transparent
+            : AppColors.brandPrimary.withAlpha(25),
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(color: AppColors.brandPrimary.withAlpha(50)),
       ),
-      child: Text(text, style: AppTypography.bodyMedium),
+      child: Text(
+        text,
+        style: TextStyle(fontSize: 12.sp, color: AppColors.brandPrimary),
+      ),
     );
   }
 }
 
-class _OrganizationCard extends StatelessWidget {
-  final OrganizationResponseModel organization;
-  final VoidCallback onTap;
+// edit
+class _ModernEditButton extends StatelessWidget {
+  final VoidCallback onPressed;
 
-  const _OrganizationCard({required this.organization, required this.onTap});
+  const _ModernEditButton({required this.onPressed});
+  @override
+  Widget build(BuildContext context) {
+    return AppButton(
+      variant: AppButtonVariant.leadingIcon,
+      icon: Icons.edit,
+      color: AppColors.brandPrimary,
+      textColor: AppColors.backgroundBase,
+      onPressed: onPressed,
+    );
+  }
+}
+
+// ================= FLAGS =================
+
+List<String> _orgFlags(OrganizationResponseModel organization) {
+  final flags = <String>[];
+
+  if (organization.hasWifi == 1) flags.add("Wifi");
+  if (organization.hasFood == 1) flags.add("Food");
+  if (organization.hasBar == 1) flags.add("Bar");
+  if (organization.isOpen24Hours == 1) flags.add("24/7");
+
+  return flags;
+}
+
+class _SectionTitle extends StatelessWidget {
+  final String title;
+
+  const _SectionTitle({required this.title});
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(18.r),
-        child: Container(
-          padding: EdgeInsets.all(14.r),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(18.r),
-            border: Border.all(color: AppColors.placeholderText.withAlpha(35)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 18,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  color: AppColors.brandPrimary.withAlpha(16),
-                  borderRadius: BorderRadius.circular(14.r),
-                ),
-                child: const Icon(
-                  Icons.storefront_rounded,
-                  color: AppColors.brandPrimary,
-                ),
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      organization.name,
-                      style: AppTypography.titleSmall,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      organization.type ?? 'Organization',
-                      style: AppTypography.captionSmall.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: AppColors.textSecondary,
-              ),
-            ],
-          ),
+    return Padding(
+      padding: EdgeInsets.only(top: 10.h, bottom: 6.h),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 13.sp,
+          fontWeight: FontWeight.w700,
+          color: Colors.black87,
         ),
       ),
     );
