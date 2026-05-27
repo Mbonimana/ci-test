@@ -7,7 +7,7 @@ import 'package:street_team/core/config/theme/typography.dart';
 import 'package:street_team/core/routing/route_names.dart';
 import 'package:street_team/data/models/location_model.dart';
 import 'package:street_team/data/models/types_model.dart';
-import 'package:street_team/data/models/user_model.dart';
+import 'package:street_team/data/services/location_capture_service.dart';
 import 'package:street_team/presentation/providers/location_provider.dart';
 import 'package:street_team/presentation/providers/map_provider.dart';
 import 'package:street_team/presentation/providers/types_provider.dart';
@@ -28,24 +28,22 @@ class LocationDetailsScreen extends ConsumerStatefulWidget {
 }
 
 class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
-  // Controllers
-
   final nameController = TextEditingController();
   final addressController = TextEditingController();
   final shortNameController = TextEditingController();
   final nicknameController = TextEditingController();
 
   // Dropdown State
-
   bool isTypeDropdownExpanded = false;
 
   // Selected Types
-
   List<TypeModel> selectedLocationTypes = [];
 
+  final _locationService = LocationCaptureService();
+
   Future<void> submitLocation() async {
-    //  Get current coordinates and data
     final coords = ref.read(pickedLocationProvider);
+
     if (coords == null) {
       ScaffoldMessenger.of(
         context,
@@ -53,16 +51,17 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
       return;
     }
 
-    //  Show Loading Indicator (Dialog)
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) =>
-          const PopScope(canPop: false, child: LoadingIndicator()),
+      builder: (_) => const PopScope(canPop: false, child: LoadingIndicator()),
     );
 
     try {
-      //  model
+      final submitterAtName = await _locationService.resolveSubmitterName();
+      final submitterServer = await _locationService.resolveSubmitterServer();
+      final userLocation = await _locationService.buildUserLocation();
+
       final model = LocationModel(
         name: nameController.text,
         physicalAddress: addressController.text,
@@ -71,41 +70,29 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
         latitude: coords.latitude,
         longitude: coords.longitude,
         types: selectedLocationTypes.map((e) => e.id).toList(),
-        submitterServer: "street_team_app",
-        submitterAtName: "Manasseh",
-        userLocation: UserLocation(
-          street: "GPS Street",
-          latitude: coords.latitude,
-          longitude: coords.longitude,
-        ),
+        submitterServer: submitterServer,
+        submitterAtName: submitterAtName,
+        userLocation: userLocation,
       );
 
-      //  Call notifier and AWAIT it
-      final notifier = ref.read(locationFormProvider.notifier);
-      await notifier.submitLocation(model, editId: widget.editId);
+      await ref
+          .read(locationFormProvider.notifier)
+          .submitLocation(model, editId: widget.editId);
 
-      //  Close the Loading Dialog
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) Navigator.pop(context);
 
-      // Show actual success and navigate
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Location saved successfully")),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Location saved")));
         context.go(RouteNames.location);
       }
     } catch (e) {
-      //  close loading dialog and show error message
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) Navigator.pop(context);
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Error: ${e.toString()}"),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+      );
     }
   }
 
@@ -155,8 +142,8 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
     if (formState.initial != null) {
       nameController.text = formState.initial!.name;
       addressController.text = formState.initial!.physicalAddress;
-      shortNameController.text = formState.initial!.shortName;
-      nicknameController.text = formState.initial!.nickname;
+      shortNameController.text = formState.initial!.shortName ?? '';
+      nicknameController.text = formState.initial!.nickname ?? '';
     }
 
     return GestureDetector(
