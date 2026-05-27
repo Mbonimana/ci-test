@@ -12,19 +12,36 @@ typedef OrganizationSelectionChanged =
 
 class OrganizationOptions extends StatelessWidget {
   final OrganizationSelectionChanged onSelectionChanged;
+  final List<Map<String, dynamic>> initialSelectedOptions;
+  final String? initialOnlineMenu;
 
-  const OrganizationOptions({super.key, required this.onSelectionChanged});
+  const OrganizationOptions({
+    super.key,
+    required this.onSelectionChanged,
+    this.initialSelectedOptions = const [],
+    this.initialOnlineMenu,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return _OrganizationOptionsView(onSelectionChanged: onSelectionChanged);
+    return _OrganizationOptionsView(
+      onSelectionChanged: onSelectionChanged,
+      initialSelectedOptions: initialSelectedOptions,
+      initialOnlineMenu: initialOnlineMenu,
+    );
   }
 }
 
 class _OrganizationOptionsView extends StatefulWidget {
   final OrganizationSelectionChanged onSelectionChanged;
+  final List<Map<String, dynamic>> initialSelectedOptions;
+  final String? initialOnlineMenu;
 
-  const _OrganizationOptionsView({required this.onSelectionChanged});
+  const _OrganizationOptionsView({
+    required this.onSelectionChanged,
+    required this.initialSelectedOptions,
+    required this.initialOnlineMenu,
+  });
 
   @override
   State<_OrganizationOptionsView> createState() =>
@@ -37,6 +54,7 @@ class _OrganizationOptionsViewState extends State<_OrganizationOptionsView> {
   List<Map<String, dynamic>> allOptions = [];
   Set<int> selectedIds = {};
   bool isExpanded = false;
+  bool _prefilled = false;
 
   // Check if "Online Menu"
   bool get hasOnlineMenu => selectedIds.contains(29);
@@ -72,10 +90,31 @@ class _OrganizationOptionsViewState extends State<_OrganizationOptionsView> {
       setState(() {
         allOptions = List<Map<String, dynamic>>.from(rawList);
       });
+
+      _applyInitialValues();
       _notify();
     } catch (e) {
       debugPrint('FAILED TO LOAD OPTIONS: $e');
     }
+  }
+
+  void _applyInitialValues() {
+    if (_prefilled) {
+      return;
+    }
+
+    if (widget.initialSelectedOptions.isNotEmpty) {
+      selectedIds = widget.initialSelectedOptions
+          .where((item) => item['id'] != null)
+          .map<int>((item) => item['id'] as int)
+          .toSet();
+    }
+
+    if (widget.initialOnlineMenu != null) {
+      onlineMenuCtrl.text = widget.initialOnlineMenu!;
+    }
+
+    _prefilled = true;
   }
 
   void _notify() {
