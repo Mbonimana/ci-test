@@ -25,7 +25,7 @@ class LocationPayloadModel {
   final List<int> types;
   final List<int> subTypes;
 
-  final UserLocation userLocation;
+  final UserModel userLocation;
 
   final Map<String, List<OpeningHour>> openingHours;
 
