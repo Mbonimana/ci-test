@@ -4,8 +4,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:street_team/core/config/theme/app_color.dart';
 import 'package:street_team/core/config/theme/typography.dart';
+import 'package:street_team/core/routing/route_names.dart';
 import 'package:street_team/presentation/providers/location_provider.dart';
 import 'package:street_team/presentation/providers/map_provider.dart';
 import 'package:street_team/presentation/ui/screens/location_screen.dart';
@@ -91,7 +93,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               child: Row(
                 children: [
                   AppButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      context.go(RouteNames.home);
+                    },
                     variant: AppButtonVariant.leadingIcon,
                     icon: Icons.arrow_back_ios_new_rounded,
                   ),
