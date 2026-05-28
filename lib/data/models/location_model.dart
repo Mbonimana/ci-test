@@ -1,24 +1,22 @@
-import 'package:street_team/data/models/user_model.dart';
-
 class LocationModel {
   final String name;
   final String physicalAddress;
-  final String shortName;
-  final String nickname;
+  final String? shortName;
+  final String? nickname;
+
   final double latitude;
   final double longitude;
+
   final List<int> types;
-
-  final String submitterServer;
   final String submitterAtName;
-
-  final UserLocation userLocation;
+  final String submitterServer;
+  final Map<String, dynamic> userLocation;
 
   LocationModel({
     required this.name,
     required this.physicalAddress,
-    required this.shortName,
-    required this.nickname,
+    this.shortName,
+    this.nickname,
     required this.latitude,
     required this.longitude,
     required this.types,
@@ -27,25 +25,26 @@ class LocationModel {
     required this.userLocation,
   });
 
-  bool get hasValidCoordinates => latitude != 0 && longitude != 0;
-  factory LocationModel.fromJson(Map<String, dynamic> json) {
+  bool get hasValidCoordinates => latitude != 0.0 && longitude != 0.0;
+
+  factory LocationModel.fromJson(Map<String, dynamic> data) {
     return LocationModel(
-      name: json['name'] ?? '',
-      physicalAddress: json['physical_address'] ?? '',
-      shortName: json['short_name'] ?? '',
-      nickname: json['nickname'] ?? '',
+      name: data["name"] ?? '',
+      physicalAddress: data["physical_address"] ?? '',
+      shortName: data["short_name"],
+      nickname: data["nickname"],
 
-      latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
-      longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
+      latitude: (data["latitude"] as num?)?.toDouble() ?? 0.0,
+      longitude: (data["longitude"] as num?)?.toDouble() ?? 0.0,
 
-      types: (json['types'] as List? ?? []).map((e) => e as int).toList(),
+      types: data["types"] != null ? List<int>.from(data["types"]) : [],
 
-      submitterServer: json['submitter_server'] ?? '',
-      submitterAtName: json['submitter_at_name'] ?? '',
+      submitterServer: data["submitter_server"] ?? '',
+      submitterAtName: data["submitter_at_name"] ?? '',
 
-      userLocation: json['user_location'] != null
-          ? UserLocation.fromJson(json['user_location'])
-          : UserLocation(street: '', latitude: 0.0, longitude: 0.0),
+      userLocation: data["user_location"] != null
+          ? Map<String, dynamic>.from(data["user_location"])
+          : {},
     );
   }
 
@@ -60,7 +59,15 @@ class LocationModel {
       "types": types,
       "submitter_server": submitterServer,
       "submitter_at_name": submitterAtName,
-      "user_location": userLocation.toJson(),
+      "user_location": userLocation,
     };
+  }
+
+  static Map<String, dynamic> buildUserLocation({
+    required String street,
+    required double latitude,
+    required double longitude,
+  }) {
+    return {"street": street, "latitude": latitude, "longitude": longitude};
   }
 }

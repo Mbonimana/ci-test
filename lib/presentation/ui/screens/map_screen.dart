@@ -1,308 +1,332 @@
-// import 'dart:async';
-
-// import 'package:flutter/material.dart';
-// import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:flutter_screenutil/flutter_screenutil.dart';
-// import 'package:street_team/core/config/theme/app_color.dart';
-// import 'package:street_team/core/config/theme/typography.dart';
-// import 'package:street_team/presentation/providers/map_provider.dart';
-// import 'package:street_team/presentation/providers/organization_provider.dart';
-// import 'package:street_team/presentation/ui/screens/location_screen.dart';
-// import 'package:street_team/presentation/ui/screens/organization_screen.dart';
-// import 'package:street_team/presentation/ui/widgets/map_screen_widgets/search_results_panel.dart';
-// import 'package:street_team/presentation/ui/widgets/shared/app_button.dart';
-
-// class MapScreen extends ConsumerStatefulWidget {
-//   const MapScreen({super.key});
-
-//   @override
-//   ConsumerState<MapScreen> createState() => _MapScreenState();
-// }
-
-// class _MapScreenState extends ConsumerState<MapScreen> {
-//   bool showCreateActions = false;
-//   final TextEditingController searchController = TextEditingController();
-//   Timer? _debounce;
-
-//   void _onSearchChanged(String value) {
-//     ref.read(isSearchingProvider.notifier).state = value.trim().isNotEmpty;
-
-//     if (_debounce?.isActive ?? false) {
-//       _debounce?.cancel();
-//     }
-
-//     _debounce = Timer(const Duration(milliseconds: 350), () {
-//       ref.read(organizationSearchProvider.notifier).state = value;
-//     });
-//   }
-
-//   @override
-//   void dispose() {
-//     _debounce?.cancel();
-//     searchController.dispose();
-//     super.dispose();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final mapEngine = ref.watch(mapEngineProvider);
-//     final userLocationAsync = ref.watch(userLocationProvider);
-//     final organizationsAsync = ref.watch(organizationsProvider);
-//     final filteredOrganizations = ref.watch(filteredOrganizationsProvider);
-//     final searchResults = ref.watch(searchedOrganizationsProvider);
-//     final isSearching = ref.watch(isSearchingProvider);
-
-//     return Scaffold(
-//       backgroundColor: AppColors.backgroundBase,
-//       resizeToAvoidBottomInset: false,
-//       body: GestureDetector(
-//         onTap: () {
-//           FocusScope.of(context).unfocus();
-//           ref.read(isSearchingProvider.notifier).state = false;
-//         },
-//         child: Stack(
-//           children: [
-//             // map
-//             Positioned.fill(
-//               child: userLocationAsync.when(
-//                 data: (userLocation) {
-//                   return organizationsAsync.when(
-//                     data: (_) {
-//                       return mapEngine.buildMap(
-//                         userLocation: userLocation,
-//                         organizations: filteredOrganizations,
-//                       );
-//                     },
-//                     loading: () =>
-//                         const Center(child: CircularProgressIndicator()),
-//                     error: (error, _) => Center(
-//                       child: Padding(
-//                         padding: const EdgeInsets.all(24),
-//                         child: Text(
-//                           error.toString(),
-//                           textAlign: TextAlign.center,
-//                         ),
-//                       ),
-//                     ),
-//                   );
-//                 },
-//                 loading: () => const Center(child: CircularProgressIndicator()),
-//                 error: (e, _) => Center(child: Text(e.toString())),
-//               ),
-//             ),
-
-//             // top search bar
-//             Positioned(
-//               top: 60.h,
-//               left: 20.w,
-//               right: 20.w,
-//               child: Row(
-//                 children: [
-//                   AppButton(
-//                     onPressed: () => Navigator.pop(context),
-//                     variant: AppButtonVariant.leadingIcon,
-//                     icon: Icons.arrow_back_ios_new_rounded,
-//                   ),
-//                   SizedBox(width: 14.w),
-//                   Expanded(
-//                     child: Container(
-//                       height: 45.h,
-//                       decoration: BoxDecoration(
-//                         color: AppColors.backgroundBase,
-//                         borderRadius: BorderRadius.circular(10.r),
-//                         boxShadow: [
-//                           BoxShadow(
-//                             color: Colors.black.withValues(alpha: 0.08),
-//                             blurRadius: 12,
-//                             offset: const Offset(0, 4),
-//                           ),
-//                         ],
-//                       ),
-//                       child: TextField(
-//                         controller: searchController,
-//                         onChanged: _onSearchChanged,
-//                         style: AppTypography.captionSmall,
-//                         textAlignVertical: TextAlignVertical.center,
-//                         decoration: InputDecoration(
-//                           hintText: "Search locations or organizations",
-//                           hintStyle: AppTypography.captionSmall.copyWith(
-//                             color: AppColors.placeholderText,
-//                           ),
-//                           suffixIcon: Icon(
-//                             Icons.search,
-//                             color: AppColors.brandPrimary,
-//                           ),
-//                           border: InputBorder.none,
-//                           isCollapsed: true,
-//                           contentPadding: EdgeInsets.symmetric(
-//                             horizontal: 18.w,
-//                             vertical: 16.h,
-//                           ),
-//                         ),
-//                       ),
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             ),
-
-//             // search results panel
-//             if (isSearching)
-//               Positioned(
-//                 top: 118.h,
-//                 left: 20.w,
-//                 right: 20.w,
-//                 child: SearchResultsPanel(
-//                   results: searchResults,
-//                   onSelect: (organization) {
-//                     searchController.text = organization.organizationName;
-
-//                     ref.read(selectedOrganizationProvider.notifier).state =
-//                         organization;
-//                     ref.read(organizationSearchProvider.notifier).state =
-//                         organization.organizationName;
-//                     ref.read(isSearchingProvider.notifier).state = false;
-
-//                     FocusScope.of(context).unfocus();
-
-//                     mapEngine.goToCoordinates(
-//                       latitude: organization.location.latitude,
-//                       longitude: organization.location.longitude,
-//                     );
-//                   },
-//                 ),
-//               ),
-
-//             // left action (Refresh)
-//             Positioned(
-//               bottom: 40.h,
-//               left: 20.w,
-//               child: AppButton(
-//                 onPressed: () {
-//                   // Optional: trigger a refresh of the organizationsProvider
-//                   ref.invalidate(organizationsProvider);
-//                 },
-//                 variant: AppButtonVariant.circularIcon,
-//                 icon: Icons.refresh_rounded,
-//               ),
-//             ),
-
-//             // right action (Add New)
-//             Positioned(
-//               bottom: 40.h,
-//               right: 20.w,
-//               child: SizedBox(
-//                 width: 250.w,
-//                 height: 200.h,
-//                 child: Stack(
-//                   alignment: Alignment.bottomRight,
-//                   children: [
-//                     // Action panel
-//                     AnimatedPositioned(
-//                       duration: const Duration(milliseconds: 250),
-//                       curve: Curves.easeOut,
-//                       right: showCreateActions ? 70 : -90.w,
-//                       child: AnimatedOpacity(
-//                         duration: const Duration(milliseconds: 200),
-//                         opacity: showCreateActions ? 1 : 0,
-//                         child: IgnorePointer(
-//                           ignoring: !showCreateActions,
-//                           child: Container(
-//                             width: 180.w,
-//                             padding: EdgeInsets.all(12.w),
-//                             decoration: BoxDecoration(
-//                               color: AppColors.backgroundBase,
-//                               borderRadius: BorderRadius.circular(18.r),
-//                               boxShadow: [
-//                                 BoxShadow(
-//                                   color: Colors.black.withValues(alpha: 0.12),
-//                                   blurRadius: 18,
-//                                   offset: const Offset(0, 6),
-//                                 ),
-//                               ],
-//                             ),
-//                             child: Column(
-//                               mainAxisSize: MainAxisSize.min,
-//                               children: [
-//                                 AppButton(
-//                                   text: "New Location",
-//                                   icon: Icons.location_on_outlined,
-//                                   onPressed: () {
-//                                     Navigator.push(
-//                                       context,
-//                                       MaterialPageRoute(
-//                                         builder: (_) =>
-//                                             const LocationDetailsScreen(),
-//                                       ),
-//                                     );
-//                                   },
-//                                   variant: AppButtonVariant.secondary,
-//                                 ),
-//                                 SizedBox(height: 10.h),
-//                                 AppButton(
-//                                   text: "New Organization",
-//                                   icon: Icons.business_outlined,
-//                                   onPressed: () {
-//                                     Navigator.push(
-//                                       context,
-//                                       MaterialPageRoute(
-//                                         builder: (_) =>
-//                                             const OrganizationScreen(),
-//                                       ),
-//                                     );
-//                                   },
-//                                   variant: AppButtonVariant.secondary,
-//                                 ),
-//                               ],
-//                             ),
-//                           ),
-//                         ),
-//                       ),
-//                     ),
-
-//                     // gps button
-//                     Positioned(
-//                       bottom: 70.h,
-//                       right: 10.h,
-//                       child: AppButton(
-//                         onPressed: mapEngine.goToUserLocation,
-//                         variant: AppButtonVariant.leadingIcon,
-//                         icon: Icons.my_location,
-//                       ),
-//                     ),
-
-//                     // toggle button
-//                     Positioned(
-//                       bottom: 0,
-//                       right: 0,
-//                       child: AppButton(
-//                         onPressed: () {
-//                           setState(() {
-//                             showCreateActions = !showCreateActions;
-//                           });
-//                         },
-//                         variant: AppButtonVariant.circularIcon,
-//                         icon: Icons.add_location_alt_outlined,
-//                       ),
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
+// ignore_for_file: use_build_context_synchronously
+import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:street_team/core/config/theme/app_color.dart';
+import 'package:street_team/core/config/theme/typography.dart';
+import 'package:street_team/core/routing/route_names.dart';
+import 'package:street_team/presentation/providers/location_provider.dart';
+import 'package:street_team/presentation/providers/map_provider.dart';
+import 'package:street_team/presentation/ui/screens/location_screen.dart';
+import 'package:street_team/presentation/ui/screens/organization_screen.dart';
+import 'package:street_team/presentation/ui/widgets/map_screen_widgets/search_results_panel.dart'; // Ensure this path is correct
+import 'package:street_team/presentation/ui/widgets/shared/app_button.dart';
+import 'package:street_team/presentation/ui/widgets/shared/feedback_widgets/app_snackbar.dart';
 
-class MapScreen extends StatelessWidget {
+class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
 
   @override
+  ConsumerState<MapScreen> createState() => _MapScreenState();
+}
+
+class _MapScreenState extends ConsumerState<MapScreen> {
+  bool showCreateActions = false;
+  final TextEditingController searchController = TextEditingController();
+  Timer? _debounce;
+
+  void _onSearchChanged(String value) {
+    ref.read(isSearchingProvider.notifier).state = value.trim().isNotEmpty;
+
+    if (_debounce?.isActive ?? false) {
+      _debounce?.cancel();
+    }
+
+    _debounce = Timer(const Duration(milliseconds: 350), () {
+      ref.read(locationSearchProvider.notifier).state = value;
+    });
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container();
+    final mapEngine = ref.watch(mapEngineProvider);
+    final userLocationAsync = ref.watch(userLocationProvider);
+
+    final locationsAsync = ref.watch(locationsProvider);
+    final filteredLocations = ref.watch(filteredLocationsProvider);
+    final isSearching = ref.watch(isSearchingProvider);
+
+    final searchResultsAsync = ref.watch(remoteSearchResultsProvider);
+
+    return Scaffold(
+      backgroundColor: AppColors.backgroundBase,
+      resizeToAvoidBottomInset: false,
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+          ref.read(isSearchingProvider.notifier).state = false;
+        },
+        child: Stack(
+          children: [
+            // Map Layer
+            Positioned.fill(
+              child: userLocationAsync.when(
+                data: (userLocation) => locationsAsync.when(
+                  data: (_) => mapEngine.buildMap(
+                    userLocation: userLocation,
+                    locations: filteredLocations,
+                  ),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (error, _) => Center(child: Text("Error: $error")),
+                ),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) => Center(child: Text(e.toString())),
+              ),
+            ),
+
+            // Search Bar
+            Positioned(
+              top: 60.h,
+              left: 20.w,
+              right: 20.w,
+              child: Row(
+                children: [
+                  AppButton(
+                    onPressed: () {
+                      context.go(RouteNames.home);
+                    },
+                    variant: AppButtonVariant.leadingIcon,
+                    icon: Icons.arrow_back_ios_new_rounded,
+                  ),
+                  SizedBox(width: 14.w),
+                  Expanded(
+                    child: Container(
+                      height: 45.h,
+                      decoration: BoxDecoration(
+                        color: AppColors.backgroundBase,
+                        borderRadius: BorderRadius.circular(10.r),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withAlpha(20),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: TextField(
+                        controller: searchController,
+                        onChanged: _onSearchChanged,
+                        style: AppTypography.captionSmall,
+                        decoration: InputDecoration(
+                          hintText: "Search locations...",
+                          hintStyle: AppTypography.captionSmall.copyWith(
+                            color: AppColors.placeholderText,
+                          ),
+                          suffixIcon: Icon(
+                            Icons.search,
+                            color: AppColors.brandPrimary,
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 18.w,
+                            vertical: 12.h,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Search Results Panel (Asynchronous)
+            if (isSearching)
+              Positioned(
+                top: 118.h,
+                left: 20.w,
+                right: 20.w,
+                child: searchResultsAsync.when(
+                  data: (results) => SearchResultsPanel(
+                    results: results, // Pass the backend results here
+                    onSelect: (item) {
+                      final loc = item;
+                      searchController.text = loc.mapLabel;
+
+                      // 1. Inject this location into the map's data source provider immediately
+                      // This ensures the icon appears on the map even if it wasn't there before
+                      ref
+                          .read(otherResultsProvider.notifier)
+                          .injectLocation(loc);
+
+                      ref.read(isSearchingProvider.notifier).state = false;
+                      FocusScope.of(context).unfocus();
+
+                      // 2. Move camera to the location
+                      mapEngine.goToCoordinates(
+                        latitude: loc.latitude,
+                        longitude: loc.longitude,
+                        zoom: 16, // Zoom in close so they see the icon
+                      );
+                    },
+                  ),
+                  loading: () => Container(
+                    padding: EdgeInsets.all(20.w),
+                    decoration: BoxDecoration(
+                      color: AppColors.backgroundBase,
+                      borderRadius: BorderRadius.circular(14.r),
+                    ),
+                    child: const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                  error: (err, _) => SearchResultsPanel(
+                    results: const [], // Show "No results" on error
+                    onSelect: (_) {},
+                  ),
+                ),
+              ),
+
+            // Refresh Button
+            Positioned(
+              bottom: 40.h,
+              left: 20.w,
+              child: AppButton(
+                onPressed: () async {
+                  AppSnackbar.show(
+                    context: context,
+                    message: "Discovering...",
+                    variant: SnackbarVariant.warning,
+                  );
+                  try {
+                    await ref
+                        .read(otherResultsProvider.notifier)
+                        .fetchNextPage();
+                  } catch (e) {
+                    AppSnackbar.show(
+                      context: context,
+                      message: e.toString(),
+                      variant: SnackbarVariant.error,
+                    );
+                  }
+                },
+                variant: AppButtonVariant.circularIcon,
+                icon: Icons.refresh_rounded,
+              ),
+            ),
+            // action buttons
+            Positioned(
+              bottom: 40.h,
+              right: 20.w,
+              child: SizedBox(
+                width: 250.w,
+                height: 200.h,
+                child: Stack(
+                  alignment: Alignment.bottomRight,
+                  children: [
+                    AnimatedPositioned(
+                      duration: const Duration(milliseconds: 250),
+                      curve: Curves.easeOut,
+                      right: showCreateActions ? 70 : -90.w,
+                      child: AnimatedOpacity(
+                        duration: const Duration(milliseconds: 200),
+                        opacity: showCreateActions ? 1 : 0,
+                        child: IgnorePointer(
+                          ignoring: !showCreateActions,
+                          child: Container(
+                            width: 180.w,
+                            padding: EdgeInsets.all(12.w),
+                            decoration: BoxDecoration(
+                              color: AppColors.backgroundBase,
+                              borderRadius: BorderRadius.circular(18.r),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withAlpha(30),
+                                  blurRadius: 18,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                AppButton(
+                                  text: "New Location",
+                                  icon: Icons.location_on_outlined,
+                                  onPressed: () {
+                                    ref
+                                        .read(locationFormProvider.notifier)
+                                        .resetFormState();
+                                    ref
+                                            .read(
+                                              pickedLocationProvider.notifier,
+                                            )
+                                            .state =
+                                        null;
+
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const LocationDetailsScreen(),
+                                      ),
+                                    );
+                                  },
+                                  variant: AppButtonVariant.secondary,
+                                ),
+                                SizedBox(height: 10.h),
+                                AppButton(
+                                  text: "New Organization",
+                                  icon: Icons.business_outlined,
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const OrganizationScreen(),
+                                      ),
+                                    );
+                                  },
+                                  variant: AppButtonVariant.secondary,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    //location
+                    Positioned(
+                      bottom: 70.h,
+                      right: 10.h,
+                      child: AppButton(
+                        onPressed: mapEngine.goToUserLocation,
+                        variant: AppButtonVariant.leadingIcon,
+                        icon: Icons.my_location,
+                      ),
+                    ),
+
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: AppButton(
+                        onPressed: () {
+                          setState(() {
+                            showCreateActions = !showCreateActions;
+                          });
+                        },
+                        variant: AppButtonVariant.circularIcon,
+                        icon: Icons.add_location_alt_outlined,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

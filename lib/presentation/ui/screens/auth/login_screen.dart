@@ -40,6 +40,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  Future<void> _launchRegister() async {
+    final Uri url = Uri.parse(EnvConfig.murugoRegisterUrl);
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      throw Exception('Could not launch $url');
+    }
+  }
+
   Future<void> _onLoginPressed() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -63,7 +70,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
 
-
     await AppDialog.show(
       context: context,
       title: 'Login Failed',
@@ -82,6 +88,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             Column(
               children: [
                 const MurugoCloudsUI(),
+
                 Expanded(
                   child: SafeArea(
                     top: false,
@@ -93,7 +100,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         autovalidateMode: AutovalidateMode.onUserInteraction,
                         child: Column(
                           children: [
-                            SizedBox(height: 100.h),
+                        
+
+                            // LOGO
+                            Center(
+                              child: Image.asset(
+                                'assets/icons/street_team.png',
+                                width: 100.w,
+                                height: 100.h,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            SizedBox(height: 20.h),
                             AppTextField(
                               controller: _emailController,
                               hint: 'Email',
@@ -119,9 +137,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 if (value == null || value.isEmpty) {
                                   return 'Password is required';
                                 }
-                                if (value.length < 6) {
-                                  return 'Password must be at least 6 characters';
-                                }
+                                // if (value.length < 6) {
+                                //   return 'Password must be at least 6 characters';
+                                // }
                                 return null;
                               },
                             ),
@@ -131,23 +149,45 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               onPressed: _onLoginPressed,
                             ),
                             SizedBox(height: 20.h),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: InkWell(
-                                onTap: _launchForgotPassword,
-                                splashColor: Colors.transparent,
-                                highlightColor: Colors.transparent,
-                                child: const Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 8.0),
-                                  child: Text(
-                                    'Forgot Password?',
-                                    style: TextStyle(
-                                      color: AppColors.brandPrimary,
-                                      fontWeight: FontWeight.w500,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                InkWell(
+                                  onTap: _launchRegister,
+                                  splashColor: Colors.transparent,
+                                  highlightColor: Colors.transparent,
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: 8.0,
+                                    ),
+                                    child: Text(
+                                      'Create Account?',
+                                      style: TextStyle(
+                                        color: AppColors.brandPrimary,
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
+
+                                InkWell(
+                                  onTap: _launchForgotPassword,
+                                  splashColor: Colors.transparent,
+                                  highlightColor: Colors.transparent,
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: 8.0,
+                                    ),
+                                    child: Text(
+                                      'Forgot Password?',
+                                      style: TextStyle(
+                                        color: AppColors.brandPrimary,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),

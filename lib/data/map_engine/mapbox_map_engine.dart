@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -8,36 +9,32 @@ import 'package:street_team/core/utils/map_helpers/cluster_helper.dart';
 import 'package:street_team/core/utils/map_helpers/icon_helper.dart';
 import 'package:street_team/core/utils/map_helpers/label_style_helper.dart';
 import 'package:street_team/data/map_engine/map_engine.dart';
-import 'package:street_team/data/models/organization_model.dart';
+import 'package:street_team/data/models/location_response.dart';
+import 'package:street_team/presentation/ui/widgets/shared/location_details_sheet.dart';
 
 class MapboxMapEngine implements MapEngine {
   final MapCameraController cameraController = MapCameraController();
-
   IconHelper? _iconHelper;
-
   static const String _style = MapboxStyles.MAPBOX_STREETS;
 
   @override
   Widget buildMap({
     required geo.LatLng userLocation,
-    required List<OrganizationModel> organizations,
+    required List<LocationResponse> locations,
   }) {
     _iconHelper ??= IconHelper();
-
     cameraController.setUserLocation(userLocation);
 
     return _MapboxMapView(
       style: _style,
-      organizations: organizations,
+      locations: locations,
       iconHelper: _iconHelper!,
       cameraController: cameraController,
     );
   }
 
   @override
-  void goToUserLocation() {
-    cameraController.goToUserLocation();
-  }
+  void goToUserLocation() => cameraController.goToUserLocation();
 
   @override
   void goToCoordinates({
@@ -61,13 +58,13 @@ class MapboxMapEngine implements MapEngine {
 class _MapboxMapView extends StatefulWidget {
   const _MapboxMapView({
     required this.style,
-    required this.organizations,
+    required this.locations,
     required this.iconHelper,
     required this.cameraController,
   });
 
   final String style;
-  final List<OrganizationModel> organizations;
+  final List<LocationResponse> locations;
   final IconHelper iconHelper;
   final MapCameraController cameraController;
 
@@ -77,20 +74,12 @@ class _MapboxMapView extends StatefulWidget {
 
 class _MapboxMapViewState extends State<_MapboxMapView> {
   MapboxMap? _map;
-  PointAnnotationManager? _annotationManager;
   bool _styleLoaded = false;
-  bool _showLabels = true;
-  bool _isRefreshing = false;
-
-  static const double _labelZoomThreshold = 13;
-  static const double _clusterBreakZoom = 14;
-
   late final CameraViewportState _viewportState;
 
   @override
   void initState() {
     super.initState();
-
     _viewportState = CameraViewportState(
       center: Point(
         coordinates: Position(
@@ -105,10 +94,76 @@ class _MapboxMapViewState extends State<_MapboxMapView> {
   @override
   void didUpdateWidget(covariant _MapboxMapView oldWidget) {
     super.didUpdateWidget(oldWidget);
-
-    if (oldWidget.organizations != widget.organizations && _styleLoaded) {
-      _refreshAnnotations();
+    // If locations change, update the source
+    if (oldWidget.locations != widget.locations &&
+        _styleLoaded &&
+        _map != null) {
+      ClusterHelper.setup(_map!, widget.locations, widget.iconHelper);
     }
+  }
+
+  void _showDetailsSheet(LocationResponse location) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => LocationDetailsSheet(location: location),
+    );
+  }
+
+  Future<void> _zoomIntoCluster() async {
+    if (_map == null) return;
+
+    final cameraState = await _map!.getCameraState();
+    await _map!.flyTo(
+      CameraOptions(center: cameraState.center, zoom: cameraState.zoom + 2),
+      null,
+    );
+  }
+
+  Future<void> _processMapTap(ScreenCoordinate coordinate) async {
+    if (_map == null) return;
+
+    final features = await _map!.queryRenderedFeatures(
+      RenderedQueryGeometry.fromScreenCoordinate(coordinate),
+      RenderedQueryOptions(
+        layerIds: [ClusterHelper.unclusteredLayerId],
+        filter: null,
+      ),
+    );
+
+    if (features.isNotEmpty) {
+      final queriedFeature = features.first?.queriedFeature;
+      if (queriedFeature != null) {
+        final properties = queriedFeature.feature['properties'] as Map?;
+        final locationId = properties?['id']?.toString();
+
+        if (locationId != null) {
+          try {
+            final tappedLocation = widget.locations.firstWhere(
+              (location) => location.id.toString() == locationId,
+            );
+            _showDetailsSheet(tappedLocation);
+            return;
+          } catch (_) {}
+        }
+      }
+    }
+
+    final clusters = await _map!.queryRenderedFeatures(
+      RenderedQueryGeometry.fromScreenCoordinate(coordinate),
+      RenderedQueryOptions(
+        layerIds: [ClusterHelper.clusterLayerId],
+        filter: null,
+      ),
+    );
+
+    if (clusters.isNotEmpty) {
+      await _zoomIntoCluster();
+      return;
+    }
+
+    FocusManager.instance.primaryFocus?.unfocus();
   }
 
   @override
@@ -118,109 +173,45 @@ class _MapboxMapViewState extends State<_MapboxMapView> {
       styleUri: widget.style,
       textureView: true,
       viewport: _viewportState,
-      onMapCreated: (createdMap) async {
+      onMapCreated: (createdMap) {
         _map = createdMap;
-
         widget.cameraController.attachMap(createdMap);
-        //Keyboard dismissal on map tap
-        final tapInteraction = TapInteraction.onMap((context) {
-          FocusManager.instance.primaryFocus?.unfocus();
+
+        createdMap.setOnMapTapListener((context) {
+          unawaited(_processMapTap(context.touchPosition));
         });
-
-        createdMap.addInteraction(tapInteraction);
       },
-
       onStyleLoadedListener: _handleStyleLoaded,
-      onCameraChangeListener: _handleCameraChanged,
     );
   }
 
   Future<void> _handleStyleLoaded(StyleLoadedEventData data) async {
     _styleLoaded = true;
-
     if (_map == null) return;
 
-    await _map!.location.updateSettings(
-      LocationComponentSettings(
-        enabled: true,
-        pulsingEnabled: true,
-        showAccuracyRing: true,
-      ),
-    );
-
     await LabelStyleHelper.applyMinimalLabels(_map!);
+    await _map!.location.updateSettings(
+      LocationComponentSettings(enabled: true, pulsingEnabled: true),
+    );
+    await _loadIconsIntoMapStyle();
+    await ClusterHelper.setup(_map!, widget.locations, widget.iconHelper);
+  }
 
-    try {
-      await _map!.setBounds(
-        CameraBoundsOptions(minZoom: 1, maxZoom: 22, minPitch: 0, maxPitch: 85),
+  Future<void> _loadIconsIntoMapStyle() async {
+    final types = IconHelper.typeIcons.keys.toList();
+    for (final typeKey in types) {
+      final Uint8List bytes = await widget.iconHelper.getMarkerImageOnly(
+        typeKey,
       );
-    } catch (_) {}
-
-    // ClusterHelper already updated to handle nested location
-    await ClusterHelper.applyClustering(_map!, widget.organizations);
-
-    _annotationManager ??= await _map!.annotations
-        .createPointAnnotationManager();
-
-    await _refreshAnnotations();
-  }
-
-  Future<void> _handleCameraChanged(CameraChangedEventData data) async {
-    final zoom = data.cameraState.zoom;
-    final shouldShowLabels = zoom >= _labelZoomThreshold;
-
-    if (shouldShowLabels != _showLabels) {
-      if (mounted) {
-        setState(() {
-          _showLabels = shouldShowLabels;
-        });
-      }
-    }
-
-    if (zoom >= _clusterBreakZoom) {
-      await _refreshAnnotations();
-    } else {
-      await _annotationManager?.deleteAll();
-    }
-  }
-
-  Future<void> _refreshAnnotations() async {
-    if (_annotationManager == null || _isRefreshing) {
-      return;
-    }
-
-    _isRefreshing = true;
-
-    try {
-      await _annotationManager!.deleteAll();
-
-      for (final organization in widget.organizations) {
-        // Access coordinate validation through nested location
-        if (!organization.location.hasValidCoordinates) {
-          continue;
-        }
-
-        final Uint8List image = await widget.iconHelper.buildMarkerBytes(
-          organization,
-          showLabel: _showLabels,
-        );
-
-        await _annotationManager!.create(
-          PointAnnotationOptions(
-            geometry: Point(
-              coordinates: Position(
-                //  Access coordinates via nested location
-                organization.location.longitude,
-                organization.location.latitude,
-              ),
-            ),
-            image: image,
-            iconSize: 1,
-          ),
-        );
-      }
-    } finally {
-      _isRefreshing = false;
+      await _map!.style.addStyleImage(
+        typeKey,
+        1.0,
+        MbxImage(width: 100, height: 100, data: bytes),
+        false,
+        [],
+        [],
+        null,
+      );
     }
   }
 }

@@ -1,108 +1,122 @@
 import 'dart:convert';
 
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
-import 'package:street_team/core/config/theme/app_color.dart';
-import 'package:street_team/data/models/organization_model.dart';
+import 'package:street_team/core/utils/map_helpers/icon_helper.dart';
+import 'package:street_team/data/models/location_response.dart';
 
 class ClusterHelper {
-  const ClusterHelper._();
+  static const sourceId = "locations-source";
+  static const clusterLayerId = "clusters-circle-layer";
+  static const clusterCountId = "cluster-count-layer";
+  static const unclusteredLayerId = "unclustered-points-layer";
 
-  static const String sourceId = 'org-source';
-  static const String clusterLayerId = 'cluster-circles';
-  static const String clusterCountLayerId = 'cluster-count';
-
-  static Future<void> applyClustering(
+  static Future<void> setup(
     MapboxMap map,
-    List<OrganizationModel> organizations, {
-    String assetPath = 'assets/mock/clustered_organizations.geojson',
-  }) async {
-    String geoJson;
+    List<LocationResponse> locations,
+    IconHelper iconHelper,
+  ) async {
+    final valid = locations.where((e) => e.hasValidCoordinates).toList();
 
-    try {
-      geoJson = await rootBundle.loadString(assetPath);
-    } catch (_) {
-      final features = organizations
-          .where(
-            (o) => o.location.hasValidCoordinates,
-          ) // Accessing coordinates via Location
-          .map(
-            (o) => {
-              'type': 'Feature',
-              'properties': {'type': o.primaryType, 'name': o.organizationName},
-              'geometry': {
-                'type': 'Point',
-                'coordinates': [
-                  o.location.longitude, // Nested Location model
-                  o.location.latitude, // Nested Location model
-                ],
-              },
-            },
-          )
-          .toList();
+    final geoJson = {
+      "type": "FeatureCollection",
+      "features": valid.map((loc) {
+        return {
+          "type": "Feature",
+          "properties": {
+            "id": loc.id,
+            "name": loc.mapLabel,
+            "type": LocationTypeResolver.resolve(loc.primaryTypeName),
+          },
+          "geometry": {
+            "type": "Point",
+            "coordinates": [loc.longitude, loc.latitude],
+          },
+        };
+      }).toList(),
+    };
 
-      geoJson = jsonEncode({'type': 'FeatureCollection', 'features': features});
+    await _remove(map);
+
+    await map.style.addSource(
+      GeoJsonSource(
+        id: sourceId,
+        data: jsonEncode(geoJson),
+        cluster: true,
+        clusterRadius: 50,
+        clusterMaxZoom: 12,
+      ),
+    );
+
+    // Cluster Circles
+    await map.style.addLayer(
+      CircleLayer(
+        id: clusterLayerId,
+        sourceId: sourceId,
+        filter: ['has', 'point_count'],
+        circleColor: 0xFF00B2FF,
+        circleRadiusExpression: [
+          'step',
+          ['get', 'point_count'],
+          20,
+          10,
+          25,
+          50,
+          30,
+        ],
+        circleStrokeWidth: 2,
+        circleStrokeColor: 0xFFFFFFFF,
+      ),
+    );
+
+    //  Cluster Numbers
+    await map.style.addLayer(
+      SymbolLayer(
+        id: clusterCountId,
+        sourceId: sourceId,
+        filter: ['has', 'point_count'],
+        textFieldExpression: ['get', 'point_count'],
+        textSize: 12,
+        textColor: 0xFFFFFFFF,
+        textIgnorePlacement: true,
+        textAllowOverlap: true,
+      ),
+    );
+
+    await map.style.addLayer(
+      SymbolLayer(
+        id: unclusteredLayerId,
+        sourceId: sourceId,
+        filter: [
+          '!',
+          ['has', 'point_count'],
+        ],
+        iconImageExpression: ['get', 'type'],
+        iconSize: 0.4,
+
+        textFieldExpression: ['get', 'name'],
+        textSize: 11,
+        textAnchor: TextAnchor.TOP,
+        textOffset: [0, 2.5],
+        textColor: 0xFF1E293B,
+        iconAllowOverlap: false,
+        textAllowOverlap: false,
+        iconIgnorePlacement: false,
+      ),
+    );
+  }
+
+  static Future<void> _remove(MapboxMap map) async {
+    for (final id in [clusterLayerId, clusterCountId, unclusteredLayerId]) {
+      try {
+        if (await map.style.styleLayerExists(id)) {
+          await map.style.removeStyleLayer(id);
+        }
+      } catch (_) {}
     }
-
-    // Clean up existing layers/sources before adding new ones
     try {
-      await map.style.removeStyleLayer(clusterCountLayerId);
+      if (await map.style.styleSourceExists(sourceId)) {
+        await map.style.removeStyleSource(sourceId);
+      }
     } catch (_) {}
-
-    try {
-      await map.style.removeStyleLayer(clusterLayerId);
-    } catch (_) {}
-
-    try {
-      await map.style.removeStyleSource(sourceId);
-    } catch (_) {}
-
-    // Create GeoJson Source with clustering enabled
-    final source = GeoJsonSource(
-      id: sourceId,
-      data: geoJson,
-      cluster: true,
-      clusterRadius: 60,
-      clusterMaxZoom: 14,
-    );
-
-    await map.style.addSource(source);
-
-    // Create the cluster circles layer
-    final clusterLayer = CircleLayer(
-      id: clusterLayerId,
-      sourceId: sourceId,
-      filter: ['has', 'point_count'],
-      circleColor: AppColors.mapMarkerBackground.value,
-      circleRadiusExpression: [
-        'interpolate',
-        ['linear'],
-        ['get', 'point_count'],
-        1,
-        18,
-        50,
-        28,
-        200,
-        40,
-      ],
-      circleStrokeColor: 0xFFFFFFFF,
-      circleStrokeWidth: 2,
-    );
-
-    await map.style.addLayer(clusterLayer);
-
-    // Create the cluster count text layer
-    final countLayer = SymbolLayer(
-      id: clusterCountLayerId,
-      sourceId: sourceId,
-      filter: ['has', 'point_count'],
-      textFieldExpression: ['get', 'point_count'],
-      textSize: 16,
-      textColor: 0xFFFFFFFF,
-      textAllowOverlap: true,
-      textAnchor: TextAnchor.CENTER,
-    );
-
-    await map.style.addLayer(countLayer);
   }
 }

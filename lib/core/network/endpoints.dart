@@ -29,11 +29,9 @@ class Endpoints {
   static const String getLocations =
       '$apiBaseUrl/api/v2/paginated-locations?app_key=$publicKey';
   // Search locations
-  static String searchLocation(String query) =>
-      '$apiBaseUrl/api/v2/locations?app_key=$publicKey&search_by=$query';
-  // Update submitted location
-  static String updateLocation(String id) =>
-      '$apiBaseUrl/api/v2/submitted-locations/$id';
+  static String searchLocation = '$apiBaseUrl/api/search-location';
+  // Update location
+  static String updateLocation(String id) => '$apiBaseUrl/api/locations/$id';
   // Get location by ID
   static String getLocationById(String id) =>
       '$apiBaseUrl/api/v2/locations/$id?app_key=$publicKey';

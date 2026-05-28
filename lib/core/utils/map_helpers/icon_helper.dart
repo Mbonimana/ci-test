@@ -1,288 +1,195 @@
-import 'dart:math' as math;
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart' as svg;
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:street_team/core/config/theme/app_color.dart';
-import 'package:street_team/data/models/organization_model.dart';
-import 'package:vector_graphics/vector_graphics.dart';
-
-class _WhiteIconColorMapper extends svg.ColorMapper {
-  const _WhiteIconColorMapper();
-
-  @override
-  Color substitute(
-    String? id,
-    String elementName,
-    String attributeName,
-    Color color,
-  ) {
-    return AppColors.backgroundBase;
-  }
-}
+import 'package:street_team/data/models/location_response.dart';
 
 class IconHelper {
-  IconHelper({this.labelZoomThreshold = 13});
+  final Map<String, Future<Uint8List>> _cache = {};
+  static const double _canvasWidth = 80;
+  static const double _canvasHeight = 80;
+  static const double _outerRadius = 24; 
+  static const double _innerRadius = 20; 
+  static const double _iconSize = 26; 
 
-  final double labelZoomThreshold;
-
-  static const Color markerColor = AppColors.mapMarkerBackground;
-
-  /// Updated mapping to match your new Organization and Location types
   static const Map<String, String> typeIcons = {
-    // Organization Types
-    'Restaurants': 'assets/icons/restaurant.svg',
-    'Coffee': 'assets/icons/coffee.svg',
-    'Bar': 'assets/icons/bar.svg',
-    'Beauty & SPA': 'assets/icons/hotel.svg',
-    'Medical': 'assets/icons/medical.svg',
-    'Shopping': 'assets/icons/shopping.svg',
-    'Corporate':
-        'assets/icons/businessman-ceo-representative-boss-svgrepo-com.svg',
-    'Education': 'assets/icons/education.svg',
-    'Accommodation': 'assets/icons/hotel.svg',
-    'Sports': 'assets/icons/sports.svg',
-    'Technology': 'assets/icons/technology.svg',
-
-    // Location Types (Mappings for Building-level categories)
-    'Food & Drink': 'assets/icons/restaurant.svg',
-    'Wellness & Personal Care': 'assets/icons/hotel.svg',
-    'Commercial & Retail Spaces': 'assets/icons/shopping.svg',
-    'Cultural & Creative Spaces': 'assets/icons/tourism.svg',
-    'Education & Learning Spaces': 'assets/icons/education.svg',
-    'Government & Public Administration': 'assets/icons/government.svg',
-    'Hospitality & Accommodation': 'assets/icons/hotel.svg',
-    'Healthcare Facilities': 'assets/icons/medical.svg',
-    'Religious Spaces': 'assets/icons/government.svg',
-    'Financial Services': 'assets/icons/bank.svg',
-    'Entertainment & Leisure Spaces': 'assets/icons/game.svg',
-    'Transport & Mobility Hubs': 'assets/icons/gas-station.svg',
-
-    // Fallback
-    'Business Other':
-        'assets/icons/businessman-ceo-representative-boss-svgrepo-com.svg',
+    'food_drink': 'assets/icons/restaurant.svg',
+    'wellness': 'assets/icons/medical.svg',
+    'commercial': 'assets/icons/business.svg',
+    'culture': 'assets/icons/tourism.svg',
+    'education': 'assets/icons/education.svg',
+    'government': 'assets/icons/government.svg',
+    'hotel': 'assets/icons/hotel.svg',
+    'healthcare': 'assets/icons/hospital.svg',
+    'community': 'assets/icons/sports.svg',
+    'religion': 'assets/icons/hotel.svg',
+    'sports': 'assets/icons/sports.svg',
+    'financial': 'assets/icons/bank.svg',
+    'tech': 'assets/icons/technology.svg',
+    'industry': 'assets/icons/location.svg',
+    'transport': 'assets/icons/gas-station.svg',
+    'entertainment': 'assets/icons/game.svg',
+    'outdoor': 'assets/icons/movie.svg',
+    'bus_station': 'assets/icons/gas-station.svg',
+    'event_space': 'assets/icons/game.svg',
+    'default': 'assets/icons/location.svg',
   };
 
-  static final Map<String, String> _normalizedTypeIcons = {
-    for (final entry in typeIcons.entries)
-      _normalizeKey(entry.key): entry.value,
-  };
-
-  final Map<String, Future<Uint8List>> _markerCache = {};
-  final Map<String, Future<Uint8List>> _clusterCache = {};
-
-  String iconForType(String type) {
-    return _normalizedTypeIcons[_normalize(type)] ??
-        'assets/icons/businessman-ceo-representative-boss-svgrepo-com.svg';
-  }
-
-  Color colorForType(String type) {
-    return markerColor;
-  }
-
-  Future<Uint8List> buildMarkerBytes(
-    OrganizationModel organization, {
-    required bool showLabel,
+  Future<Uint8List> buildLocationMarker(
+    LocationResponse location, {
+    bool showLabel = true,
   }) {
-    // Cache key updated to use organizationName
-    final cacheKey =
-        '${organization.id}|${organization.organizationName}|${organization.primaryType}|$showLabel';
+    final key = '${location.id}_${location.primaryTypeName}';
 
-    return _markerCache.putIfAbsent(cacheKey, () {
-      return _renderMarker(organization: organization, showLabel: showLabel);
-    });
+    return _cache.putIfAbsent(
+      key,
+      () =>
+          _render(type: LocationTypeResolver.resolve(location.primaryTypeName)),
+    );
   }
 
-  Future<Uint8List> buildClusterBytes({
-    required int count,
-    required String type,
-  }) {
-    final cacheKey = '$type|$count';
+  Future<Uint8List> getRawIconBytes(String typeKey) async {
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    final center = const Offset(40, 40);
 
-    return _clusterCache.putIfAbsent(cacheKey, () {
-      return _renderCluster(count: count, type: type);
-    });
+    // Standard Circle
+    canvas.drawCircle(center, 38, Paint()..color = Colors.white);
+    canvas.drawCircle(
+      center,
+      32,
+      Paint()..color = AppColors.mapMarkerBackground,
+    );
+
+    // White Icon
+    final iconPath = typeIcons[typeKey] ?? typeIcons['default']!;
+    await _drawSvgWhite(canvas, iconPath, center);
+
+    final img = await recorder.endRecording().toImage(80, 80);
+    final bytes = await img.toByteData(format: ui.ImageByteFormat.png);
+    return bytes!.buffer.asUint8List();
   }
 
-  Future<Uint8List> _renderMarker({
-    required OrganizationModel organization,
-    required bool showLabel,
-  }) async {
-    const double markerDiameter = 80;
-    const double iconDiameter = 42;
-    const double labelHeight = 34;
-    const double labelPadding = 14;
-    const double canvasWidth = 124;
-    final double canvasHeight = showLabel ? 154 : 112;
+  final Map<String, Uint8List> _imageMemory = {};
+  Future<Uint8List> getMarkerImageOnly(String typeKey) async {
+    if (_imageMemory.containsKey(typeKey)) return _imageMemory[typeKey]!;
 
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
+    const center = Offset(50, 50);
 
-    final backgroundColor = colorForType(organization.primaryType);
-    final center = Offset(canvasWidth / 2, 50);
+    //  marker circle
+    canvas.drawCircle(center, 45, Paint()..color = Colors.white);
+    canvas.drawCircle(
+      center,
+      38,
+      Paint()..color = AppColors.mapMarkerBackground,
+    );
 
-    final path = Path()
-      ..addOval(Rect.fromCircle(center: center, radius: markerDiameter / 2));
+    final iconPath = typeIcons[typeKey] ?? typeIcons['default']!;
+    await _drawSvgWhite(canvas, iconPath, center);
 
-    canvas.drawShadow(path, Colors.black.withValues(alpha: 0.30), 5, true);
+    final img = await recorder.endRecording().toImage(100, 100);
+    final bytes = await img.toByteData(format: ui.ImageByteFormat.png);
+
+    final result = bytes!.buffer.asUint8List();
+    _imageMemory[typeKey] = result;
+    return result;
+  }
+
+  Future<Uint8List> _render({required String type}) async {
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+
+    final center = const Offset(_canvasWidth / 2, 45);
+
+    canvas.drawCircle(center, _outerRadius, Paint()..color = Colors.white);
 
     canvas.drawCircle(
       center,
-      markerDiameter / 2 + 2,
-      Paint()..color = Colors.white,
+      _innerRadius,
+      Paint()..color = AppColors.mapMarkerBackground,
     );
 
-    final fillPaint = Paint()..color = backgroundColor;
-    canvas.drawCircle(center, markerDiameter / 2 - 2, fillPaint);
+    final iconPath = typeIcons[type] ?? typeIcons['default']!;
+    await _drawSvgWhite(canvas, iconPath, center);
 
-    await _drawIcon(
-      canvas: canvas,
-      iconPath: iconForType(organization.primaryType),
-      iconDiameter: iconDiameter,
-      center: center,
+    final img = await recorder.endRecording().toImage(
+      _canvasWidth.toInt(),
+      _canvasHeight.toInt(),
     );
 
-    if (showLabel) {
-      // Use organizationName for the label
-      final labelText = _truncateLabel(
-        organization.organizationName.isEmpty
-            ? organization.id
-            : organization.organizationName,
-      );
-      final textPainter = TextPainter(
-        textDirection: TextDirection.ltr,
-        textAlign: TextAlign.center,
-        maxLines: 1,
-        ellipsis: '...',
-        text: TextSpan(
-          text: labelText,
-          style: const TextStyle(
-            fontSize: 11,
-            height: 1.1,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF263238),
-          ),
-        ),
-      )..layout(maxWidth: canvasWidth - labelPadding * 2);
-
-      final double pillWidth = math.max(textPainter.width + 20, 60).toDouble();
-      final double pillLeft = (canvasWidth - pillWidth) / 2;
-      const double pillTop = 92;
-      final backgroundRect = RRect.fromRectAndRadius(
-        Rect.fromLTWH(pillLeft, pillTop, pillWidth, labelHeight),
-        const Radius.circular(12),
-      );
-
-      canvas.drawRRect(
-        backgroundRect,
-        Paint()..color = Colors.white.withValues(alpha: 0.92),
-      );
-
-      textPainter.paint(
-        canvas,
-        Offset(
-          (canvasWidth - textPainter.width) / 2,
-          pillTop + (labelHeight - textPainter.height) / 2,
-        ),
-      );
-    }
-
-    final image = await recorder.endRecording().toImage(
-      canvasWidth.toInt(),
-      canvasHeight.toInt(),
-    );
-    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-
-    return byteData!.buffer.asUint8List();
+    final bytes = await img.toByteData(format: ui.ImageByteFormat.png);
+    return bytes!.buffer.asUint8List();
   }
 
-  Future<Uint8List> _renderCluster({
-    required int count,
-    required String type,
-  }) async {
-    const double size = 96;
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder);
-    final center = const Offset(size / 2, size / 2);
-    final color = colorForType(type);
+  Future<void> _drawSvgWhite(
+    Canvas canvas,
+    String assetPath,
+    Offset center,
+  ) async {
+    final svgString = await rootBundle.loadString(assetPath);
+    final pictureInfo = await vg.loadPicture(SvgStringLoader(svgString), null);
 
-    final path = Path()..addOval(Rect.fromCircle(center: center, radius: 32));
-    canvas.drawShadow(path, Colors.black.withValues(alpha: 0.30), 5, true);
-    canvas.drawCircle(center, 34, Paint()..color = Colors.white);
-    canvas.drawCircle(center, 30, Paint()..color = color);
-
-    final textPainter = TextPainter(
-      textDirection: TextDirection.ltr,
-      textAlign: TextAlign.center,
-      text: TextSpan(
-        text: '$count',
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
-      ),
-    )..layout();
-
-    textPainter.paint(
-      canvas,
-      Offset(
-        center.dx - textPainter.width / 2,
-        center.dy - textPainter.height / 2,
-      ),
-    );
-
-    final image = await recorder.endRecording().toImage(
-      size.toInt(),
-      size.toInt(),
-    );
-    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-
-    return byteData!.buffer.asUint8List();
-  }
-
-  Future<void> _drawIcon({
-    required Canvas canvas,
-    required String iconPath,
-    required double iconDiameter,
-    required Offset center,
-  }) async {
-    final pictureInfo = await vg.loadPicture(
-      svg.SvgAssetLoader(iconPath, colorMapper: const _WhiteIconColorMapper()),
-      null,
-    );
-
-    final pictureSize = pictureInfo.size;
-    final scale =
-        iconDiameter / math.max(pictureSize.width, pictureSize.height);
-    final scaledWidth = pictureSize.width * scale;
-    final scaledHeight = pictureSize.height * scale;
-    final left = center.dx - scaledWidth / 2;
-    final top = center.dy - scaledHeight / 2;
+    final scale = _iconSize / pictureInfo.size.width;
 
     canvas.save();
-    canvas.translate(left, top);
-    canvas.scale(scale, scale);
+    canvas.translate(center.dx - (_iconSize / 2), center.dy - (_iconSize / 2));
+    canvas.scale(scale);
+
+    final paint = Paint()
+      ..colorFilter = const ColorFilter.mode(Colors.white, BlendMode.srcIn);
+
+    canvas.saveLayer(null, paint);
     canvas.drawPicture(pictureInfo.picture);
+    canvas.restore();
     canvas.restore();
 
     pictureInfo.picture.dispose();
   }
+}
 
-  String _truncateLabel(String value) {
-    if (value.length <= 18) {
-      return value;
-    }
+class LocationTypeResolver {
+  static const Map<String, String> _map = {
+    'food & drink': 'food_drink',
+    'food drink': 'food_drink',
+    'wellness & personal care': 'wellness',
+    'wellness personal care': 'wellness',
+    'commercial & retail spaces': 'commercial',
+    'commercial retail spaces': 'commercial',
+    'cultural & creative spaces': 'culture',
+    'cultural creative spaces': 'culture',
+    'education & learning spaces': 'education',
+    'education learning spaces': 'education',
+    'government & public administration': 'government',
+    'government public administration': 'government',
+    'hospitality & accommodation': 'hotel',
+    'hospitality accommodation': 'hotel',
+    'healthcare facilities': 'healthcare',
+    'community & social infrastructure': 'community',
+    'religious spaces': 'religion',
+    'sports & recreation facilities': 'sports',
+    'recreation and sports': 'sports',
+    'financial services': 'financial',
+    'technology & communication services': 'tech',
+    'industrial & production': 'industry',
+    'mobility services': 'transport',
+    'transport & mobility hubs': 'transport',
+    'entertainment & leisure spaces': 'entertainment',
+    'outdoor & public spaces': 'outdoor',
+    'bus station': 'bus_station',
+    'concerts ground': 'event_space',
+  };
 
-    return '${value.substring(0, 17)}...';
-  }
+  static String resolve(String raw) {
+    final normalized = raw
+        .toLowerCase()
+        .replaceAll('&', ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
 
-  String _normalize(String value) {
-    return _normalizeKey(value);
-  }
-
-  static String _normalizeKey(String value) {
-    return value.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), ' ');
+    return _map[normalized] ?? 'default';
   }
 }

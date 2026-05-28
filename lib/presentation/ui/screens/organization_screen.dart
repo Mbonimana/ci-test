@@ -4,16 +4,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:street_team/core/config/theme/app_color.dart';
+import 'package:street_team/data/models/organization_response.dart';
 import 'package:street_team/presentation/ui/widgets/organization_screen/location_search.dart';
 import 'package:street_team/presentation/ui/widgets/organization_screen/org_options.dart';
 import 'package:street_team/presentation/ui/widgets/organization_screen/working_hours.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_button.dart';
-import 'package:street_team/presentation/ui/widgets/shared/app_drop_down.dart'; // Added this import
+import 'package:street_team/presentation/ui/widgets/shared/app_drop_down.dart'; 
 import 'package:street_team/presentation/ui/widgets/shared/app_form_lable.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_text_field.dart';
 
 class OrganizationScreen extends StatefulWidget {
-  const OrganizationScreen({super.key});
+  final OrganizationResponseModel? initialOrganization;
+  final String? initialLocationName;
+
+  const OrganizationScreen({
+    super.key,
+    this.initialOrganization,
+    this.initialLocationName,
+  });
 
   @override
   State<OrganizationScreen> createState() => _OrganizationScreenState();
@@ -34,6 +42,7 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
   bool expandLocation = false;
   bool expandOrg = false;
   bool expandSubtypes = false;
+  bool _prefilled = false;
   bool get hasOnlineMenu {
     return selectedOrgOptions.any((e) => e["name"] == "Online Menu");
   }
@@ -71,10 +80,40 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
         organizations = List<Map<String, dynamic>>.from(
           orgJson["organizationTypes"] ?? [],
         );
+
+        _applyInitialPrefill();
       });
     } catch (e) {
       debugPrint("LOAD ERROR: $e");
     }
+  }
+
+  void _applyInitialPrefill() {
+    final initial = widget.initialOrganization;
+    if (initial == null || _prefilled) {
+      return;
+    }
+
+    _prefilled = true;
+
+    if (widget.initialLocationName != null &&
+        widget.initialLocationName!.isNotEmpty) {
+      locationCtrl.text = widget.initialLocationName!;
+    }
+
+    orgNameCtrl.text = initial.name;
+    phone.text = initial.phone ?? '';
+    website.text = initial.website ?? '';
+    quickinfo.text = initial.quickInfo ?? '';
+    buildingDetails.text = initial.orgBuildingInfo?.toString() ?? '';
+    onlineMenuCtrl.text = initial.onlineMenu ?? '';
+
+    if (initial.type != null && initial.type!.isNotEmpty) {
+      selectedOrgTypes = [initial.type!];
+      syncSubtypes();
+    }
+
+    selectedOrgOptions = _optionsFromOrganization(initial);
   }
 
   String locationName(String id) => categories.firstWhere(
@@ -219,7 +258,7 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
         SizedBox(height: 15.h),
 
         // Seach row
-        const LocationSearchWidget(),
+        LocationSearchWidget(initialLocationName: widget.initialLocationName),
 
         SizedBox(height: 15.h),
         const AppFormLable(text: 'Organization Name'),
@@ -286,6 +325,8 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
         const AppFormLable(text: 'Organization has:'),
         SizedBox(height: 12.h),
         OrganizationOptions(
+          initialSelectedOptions: selectedOrgOptions,
+          initialOnlineMenu: onlineMenuCtrl.text,
           onSelectionChanged: (val, onlineMenu) {
             setState(() {
               selectedOrgOptions = val;
@@ -330,5 +371,33 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
         ],
       ),
     );
+  }
+
+  List<Map<String, dynamic>> _optionsFromOrganization(
+    OrganizationResponseModel organization,
+  ) {
+    final selectedNames = <String>{};
+
+    void addIfActive(int? value, String label) {
+      if (value == 1) {
+        selectedNames.add(label);
+      }
+    }
+
+    addIfActive(organization.hasBar, 'Bar');
+    addIfActive(organization.hasFood, 'Food');
+    addIfActive(organization.hasCoffee, 'Coffee');
+    addIfActive(organization.hasWifi, 'Wifi');
+    addIfActive(organization.hasAtm, 'ATM');
+    addIfActive(organization.hasShopping, 'Shopping');
+    addIfActive(organization.isTourism, 'Tourism');
+    addIfActive(organization.isNightLife, 'Nightlife');
+    addIfActive(organization.hasGuhemba, 'Guhemba');
+    addIfActive(organization.hasGuhembaMenu, 'Guhemba Menu');
+
+    return organizationOptions
+        .where((item) => selectedNames.contains(item['type']))
+        .map<Map<String, dynamic>>((item) => item)
+        .toList();
   }
 }

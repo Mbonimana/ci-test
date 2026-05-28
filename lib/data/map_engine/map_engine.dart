@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart' as geo;
-import 'package:street_team/data/models/organization_model.dart';
+import 'package:street_team/data/models/location_response.dart';
 
 abstract class MapEngine {
   Widget buildMap({
     required geo.LatLng userLocation,
-    required List<OrganizationModel> organizations,
+    required List<LocationResponse> locations,
   });
 
   void goToUserLocation();

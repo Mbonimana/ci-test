@@ -12,6 +12,7 @@ class SentryHelper {
     Map<String, dynamic>? extras,
   }) async {
     if (!_isEnabled) return;
+
     await Sentry.captureException(
       exception,
       stackTrace: stackTrace,
@@ -28,18 +29,25 @@ class SentryHelper {
     SentryLevel level = SentryLevel.info,
   }) async {
     if (!_isEnabled) return;
+
     await Sentry.captureMessage(message, level: level);
   }
 
-  static Future<void> setUser({required String id, String? email}) async {
+  static Future<void> setUser({
+    required String id,
+    required String username,
+    String? email,
+  }) async {
     if (!_isEnabled) return;
+
     await Sentry.configureScope((scope) {
-      scope.setUser(SentryUser(id: id, email: email));
+      scope.setUser(SentryUser(id: id, username: username, email: email));
     });
   }
 
   static Future<void> clearUser() async {
     if (!_isEnabled) return;
+
     await Sentry.configureScope((scope) {
       scope.setUser(null);
     });

@@ -48,16 +48,16 @@ class HomeScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: 230.h),
-                  Text(
-                    "Select Type",
-                    style: AppTypography.titleMedium.copyWith(
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
+                  SizedBox(height: 240.h),
+                  // Text(
+                  //   "Select Type",
+                  //   style: AppTypography.titleMedium.copyWith(
+                  //     color: AppColors.textPrimary,
+                  //   ),
+                  // ),
 
-                  SizedBox(height: 15.h),
-                  CategorySelector(stateData: homeState),
+                  // SizedBox(height: 15.h),
+                  // CategorySelector(stateData: homeState),
 
                   SizedBox(height: 30.h),
                   SizedBox(
@@ -67,14 +67,14 @@ class HomeScreen extends ConsumerWidget {
                       text: "Show Map",
                       icon: Icons.map,
                       onPressed: () {
-                        if (homeState.selectedTypes.isEmpty) {
-                          AppSnackbar.show(
-                            context: context,
-                            message: 'Please select at least one type',
-                            variant: SnackbarVariant.warning,
-                          );
-                          return;
-                        }
+                        // if (homeState.selectedTypes.isEmpty) {
+                        //   AppSnackbar.show(
+                        //     context: context,
+                        //     message: 'Please select at least one type',
+                        //     variant: SnackbarVariant.warning,
+                        //   );
+                        //   return;
+                        // }
 
                         context.go(RouteNames.mapScreen);
                       },

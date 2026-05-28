@@ -91,7 +91,9 @@ final locationSearchProvider =
 
 // the UI
 class LocationSearchWidget extends ConsumerStatefulWidget {
-  const LocationSearchWidget({super.key});
+  final String? initialLocationName;
+
+  const LocationSearchWidget({super.key, this.initialLocationName});
 
   @override
   ConsumerState<LocationSearchWidget> createState() =>
@@ -105,6 +107,18 @@ class _LocationSearchWidgetState extends ConsumerState<LocationSearchWidget> {
   void initState() {
     super.initState();
     _controller = TextEditingController();
+
+    if (widget.initialLocationName != null &&
+        widget.initialLocationName!.isNotEmpty) {
+      _controller.text = widget.initialLocationName!;
+      Future.microtask(() {
+        if (mounted) {
+          ref
+              .read(locationSearchProvider.notifier)
+              .selectLocation(widget.initialLocationName!);
+        }
+      });
+    }
   }
 
   @override

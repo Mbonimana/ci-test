@@ -25,6 +25,7 @@ class EnvConfig {
   );
 
   static const String murugoPasswordResetUrl = '$murugoBaseUrl/password/reset';
+  static const String murugoRegisterUrl = '$murugoBaseUrl/register';
 
   static const String appKey = String.fromEnvironment(
     'APP_KEY',
@@ -49,6 +50,10 @@ class EnvConfig {
   static const String publicKey = String.fromEnvironment(
     'PUBLIC_KEY',
     defaultValue: '',
+  );
+  static const String submitterServer = String.fromEnvironment(
+    'SUBMITTER_SERVER',
+    defaultValue: 'Street Team App',
   );
   
 
