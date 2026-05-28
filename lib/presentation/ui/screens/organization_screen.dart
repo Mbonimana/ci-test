@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:street_team/core/config/theme/app_color.dart';
+import 'package:street_team/data/models/location_response.dart';
 import 'package:street_team/data/models/organization_response.dart';
 import 'package:street_team/data/models/types_model.dart';
+import 'package:street_team/presentation/providers/organization_provider.dart';
 import 'package:street_team/presentation/providers/types_provider.dart';
 import 'package:street_team/presentation/ui/widgets/organization_screen/location_search.dart';
 import 'package:street_team/presentation/ui/widgets/organization_screen/org_options.dart';
@@ -34,7 +36,8 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
   List<String> selectedLocationIds = [];
   List<String> selectedLocationNames = [];
   List<String> selectedOrgTypes = [];
-  List<String> selectedSubtypes = [];
+  List<int> selectedSubtypes = [];
+  Map<String, dynamic>? createdLocationData;
 
   bool expandLocation = false;
   bool expandOrg = false;
@@ -54,6 +57,7 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
 
   Map<String, dynamic>? workingHoursSummary;
   List<Map<String, dynamic>> selectedOrgOptions = [];
+  String? selectedMurugoLocationId;
 
   void _applyInitialPrefill(List<TypeModel> orgTypes) {
     final initial = widget.initialOrganization;
@@ -67,6 +71,8 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
         widget.initialLocationName!.isNotEmpty) {
       locationCtrl.text = widget.initialLocationName!;
     }
+
+    selectedMurugoLocationId = initial.murugoLocationId;
 
     orgNameCtrl.text = initial.name;
     phone.text = initial.phone ?? '';
@@ -103,21 +109,33 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
     }).toList();
   }
 
-  List<String> getSubtypeOptions(List<TypeModel> orgTypes) {
-    final Set<String> result = {};
-    for (final org in getOrganizationOptions(orgTypes)) {
-      if (selectedOrgTypes.contains(org["type"])) {
-        result.addAll(List<String>.from(org["subtypes"]));
+  List<SubTypeModel> getSubtypeOptions(List<TypeModel> orgTypes) {
+    final Map<int, SubTypeModel> result = {};
+
+    for (final org in orgTypes) {
+      if (!selectedOrgTypes.contains(org.name)) {
+        continue;
+      }
+
+      for (final subType in org.subTypes) {
+        result[subType.id] = subType;
       }
     }
-    return result.toList();
+
+    return result.values.toList();
+  }
+
+  Map<int, String> getSubtypeNameMap(List<TypeModel> orgTypes) {
+    final map = <int, String>{};
+    for (final subType in getSubtypeOptions(orgTypes)) {
+      map[subType.id] = subType.name;
+    }
+    return map;
   }
 
   void syncSubtypes(List<TypeModel> orgTypes) {
-    final valid = getSubtypeOptions(orgTypes).toSet();
-    selectedSubtypes = selectedSubtypes
-        .where((s) => valid.contains(s))
-        .toList();
+    final valid = getSubtypeOptions(orgTypes).map((s) => s.id).toSet();
+    selectedSubtypes = selectedSubtypes.where(valid.contains).toList();
   }
 
   void toggleOrg(String name, List<TypeModel> orgTypes) {
@@ -131,7 +149,7 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
     });
   }
 
-  void toggleSubtype(String value) {
+  void toggleSubtype(int value) {
     setState(() {
       if (selectedSubtypes.contains(value)) {
         selectedSubtypes.remove(value);
@@ -141,12 +159,85 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
     });
   }
 
-  void _save() {
-    //todo: implement save logic
+  List<int> _selectedTypeIds(List<TypeModel> orgTypes) {
+    return orgTypes
+        .where((org) => selectedOrgTypes.contains(org.name))
+        .map((org) => org.id)
+        .toList();
+  }
+
+  List<int> _selectedSubTypeIds(List<TypeModel> orgTypes) {
+    final validSubtypeIds = getSubtypeOptions(
+      orgTypes,
+    ).map((s) => s.id).toSet();
+    return selectedSubtypes.where(validSubtypeIds.contains).toList();
+  }
+
+  Future<void> _save() async {
+    final orgName = orgNameCtrl.text.trim();
+
+    if (orgName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Organization name is required.')),
+      );
+      return;
+    }
+
+    if (selectedOrgTypes.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Select at least one organization type.')),
+      );
+      return;
+    }
+
+    if ((selectedMurugoLocationId ?? '').isEmpty &&
+        createdLocationData == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Select a valid location first.')),
+      );
+      return;
+    }
+
+    final orgTypes = await ref.read(organizationTypesProvider.future);
+    final notifier = ref.read(organizationFormProvider.notifier);
+
+    try {
+      await notifier.submitOrganization(
+        action: 'ADD',
+        name: orgName,
+        type: selectedOrgTypes.first,
+        phone: phone.text.trim().isEmpty ? null : phone.text.trim(),
+        quickInfo: quickinfo.text.trim().isEmpty ? null : quickinfo.text.trim(),
+        website: website.text.trim().isEmpty ? null : website.text.trim(),
+        onlineMenu: onlineMenuCtrl.text.trim().isEmpty
+            ? null
+            : onlineMenuCtrl.text.trim(),
+        murugoLocationId: selectedMurugoLocationId,
+        newLocationData: createdLocationData,
+        types: _selectedTypeIds(orgTypes),
+        subTypes: _selectedSubTypeIds(orgTypes),
+        selectedOptions: selectedOrgOptions,
+        workingHoursData: workingHoursSummary ?? <String, dynamic>{},
+        orgBuildingInfo: buildingDetails.text.trim().isEmpty
+            ? null
+            : buildingDetails.text.trim(),
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Organization submitted successfully.')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final formState = ref.watch(organizationFormProvider);
     final orgTypesAsync = ref.watch(organizationTypesProvider);
     final locTypesAsync = ref.watch(locationTypesProvider);
 
@@ -219,10 +310,16 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
                   vertical: 10,
                 ),
                 child: AppButton(
-                  onPressed: currentStep == 0
-                      ? () => setState(() => currentStep = 1)
-                      : _save,
+                  onPressed: () {
+                    if (formState.isSubmitting) return;
+                    if (currentStep == 0) {
+                      setState(() => currentStep = 1);
+                      return;
+                    }
+                    _save();
+                  },
                   variant: AppButtonVariant.primary,
+                  isLoading: formState.isSubmitting,
                   text: currentStep == 0 ? "Next" : "Submit",
                 ),
               ),
@@ -246,6 +343,9 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
 
   // step 1 fields
   Widget _buildStepOne(List<TypeModel> orgTypes) {
+    final subtypeOptions = getSubtypeOptions(orgTypes);
+    final subtypeNameMap = getSubtypeNameMap(orgTypes);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -253,7 +353,25 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
         SizedBox(height: 15.h),
 
         // Search row
-        LocationSearchWidget(initialLocationName: widget.initialLocationName),
+        LocationSearchWidget(
+          initialLocationName: widget.initialLocationName,
+          deferSubmit: true,
+          onLocationSelected: (dynamic location) {
+            if (location is LocationResponse) {
+              createdLocationData = null;
+              selectedMurugoLocationId = location.id.toString();
+              locationCtrl.text = location.mapLabel;
+            } else if (location is Map<String, dynamic>) {
+              // Returned new location data from LocationDetailsScreen
+              createdLocationData = Map<String, dynamic>.from(location);
+              selectedMurugoLocationId = null;
+              locationCtrl.text =
+                  createdLocationData?['location_name'] ??
+                  createdLocationData?['physical_address'] ??
+                  '';
+            }
+          },
+        ),
 
         SizedBox(height: 15.h),
         const AppFormLable(text: 'Organization Name'),
@@ -281,11 +399,11 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
         const AppFormLable(text: 'Organization Sub-type(s)'),
         SizedBox(height: 12.h),
 
-        AppDropdown<String>(
+        AppDropdown<int>(
           label: "Select Subtypes",
-          items: getSubtypeOptions(orgTypes),
+          items: subtypeOptions.map((s) => s.id).toList(),
           selectedItems: selectedSubtypes,
-          itemLabel: (s) => s,
+          itemLabel: (id) => subtypeNameMap[id] ?? id.toString(),
           onSelect: toggleSubtype,
           isExpanded: expandSubtypes,
           onToggle: () => setState(() {
@@ -315,13 +433,47 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
         AppTextField(controller: quickinfo, hint: "Quick Info"),
         SizedBox(height: 15.h),
         const AppFormLable(text: "Organization Options"),
-        WorkingHours(
-          onSaved: (val) => setState(() => workingHoursSummary = val),
+        Builder(
+          builder: (context) {
+            // Safely cast weekly hours maps which may be Map<dynamic,dynamic>
+            final rawWeekly =
+                workingHoursSummary?['weekly_hours'] ??
+                workingHoursSummary?['weeklyHours'];
+            Map<String, dynamic>? initialWeekly;
+            if (rawWeekly is Map) {
+              try {
+                initialWeekly = Map<String, dynamic>.from(rawWeekly);
+              } catch (_) {
+                initialWeekly = rawWeekly.cast<String, dynamic>();
+              }
+            }
+
+            return WorkingHours(
+              onSaved: (val) => workingHoursSummary = val,
+              initialIsActive:
+                  (workingHoursSummary?['is_active'] ??
+                      workingHoursSummary?['isActive']) ==
+                  true,
+              initialIsOpen24:
+                  (workingHoursSummary?['is_open_24_hours'] ??
+                      workingHoursSummary?['isOpen24']) ==
+                  true,
+              initialIsTempClosed:
+                  (workingHoursSummary?['is_temporary_closed'] ??
+                      workingHoursSummary?['isTempClosed']) ==
+                  true,
+              initialPossibleReturnDate:
+                  (workingHoursSummary?['possible_return_date'] ??
+                          workingHoursSummary?['possibleReturnDate'])
+                      ?.toString(),
+              initialWeeklyHours: initialWeekly,
+            );
+          },
         ),
         SizedBox(height: 12.h),
         const AppFormLable(text: 'Organization has:'),
         SizedBox(height: 12.h),
-        
+
         OrganizationOptions(
           initialSelectedOptions: selectedOrgOptions,
           initialOnlineMenu: onlineMenuCtrl.text,
