@@ -18,6 +18,7 @@ class WorkingHours extends StatefulWidget {
   final bool initialIsOpen24;
   final bool initialIsTempClosed;
   final String? initialPossibleReturnDate;
+  final Map<String, dynamic>? initialWeeklyHours;
 
   const WorkingHours({
     super.key,
@@ -26,6 +27,7 @@ class WorkingHours extends StatefulWidget {
     this.initialIsOpen24 = false,
     this.initialIsTempClosed = false,
     this.initialPossibleReturnDate,
+    this.initialWeeklyHours,
   });
 
   @override
@@ -66,8 +68,60 @@ class _WorkingHoursState extends State<WorkingHours> {
       possibleReturnDate = DateTime.tryParse(widget.initialPossibleReturnDate!);
     }
 
+    // If initial weekly hours were provided, populate the internal weekly hours
+    if (widget.initialWeeklyHours != null) {
+      _applyInitialWeeklyHours(widget.initialWeeklyHours!);
+    }
+
     _syncState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _syncToParent());
+  }
+
+  void _applyInitialWeeklyHours(Map<String, dynamic> data) {
+    try {
+      for (var i = 0; i < _days.length; i++) {
+        final dayName = _days[i];
+        final dynamic value = data[dayName];
+        if (value == null) continue;
+        if (value is String && value.toLowerCase() == 'closed') {
+          _weeklyHours[i + 1] = [];
+          continue;
+        }
+        if (value is List) {
+          final List<TimeRange> ranges = [];
+          for (final item in value) {
+            if (item is Map) {
+              final openStr = (item['open'] ?? item['open_time'] ?? '')
+                  .toString()
+                  .trim();
+              final closeStr = (item['close'] ?? item['close_time'] ?? '')
+                  .toString()
+                  .trim();
+              TimeOfDay? open;
+              TimeOfDay? close;
+              if (openStr.isNotEmpty && openStr.contains(':')) {
+                final parts = openStr.split(':');
+                open = TimeOfDay(
+                  hour: int.tryParse(parts[0]) ?? 0,
+                  minute: int.tryParse(parts[1]) ?? 0,
+                );
+              }
+              if (closeStr.isNotEmpty && closeStr.contains(':')) {
+                final parts = closeStr.split(':');
+                close = TimeOfDay(
+                  hour: int.tryParse(parts[0]) ?? 0,
+                  minute: int.tryParse(parts[1]) ?? 0,
+                );
+              }
+              ranges.add(TimeRange(open: open, close: close));
+            }
+          }
+          if (ranges.isNotEmpty) _weeklyHours[i + 1] = ranges;
+        }
+      }
+    } catch (_) {
+      // ignore parsing issues and fall back to defaults
+    }
   }
 
   String _format(TimeOfDay? t) {
