@@ -12,18 +12,32 @@ class TimeRange {
 
 class WorkingHours extends StatefulWidget {
   final Function(Map<String, dynamic>) onSaved;
-  const WorkingHours({super.key, required this.onSaved});
+
+  // Added initial values parameters so the widget can remember and restore state
+  final bool initialIsActive;
+  final bool initialIsOpen24;
+  final bool initialIsTempClosed;
+  final String? initialPossibleReturnDate;
+
+  const WorkingHours({
+    super.key,
+    required this.onSaved,
+    this.initialIsActive = false,
+    this.initialIsOpen24 = false,
+    this.initialIsTempClosed = false,
+    this.initialPossibleReturnDate,
+  });
 
   @override
   State<WorkingHours> createState() => _WorkingHoursState();
 }
 
 class _WorkingHoursState extends State<WorkingHours> {
-  bool isActive = false;
-  bool isOpen24 = false;
-  bool isTempClosed = false;
+  late bool isActive;
+  late bool isOpen24;
+  late bool isTempClosed;
   bool isExpanded = false;
-  String? reportSummary; // Hidden initially
+  String? reportSummary;
   TimeOfDay? globalOpen = const TimeOfDay(hour: 9, minute: 0);
   TimeOfDay? globalClose = const TimeOfDay(hour: 17, minute: 0);
   DateTime? possibleReturnDate;
@@ -43,6 +57,16 @@ class _WorkingHoursState extends State<WorkingHours> {
   @override
   void initState() {
     super.initState();
+    // Initialize state from widget properties
+    isActive = widget.initialIsActive;
+    isOpen24 = widget.initialIsOpen24;
+    isTempClosed = widget.initialIsTempClosed;
+
+    if (widget.initialPossibleReturnDate != null) {
+      possibleReturnDate = DateTime.tryParse(widget.initialPossibleReturnDate!);
+    }
+
+    _syncState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _syncToParent());
   }
 
@@ -56,23 +80,24 @@ class _WorkingHoursState extends State<WorkingHours> {
     return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
   }
 
+  /// Output keys synchronized with backend snake_case keys
   void _syncToParent() {
     Map<String, dynamic> jsonOutput = {
-      "isActive": isActive,
-      "isOpen24": isOpen24,
-      "isTempClosed": isTempClosed,
-      "possibleReturnDate": isTempClosed
+      "is_active": isActive,
+      "is_open_24_hours": isOpen24,
+      "is_temporary_closed": isTempClosed,
+      "possible_return_date": isTempClosed
           ? _formatDate(possibleReturnDate)
           : null,
-      "weeklyHours": {},
+      "weekly_hours": {},
     };
 
     _weeklyHours.forEach((day, ranges) {
       String dayName = _days[day - 1];
       if (ranges.isEmpty) {
-        jsonOutput["weeklyHours"][dayName] = "Closed";
+        jsonOutput["weekly_hours"][dayName] = "Closed";
       } else {
-        jsonOutput["weeklyHours"][dayName] = ranges
+        jsonOutput["weekly_hours"][dayName] = ranges
             .map((r) => {"open": _format(r.open), "close": _format(r.close)})
             .toList();
       }
@@ -334,7 +359,7 @@ class _WorkingHoursState extends State<WorkingHours> {
                 children: [
                   if (!active)
                     Padding(
-                      padding: EdgeInsets.only(top: 10),
+                      padding: const EdgeInsets.only(top: 10),
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
@@ -394,7 +419,6 @@ class _WorkingHoursState extends State<WorkingHours> {
                               }),
                               child: Text(
                                 "+ Add",
-
                                 style: AppTypography.captionSmall.copyWith(
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.brandPrimary,

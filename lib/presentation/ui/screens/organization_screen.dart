@@ -321,12 +321,13 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
         SizedBox(height: 12.h),
         const AppFormLable(text: 'Organization has:'),
         SizedBox(height: 12.h),
+        
         OrganizationOptions(
           initialSelectedOptions: selectedOrgOptions,
           initialOnlineMenu: onlineMenuCtrl.text,
-          onSelectionChanged: (val, onlineMenu) {
+          onSelectionChanged: (selectedVal, onlineMenu) {
             setState(() {
-              selectedOrgOptions = val;
+              selectedOrgOptions = selectedVal;
               onlineMenuCtrl.text = onlineMenu ?? "";
             });
           },
