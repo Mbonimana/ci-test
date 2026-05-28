@@ -1,19 +1,19 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:street_team/core/config/theme/app_color.dart';
 import 'package:street_team/data/models/organization_response.dart';
+import 'package:street_team/data/models/types_model.dart';
+import 'package:street_team/presentation/providers/types_provider.dart';
 import 'package:street_team/presentation/ui/widgets/organization_screen/location_search.dart';
 import 'package:street_team/presentation/ui/widgets/organization_screen/org_options.dart';
 import 'package:street_team/presentation/ui/widgets/organization_screen/working_hours.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_button.dart';
-import 'package:street_team/presentation/ui/widgets/shared/app_drop_down.dart'; 
+import 'package:street_team/presentation/ui/widgets/shared/app_drop_down.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_form_lable.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_text_field.dart';
 
-class OrganizationScreen extends StatefulWidget {
+class OrganizationScreen extends ConsumerStatefulWidget {
   final OrganizationResponseModel? initialOrganization;
   final String? initialLocationName;
 
@@ -24,14 +24,11 @@ class OrganizationScreen extends StatefulWidget {
   });
 
   @override
-  State<OrganizationScreen> createState() => _OrganizationScreenState();
+  ConsumerState<OrganizationScreen> createState() => _OrganizationScreenState();
 }
 
-class _OrganizationScreenState extends State<OrganizationScreen> {
+class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
   int currentStep = 0;
-
-  List<dynamic> categories = [];
-  List<dynamic> organizations = [];
 
   // selections
   List<String> selectedLocationIds = [];
@@ -58,37 +55,7 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
   Map<String, dynamic>? workingHoursSummary;
   List<Map<String, dynamic>> selectedOrgOptions = [];
 
-  @override
-  void initState() {
-    super.initState();
-    loadData();
-  }
-
-  Future<void> loadData() async {
-    try {
-      final locStr = await rootBundle.loadString('assets/location_types.json');
-      final orgStr = await rootBundle.loadString(
-        'assets/organization_types.json',
-      );
-      final locJson = json.decode(locStr);
-      final orgJson = json.decode(orgStr);
-      if (!mounted) return;
-      setState(() {
-        categories = List<Map<String, dynamic>>.from(
-          locJson["locationCategories"] ?? [],
-        );
-        organizations = List<Map<String, dynamic>>.from(
-          orgJson["organizationTypes"] ?? [],
-        );
-
-        _applyInitialPrefill();
-      });
-    } catch (e) {
-      debugPrint("LOAD ERROR: $e");
-    }
-  }
-
-  void _applyInitialPrefill() {
+  void _applyInitialPrefill(List<TypeModel> orgTypes) {
     final initial = widget.initialOrganization;
     if (initial == null || _prefilled) {
       return;
@@ -110,28 +77,35 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
 
     if (initial.type != null && initial.type!.isNotEmpty) {
       selectedOrgTypes = [initial.type!];
-      syncSubtypes();
+      syncSubtypes(orgTypes);
     }
 
-    selectedOrgOptions = _optionsFromOrganization(initial);
+    selectedOrgOptions = _optionsFromOrganization(initial, orgTypes);
   }
 
-  String locationName(String id) => categories.firstWhere(
-    (c) => c["id"] == id,
-    orElse: () => {"name": id},
-  )["name"];
-  List<Map<String, dynamic>> get organizationOptions => organizations
-      .map(
-        (org) => {
-          "type": org["name"],
-          "id": org["id"],
-          "subtypes": List<String>.from(org["subtypes"] ?? []),
-        },
-      )
-      .toList();
-  List<String> get subtypeOptions {
+  String locationName(String id, List<TypeModel> locTypes) {
+    try {
+      return locTypes.firstWhere((c) => c.id.toString() == id).name;
+    } catch (_) {
+      return id;
+    }
+  }
+
+  List<Map<String, dynamic>> getOrganizationOptions(List<TypeModel> orgTypes) {
+    return orgTypes.map((org) {
+      final List<dynamic> subTypesList =
+          (org as dynamic).subTypes ?? (org as dynamic).sub_types ?? [];
+      final List<String> subtypeNames = subTypesList
+          .map((sub) => (sub as dynamic).name.toString())
+          .toList();
+
+      return {"type": org.name, "id": org.id, "subtypes": subtypeNames};
+    }).toList();
+  }
+
+  List<String> getSubtypeOptions(List<TypeModel> orgTypes) {
     final Set<String> result = {};
-    for (final org in organizationOptions) {
+    for (final org in getOrganizationOptions(orgTypes)) {
       if (selectedOrgTypes.contains(org["type"])) {
         result.addAll(List<String>.from(org["subtypes"]));
       }
@@ -139,21 +113,21 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
     return result.toList();
   }
 
-  void syncSubtypes() {
-    final valid = subtypeOptions.toSet();
+  void syncSubtypes(List<TypeModel> orgTypes) {
+    final valid = getSubtypeOptions(orgTypes).toSet();
     selectedSubtypes = selectedSubtypes
         .where((s) => valid.contains(s))
         .toList();
   }
 
-  void toggleOrg(String name) {
+  void toggleOrg(String name, List<TypeModel> orgTypes) {
     setState(() {
       if (selectedOrgTypes.contains(name)) {
         selectedOrgTypes.remove(name);
       } else {
         selectedOrgTypes.add(name);
       }
-      syncSubtypes();
+      syncSubtypes(orgTypes);
     });
   }
 
@@ -173,6 +147,29 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final orgTypesAsync = ref.watch(organizationTypesProvider);
+    final locTypesAsync = ref.watch(locationTypesProvider);
+
+    //  loading state if either source is retrieving data
+    if (orgTypesAsync.isLoading || locTypesAsync.isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    if (orgTypesAsync.hasError || locTypesAsync.hasError) {
+      final error = orgTypesAsync.error ?? locTypesAsync.error;
+      return Scaffold(body: Center(child: Text("Error loading data: $error")));
+    }
+
+    final orgTypes = orgTypesAsync.value ?? [];
+
+    // initial field prefilling after the first frame
+    if (!_prefilled && orgTypes.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _applyInitialPrefill(orgTypes);
+        }
+      });
+    }
+
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
@@ -232,32 +229,30 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
             ],
           ),
         ),
-        body: categories.isEmpty
-            ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (currentStep == 0) _buildStepOne(),
-                    if (currentStep == 1) _buildStepTwo(),
-                    SizedBox(height: 20.h),
-                  ],
-                ),
-              ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (currentStep == 0) _buildStepOne(orgTypes),
+              if (currentStep == 1) _buildStepTwo(),
+              SizedBox(height: 20.h),
+            ],
+          ),
+        ),
       ),
     );
   }
 
   // step 1 fields
-  Widget _buildStepOne() {
+  Widget _buildStepOne(List<TypeModel> orgTypes) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const AppFormLable(text: 'Location '),
         SizedBox(height: 15.h),
 
-        // Seach row
+        // Search row
         LocationSearchWidget(initialLocationName: widget.initialLocationName),
 
         SizedBox(height: 15.h),
@@ -269,10 +264,12 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
         SizedBox(height: 12.h),
         AppDropdown<String>(
           label: "Select Organization Type",
-          items: organizationOptions.map((o) => o["type"].toString()).toList(),
+          items: getOrganizationOptions(
+            orgTypes,
+          ).map((o) => o["type"].toString()).toList(),
           selectedItems: selectedOrgTypes,
           itemLabel: (s) => s,
-          onSelect: toggleOrg,
+          onSelect: (val) => toggleOrg(val, orgTypes),
           isExpanded: expandOrg,
           onToggle: () => setState(() {
             expandOrg = !expandOrg;
@@ -286,7 +283,7 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
 
         AppDropdown<String>(
           label: "Select Subtypes",
-          items: subtypeOptions,
+          items: getSubtypeOptions(orgTypes),
           selectedItems: selectedSubtypes,
           itemLabel: (s) => s,
           onSelect: toggleSubtype,
@@ -345,8 +342,8 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
       ],
     );
   }
-  // ui components
 
+  // ui components
   Widget _stepNode(int step, String label) {
     bool isActive = currentStep == step;
     return GestureDetector(
@@ -375,6 +372,7 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
 
   List<Map<String, dynamic>> _optionsFromOrganization(
     OrganizationResponseModel organization,
+    List<TypeModel> orgTypes,
   ) {
     final selectedNames = <String>{};
 
@@ -395,7 +393,7 @@ class _OrganizationScreenState extends State<OrganizationScreen> {
     addIfActive(organization.hasGuhemba, 'Guhemba');
     addIfActive(organization.hasGuhembaMenu, 'Guhemba Menu');
 
-    return organizationOptions
+    return getOrganizationOptions(orgTypes)
         .where((item) => selectedNames.contains(item['type']))
         .map<Map<String, dynamic>>((item) => item)
         .toList();
