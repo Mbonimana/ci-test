@@ -9,6 +9,8 @@ environment:
   sdk: ^3.11.4
 
 dependencies:
+  flutter_launcher_icons: ^0.14.3
+  flutter_native_splash: ^2.4.6
   cupertino_icons: ^1.0.8
   dio: ^5.9.2
   flutter:
@@ -43,7 +45,7 @@ flutter:
     - assets/animation/loading_animation.json
 
     - assets/icons/
-
+    - assets/icons/Street_team.png
     - assets/murugo/murugo_cloud_label.webp
     - assets/murugo/murugo_clouds.webp
     - assets/murugo/murugo_sun.svg
@@ -58,3 +60,22 @@ flutter:
     - assets/organization_options.json
     - assets/organization_types.json
     - assets/location_types.json
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/street_team.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icons/street_team.png"
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/icons/street_team.png
+
+  android_12:
+    color: "#FFFFFF"
+    image: assets/icons/street_team.png"
+
+  android: true
+  ios: true
+  web: false
