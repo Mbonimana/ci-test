@@ -23,8 +23,14 @@ import 'package:street_team/presentation/ui/widgets/shared/app_text_field.dart';
 class LocationDetailsScreen extends ConsumerStatefulWidget {
   final String? editId;
   final LocationResponse? initialLocation;
+  final bool deferSubmit;
 
-  const LocationDetailsScreen({super.key, this.editId, this.initialLocation});
+  const LocationDetailsScreen({
+    super.key,
+    this.editId,
+    this.initialLocation,
+    this.deferSubmit = false,
+  });
 
   @override
   ConsumerState<LocationDetailsScreen> createState() =>
@@ -135,6 +141,22 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
       return;
     }
 
+    if (widget.deferSubmit) {
+      // Return the new location payload to the caller without sending to server.
+      final newLocation = {
+        'location_name': nameController.text,
+        'short_name': shortNameController.text,
+        'nickname': nicknameController.text,
+        'physical_address': addressController.text,
+        'latitude': coords.latitude,
+        'longitude': coords.longitude,
+        'location_types': selectedLocationTypes.map((e) => e.id).toList(),
+      };
+
+      if (mounted) Navigator.pop(context, newLocation);
+      return;
+    }
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -163,21 +185,22 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
           .read(locationFormProvider.notifier)
           .submitLocation(model, editId: widget.editId);
 
-      if (mounted) Navigator.pop(context);
+      if (!mounted) return;
 
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text("Location saved")));
-        _clearSharedLocationState();
-        context.go(RouteNames.location);
-      }
+      Navigator.pop(context);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Location saved")));
+      _clearSharedLocationState();
+      context.go(RouteNames.location);
     } catch (e) {
       if (mounted) Navigator.pop(context);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 
