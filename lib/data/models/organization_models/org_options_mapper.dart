@@ -3,7 +3,7 @@ Map<String, dynamic> buildBackendPayload({
   required String onlineMenuUrl,
   required Map<String, dynamic> workingHoursData,
 }) {
-  // 1. Map of standard feature UI option IDs to backend keys
+  // standard server names
   const Map<int, String> featureIdToBackendKey = {
     2: "delivery_available",
     4: "brunch_available",
@@ -32,7 +32,7 @@ Map<String, dynamic> buildBackendPayload({
     28: "outdoor_activities",
   };
 
-  // Extract selected IDs (excluding ID 29, which is the independent Online Menu)
+  //extract selected id
   final Set<int> selectedIds = selectedFeatures
       .map((item) => item['id'] as int?)
       .whereType<int>()
@@ -54,10 +54,13 @@ Map<String, dynamic> buildBackendPayload({
   optionsMap['is_open_24_hours'] = isOpen24 ? 1 : 0;
   optionsMap['is_temporary_closed'] = isTempClosed ? 1 : 0;
 
-  // 2. Extract independent fields
-  final String? possibleReturnDate = workingHoursData['possibleReturnDate'];
-  final Map<String, dynamic> weeklyHours =
-      workingHoursData['weeklyHours'] ?? {};
+  //Extract independent fields
+  final String? possibleReturnDate = workingHoursData['possibleReturnDate']
+      ?.toString();
+  final dynamic rawWeeklyHours = workingHoursData['weeklyHours'];
+  final Map<String, dynamic> weeklyHours = rawWeeklyHours is Map
+      ? Map<String, dynamic>.from(rawWeeklyHours)
+      : <String, dynamic>{};
   final bool hasOnlineMenu = selectedIds.contains(29);
 
   return {
