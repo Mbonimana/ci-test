@@ -36,11 +36,28 @@ class _MapPinPickerScreenState extends ConsumerState<MapPinPickerScreen> {
   Widget build(BuildContext context) {
     final mapEngine = ref.watch(mapEngineProvider) as MapboxMapEngine;
 
+    final userLocation = ref.watch(userLocationProvider);
+
+    userLocation.whenData((latLng) {
+      if (!_isInitialJumpDone) {
+        _currentLat = latLng.latitude;
+        _currentLng = latLng.longitude;
+
+        _coordNotifier.value = [_currentLat, _currentLng];
+      }
+    });
+
     ref.listen<AsyncValue<geo.LatLng>>(userLocationProvider, (prev, next) {
       next.whenData((latLng) {
         mapEngine.cameraController.setUserLocation(latLng);
 
+    
         if (!_isInitialJumpDone && _mapboxMap != null) {
+          _currentLat = latLng.latitude;
+          _currentLng = latLng.longitude;
+
+          _coordNotifier.value = [_currentLat, _currentLng];
+
           _mapboxMap?.setCamera(
             CameraOptions(
               center: Point(
@@ -49,6 +66,7 @@ class _MapPinPickerScreenState extends ConsumerState<MapPinPickerScreen> {
               zoom: 16.0,
             ),
           );
+
           _isInitialJumpDone = true;
         }
       });
@@ -83,9 +101,10 @@ class _MapPinPickerScreenState extends ConsumerState<MapPinPickerScreen> {
               },
               onCameraChangeListener: (data) {
                 final center = data.cameraState.center;
+
                 _currentLng = center.coordinates.lng.toDouble();
                 _currentLat = center.coordinates.lat.toDouble();
-                // Update only the panel, not the MapWidget
+
                 _coordNotifier.value = [_currentLat, _currentLng];
               },
             ),
