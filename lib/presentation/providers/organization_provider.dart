@@ -60,11 +60,11 @@ class OrganizationFormNotifier extends StateNotifier<OrganizationFormState> {
     String? website,
     String? onlineMenu,
     String? murugoLocationId,
+    int? murugoOrganizationId,
     String? submitterServer,
     String? submitterAtName,
     Map<String, dynamic>? userLocation,
     Map<String, dynamic>? newLocationData,
-    int? murugoOrganizationId,
     String? orgBuildingInfo,
   }) async {
     state = state.copyWith(isSubmitting: true, clearError: true);
@@ -112,7 +112,14 @@ class OrganizationFormNotifier extends StateNotifier<OrganizationFormState> {
 
       talker.debug('Organization request payload prepared: ${model.toJson()}');
 
-      final response = await _repository.submitOrganization(model);
+      final isUpdateAction =
+          action.toUpperCase() == 'UPDATE' || action.toUpperCase() == 'EDIT';
+      final response = isUpdateAction && murugoOrganizationId != null
+          ? await _repository.updateOrganization(
+              murugoOrganizationId.toString(),
+              model,
+            )
+          : await _repository.submitOrganization(model);
 
       if (!response.success) {
         final message = response.message ?? 'Failed to submit organization';
