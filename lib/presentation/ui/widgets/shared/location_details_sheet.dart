@@ -5,6 +5,7 @@ import 'package:street_team/core/config/theme/typography.dart';
 import 'package:street_team/data/models/location_response.dart';
 import 'package:street_team/data/models/organization_response.dart';
 import 'package:street_team/presentation/ui/screens/location_screen.dart';
+import 'package:street_team/presentation/ui/screens/organization_screen.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_button.dart';
 
 class LocationDetailsSheet extends StatelessWidget {
@@ -103,10 +104,23 @@ class OrganizationDetailsSheet extends StatelessWidget {
         icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
         onPressed: () => Navigator.pop(context),
       ),
-      action: _ModernEditButton(onPressed: () {}),
+      action: _ModernEditButton(
+        onPressed: () {
+          Navigator.pop(context);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => OrganizationScreen(
+                initialOrganization: organization,
+                initialLocationName: location.name,
+              ),
+            ),
+          );
+        },
+      ),
 
       children: [
-        // ================= SIMPLE BLOCKS ONLY =================
+        // simple
         _SectionTitle(title: "Organization Details"),
 
         _SimpleBlock("Name", organization.name),
@@ -147,7 +161,6 @@ class _BaseScrollSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // FORCE 60% HEIGHT
     final height = MediaQuery.of(context).size.height * 0.60;
 
     return Container(
