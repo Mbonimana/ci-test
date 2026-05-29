@@ -55,6 +55,9 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
 
   final _locationService = LocationCaptureService();
 
+  bool get _isEditing =>
+      widget.editId != null || widget.initialLocation != null;
+
   void _applyInitialLocation(LocationResponse initialLocation) {
     if (_hasAppliedInitialLocation) {
       return;
@@ -192,7 +195,16 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
         context,
       ).showSnackBar(const SnackBar(content: Text("Location saved")));
       _clearSharedLocationState();
-      context.go(RouteNames.location);
+
+      if (_isEditing) {
+        Navigator.pop(context, true);
+      } else {
+        if (Navigator.of(context).canPop()) {
+          Navigator.pop(context, true);
+        } else {
+          context.go(RouteNames.mapScreen);
+        }
+      }
     } catch (e) {
       if (mounted) Navigator.pop(context);
 
