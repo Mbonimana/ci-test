@@ -30,4 +30,25 @@ class OrganizationRepository {
       return ApiResponse.failure(e.toString().replaceFirst('Exception: ', ''));
     }
   }
+
+  Future<ApiResponse<Response<dynamic>>> updateOrganization(
+    String id,
+    OrganizationRequestModel model,
+  ) async {
+    try {
+      talker.info('OrganizationRepository.updateOrganization sending request');
+      final response = await _service.updateOrganization(id, model);
+      talker.info(
+        'OrganizationRepository.updateOrganization success: ${response.statusCode}',
+      );
+      return ApiResponse.success(response);
+    } catch (e, st) {
+      talker.error(
+        'OrganizationRepository.updateOrganization failed: $e',
+        e,
+        st,
+      );
+      return ApiResponse.failure(e.toString().replaceFirst('Exception: ', ''));
+    }
+  }
 }
