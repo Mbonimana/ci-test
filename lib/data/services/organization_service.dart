@@ -93,4 +93,53 @@ class OrganizationService {
       throw Exception(_handleError(e));
     }
   }
+
+  Future<Response<dynamic>> updateOrganization(
+    String id,
+    OrganizationRequestModel model,
+  ) async {
+    try {
+      talker.info('OrganizationService.updateOrganization started');
+      final token = await AuthStorageService.read(
+        AuthStorageKeys.streetTeamAccessToken,
+      );
+      final payload = model.toJson();
+      talker.debug('Organization update payload => $payload');
+
+      final response = await _dio.put(
+        Endpoints.updateOrganization(id),
+        data: payload,
+        options: Options(
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            if (token != null && token.isNotEmpty)
+              'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+
+      talker.info(
+        'OrganizationService.updateOrganization success: ${response.statusCode}',
+      );
+      return response;
+    } on DioException catch (e, st) {
+      talker.error(
+        'OrganizationService.updateOrganization dio failure. '
+        'status=${e.response?.statusCode} '
+        'url=${e.requestOptions.uri} '
+        'response=${e.response?.data}',
+        e,
+        st,
+      );
+      throw Exception(_handleError(e));
+    } catch (e, st) {
+      talker.error(
+        'OrganizationService.updateOrganization unexpected failure: $e',
+        e,
+        st,
+      );
+      throw Exception(_handleError(e));
+    }
+  }
 }
