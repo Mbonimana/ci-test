@@ -13,7 +13,7 @@ abstract class MapEngine {
   void goToCoordinates({
     required double latitude,
     required double longitude,
-    double? zoom = 16,
+    double? zoom = 12,
   });
 
   void setInitialCamera({required double latitude, required double longitude});
