@@ -30,7 +30,11 @@ class LabelStyleHelper {
     }
 
     const visibleLayers = [
+      'road-label',
       'road-number-shield',
+      'road-shield',
+      'motorway-label',
+      'street-label',
       'settlement-subdivision-label',
       'settlement-minor-label',
     ];
