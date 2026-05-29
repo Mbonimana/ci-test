@@ -1,3 +1,5 @@
+import 'package:street_team/data/models/types_model.dart';
+
 class OrganizationResponseModel {
   final int? murugoOrganizationId;
   final String? murugoLocationId;
@@ -10,6 +12,8 @@ class OrganizationResponseModel {
   final String? onlineMenu;
   final String? submitterServer;
   final String? submitterAtName;
+  final List<TypeModel> types;
+  final List<dynamic> subTypes;
   final int? isActive;
   final int? isApproved;
   final int? isBest;
@@ -50,6 +54,8 @@ class OrganizationResponseModel {
     this.onlineMenu,
     this.submitterServer,
     this.submitterAtName,
+    this.types = const [],
+    this.subTypes = const [],
     this.isActive,
     this.isApproved,
     this.isBest,
@@ -83,15 +89,26 @@ class OrganizationResponseModel {
     return OrganizationResponseModel(
       murugoOrganizationId: (json['murugo_organization_id'] as num?)?.toInt(),
       murugoLocationId: json['murugo_location_id']?.toString(),
-      name: json['name'] ?? '',
-      phone: json['phone'],
+      name: _asString(json['name']),
+      phone: _asString(json['phone']),
       address: json['address'],
-      website: json['website'],
-      quickInfo: json['quick_info'],
-      type: json['type'],
-      onlineMenu: json['online_menu'],
-      submitterServer: json['submitter_server'],
-      submitterAtName: json['submitter_at_name'],
+      website: _asString(json['website']),
+      quickInfo: _asString(json['quick_info']),
+      type: _asString(json['type']),
+      onlineMenu: _asString(json['online_menu']),
+      submitterServer: _asString(json['submitter_server']),
+      submitterAtName: _asString(json['submitter_at_name']),
+      types:
+          (json['types'] as List<dynamic>?)
+              ?.map(
+                (type) => TypeModel.fromJson(Map<String, dynamic>.from(type)),
+              )
+              .toList() ??
+          const [],
+      subTypes:
+          (json['sub_types'] as List<dynamic>?) ??
+          (json['subTypes'] as List<dynamic>?) ??
+          const [],
       isActive: (json['is_active'] as num?)?.toInt(),
       isApproved: (json['is_approved'] as num?)?.toInt(),
       isBest: (json['is_best'] as num?)?.toInt(),
@@ -120,5 +137,25 @@ class OrganizationResponseModel {
       isHKActive: json['is_HK_active'],
       isTempoUpdated: json['is_tempo_updated'],
     );
+  }
+
+  static String _asString(dynamic value) {
+    if (value == null) return '';
+    if (value is String) return value;
+    if (value is Map) {
+      final map = Map<String, dynamic>.from(value);
+      final candidates = [
+        map['name'],
+        map['label'],
+        map['title'],
+        map['value'],
+      ];
+      for (final candidate in candidates) {
+        if (candidate is String && candidate.isNotEmpty) {
+          return candidate;
+        }
+      }
+    }
+    return value.toString();
   }
 }
