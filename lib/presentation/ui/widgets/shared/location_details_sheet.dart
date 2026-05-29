@@ -39,6 +39,7 @@ class LocationDetailsSheet extends StatelessWidget {
         _SimpleBlock("Physical Address", location.physicalAddress),
 
         _SimpleBlock("Short Name", " ${location.shortName}"),
+        _SectionTitle(title: "Coo"),
 
         // Types
         if (location.types.isNotEmpty) ...[
@@ -67,7 +68,7 @@ class LocationDetailsSheet extends StatelessWidget {
           ...location.organizations.map(
             (org) => _CompactOrgCard(
               name: org.name,
-              type: org.type ?? "General",
+              type: _organizationTypeLabel(org),
               onTap: () {
                 showModalBottomSheet(
                   context: context,
@@ -124,15 +125,32 @@ class OrganizationDetailsSheet extends StatelessWidget {
         _SectionTitle(title: "Organization Details"),
 
         _SimpleBlock("Name", organization.name),
-        _SimpleBlock("Type", organization.type ?? "N/A"),
+        _SimpleBlock("Type", _organizationTypeLabel(organization)),
         _SimpleBlock("Phone", organization.phone ?? "No phone"),
         _SimpleBlock("Website", organization.website ?? "No website"),
         if (organization.quickInfo != null)
-          _SimpleBlock("Info", organization.quickInfo!),
+          _SimpleBlock("Quick Info", organization.quickInfo!),
+
+        if (_organizationSubTypes(organization).isNotEmpty) ...[
+          SizedBox(height: 10.h),
+          _SectionTitle(title: "Sub Types"),
+          Wrap(
+            spacing: 6.w,
+            runSpacing: 6.h,
+            children: _organizationSubTypes(organization)
+                .map((subType) => _ChipPill(text: subType, isOutline: true))
+                .toList(),
+          ),
+        ],
 
         SizedBox(height: 10.h),
 
-        _SectionTitle(title: "Facilities"),
+        if (_workingHoursSummary(organization).isNotEmpty)
+          _SimpleBlock("Working Hours", _workingHoursSummary(organization)),
+        if (_workingHoursExtra(organization).isNotEmpty)
+          _SimpleBlock("Notes", _workingHoursExtra(organization)),
+
+        _SectionTitle(title: "Organization has:"),
 
         Wrap(
           spacing: 6.w,
@@ -392,12 +410,281 @@ class _ModernEditButton extends StatelessWidget {
 List<String> _orgFlags(OrganizationResponseModel organization) {
   final flags = <String>[];
 
-  if (organization.hasWifi == 1) flags.add("Wifi");
-  if (organization.hasFood == 1) flags.add("Food");
-  if (organization.hasBar == 1) flags.add("Bar");
-  if (organization.isOpen24Hours == 1) flags.add("24/7");
+  final options = _normalizedOptions(organization.options);
+
+  final flagDefinitions = <_OrgFlagDefinition>[
+    _OrgFlagDefinition('Wifi', ['has_wifi'], legacyValue: organization.hasWifi),
+    _OrgFlagDefinition('Food', ['has_food'], legacyValue: organization.hasFood),
+    _OrgFlagDefinition('Bar', ['has_bar'], legacyValue: organization.hasBar),
+    _OrgFlagDefinition('24/7', [
+      'is_open_24_hours',
+    ], legacyValue: organization.isOpen24Hours),
+    _OrgFlagDefinition('ATM', ['has_ATM', 'has_atm']),
+    _OrgFlagDefinition('Parking', ['has_parking']),
+    _OrgFlagDefinition('Coffee', [
+      'has_coffee',
+    ], legacyValue: organization.hasCoffee),
+    _OrgFlagDefinition('Tourism', [
+      'is_tourism',
+    ], legacyValue: organization.isTourism),
+    _OrgFlagDefinition('Nightlife', [
+      'is_night_life',
+    ], legacyValue: organization.isNightLife),
+    _OrgFlagDefinition('Shopping', [
+      'has_shopping',
+    ], legacyValue: organization.hasShopping),
+    _OrgFlagDefinition('Guhemba', [
+      'has_guhemba',
+    ], legacyValue: organization.hasGuhemba),
+    _OrgFlagDefinition('Guhemba Menu', [
+      'has_guhemba_menu',
+    ], legacyValue: organization.hasGuhembaMenu),
+    _OrgFlagDefinition('Delivery', ['delivery_available']),
+    _OrgFlagDefinition('Brunch', ['brunch_available']),
+    _OrgFlagDefinition('Work Friendly', ['work_friendly']),
+    _OrgFlagDefinition('Reservation Required', ['reservation_required']),
+    _OrgFlagDefinition('Wheelchair Accessible', ['wheelchair_accessible']),
+    _OrgFlagDefinition('Family Friendly', ['family_friendly']),
+    _OrgFlagDefinition('Swimming Pool', ['swimming_pool']),
+    _OrgFlagDefinition('Gym', ['has_gym']),
+    _OrgFlagDefinition('Spa', ['has_spa']),
+    _OrgFlagDefinition('Pool Table', ['pool_table']),
+    _OrgFlagDefinition('Takeaway', ['has_takeaway']),
+    _OrgFlagDefinition('Kids Activities', ['kids_activities']),
+    _OrgFlagDefinition('Sunday School', ['sunday_school']),
+    _OrgFlagDefinition('Outdoor Activities', ['outdoor_activities']),
+  ];
+
+  for (final definition in flagDefinitions) {
+    if (definition.isEnabled(options)) {
+      flags.add(definition.label);
+    }
+  }
 
   return flags;
+}
+
+Map<String, dynamic> _normalizedOptions(Map<String, dynamic>? options) {
+  return options == null
+      ? const <String, dynamic>{}
+      : Map<String, dynamic>.from(options);
+}
+
+class _OrgFlagDefinition {
+  final String label;
+  final List<String> optionKeys;
+  final int? legacyValue;
+
+  const _OrgFlagDefinition(this.label, this.optionKeys, {this.legacyValue});
+
+  bool isEnabled(Map<String, dynamic> options) {
+    for (final key in optionKeys) {
+      final value = options[key];
+      if (value == 1 || value == true || value?.toString() == '1') {
+        return true;
+      }
+    }
+
+    return legacyValue == 1;
+  }
+}
+
+String _organizationTypeLabel(OrganizationResponseModel organization) {
+  if (organization.types.isNotEmpty) {
+    return organization.types.map((type) => type.name).join(', ');
+  }
+
+  final legacyType = organization.type?.trim() ?? '';
+  return legacyType.isEmpty ? 'N/A' : legacyType;
+}
+
+List<String> _organizationSubTypes(OrganizationResponseModel organization) {
+  final values = <String>[];
+
+  for (final entry in organization.subTypes) {
+    final text = _displayValue(entry);
+    if (text.isNotEmpty && !values.contains(text)) {
+      values.add(text);
+    }
+  }
+
+  return values;
+}
+
+String _workingHoursSummary(OrganizationResponseModel organization) {
+  final weeklyHours = _workingHoursMap(organization);
+  if (weeklyHours.isEmpty) {
+    return '';
+  }
+
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  final lines = <String>[];
+
+  for (final day in days) {
+    final entries = weeklyHours[day];
+
+    if (entries == null || entries.isEmpty) {
+      lines.add('$day: closed');
+      continue;
+    }
+
+    final ranges = <String>[];
+    for (final entry in entries) {
+      final range = _workingHourRange(entry);
+      if (range.isNotEmpty) {
+        ranges.add(range);
+      }
+    }
+
+    if (ranges.isEmpty) {
+      lines.add('$day: closed');
+    } else {
+      lines.add('$day: ${ranges.join(', ')}');
+    }
+  }
+
+  return lines.join('\n');
+}
+
+String _workingHoursExtra(OrganizationResponseModel organization) {
+  final notes = <String>[];
+
+  if (organization.orgBuildingInfo != null) {
+    final buildingInfo = _displayValue(organization.orgBuildingInfo);
+    if (buildingInfo.isNotEmpty) {
+      notes.add('Building: $buildingInfo');
+    }
+  }
+
+  if (organization.isTempoUpdated != null) {
+    final tempoUpdated = _displayValue(organization.isTempoUpdated);
+    if (tempoUpdated.isNotEmpty && tempoUpdated != 'null') {
+      notes.add('Tempo updated: $tempoUpdated');
+    }
+  }
+
+  return notes.join('\n');
+}
+
+Map<String, List<dynamic>> _workingHoursMap(
+  OrganizationResponseModel organization,
+) {
+  final candidates = [
+    organization.openingHours,
+    organization.normalOpeningHours,
+    organization.weekendOpeningHours,
+  ];
+
+  for (final candidate in candidates) {
+    final normalized = _extractWeeklyHours(candidate);
+    if (normalized.isNotEmpty) {
+      return normalized;
+    }
+  }
+
+  return const {};
+}
+
+Map<String, List<dynamic>> _extractWeeklyHours(dynamic source) {
+  if (source == null) return const {};
+
+  final map = source is Map ? Map<String, dynamic>.from(source) : null;
+  if (map == null) return const {};
+
+  final weeklySource = map['weekly_hours'] ?? map['weeklyHours'] ?? map;
+  if (weeklySource is! Map) return const {};
+
+  final result = <String, List<dynamic>>{};
+  final weeklyMap = Map<String, dynamic>.from(weeklySource);
+
+  for (final entry in weeklyMap.entries) {
+    final value = entry.value;
+    if (value is List) {
+      result[entry.key] = value;
+    } else if (value is String && value.toLowerCase() == 'closed') {
+      result[entry.key] = const [];
+    } else if (value is Map) {
+      result[entry.key] = [value];
+    }
+  }
+
+  return result;
+}
+
+String _workingHourRange(dynamic entry) {
+  if (entry is! Map) {
+    return _displayValue(entry);
+  }
+
+  final map = Map<String, dynamic>.from(entry);
+  final open = _timeOnly(map['open'] ?? map['open_time']);
+  final close = _timeOnly(map['close'] ?? map['close_time']);
+
+  if (open.isEmpty && close.isEmpty) {
+    return _displayValue(map);
+  }
+
+  if (open.isEmpty) return close;
+  if (close.isEmpty) return open;
+
+  return '$open - $close';
+}
+
+String _timeOnly(dynamic value) {
+  final text = _displayValue(value);
+  if (text.isEmpty) return '';
+
+  if (text.contains(' ')) {
+    final parts = text.split(' ');
+    if (parts.isNotEmpty) {
+      return parts.first.trim();
+    }
+  }
+
+  return text;
+}
+
+String _displayValue(dynamic value) {
+  if (value == null) return '';
+  if (value is String) return value.trim();
+  if (value is num || value is bool) return value.toString();
+  if (value is Map) {
+    final map = Map<String, dynamic>.from(value);
+    final candidates = [
+      map['name'],
+      map['label'],
+      map['title'],
+      map['value'],
+      map['open'],
+      map['close'],
+      map['open_time'],
+      map['close_time'],
+      map['day'],
+    ];
+
+    final buffer = <String>[];
+    for (final candidate in candidates) {
+      final text = _displayValue(candidate);
+      if (text.isNotEmpty) {
+        buffer.add(text);
+      }
+    }
+
+    if (buffer.isNotEmpty) {
+      return buffer.join(' - ');
+    }
+
+    return map.entries
+        .map((entry) => '${entry.key}: ${_displayValue(entry.value)}')
+        .join(', ');
+  }
+  if (value is Iterable) {
+    return value
+        .map(_displayValue)
+        .where((value) => value.isNotEmpty)
+        .join(', ');
+  }
+  return value.toString();
 }
 
 class _SectionTitle extends StatelessWidget {
