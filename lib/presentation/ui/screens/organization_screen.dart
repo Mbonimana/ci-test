@@ -32,6 +32,9 @@ class OrganizationScreen extends ConsumerStatefulWidget {
 class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
   int currentStep = 0;
 
+  bool get _isEditing =>
+      widget.initialOrganization?.murugoOrganizationId != null;
+
   // selections
   List<String> selectedLocationIds = [];
   List<String> selectedLocationNames = [];
@@ -175,6 +178,7 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
 
   Future<void> _save() async {
     final orgName = orgNameCtrl.text.trim();
+    final organizationId = widget.initialOrganization?.murugoOrganizationId;
 
     if (orgName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -203,7 +207,7 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
 
     try {
       await notifier.submitOrganization(
-        action: 'ADD',
+        action: _isEditing ? 'UPDATE' : 'ADD',
         name: orgName,
         type: selectedOrgTypes.first,
         phone: phone.text.trim().isEmpty ? null : phone.text.trim(),
@@ -221,11 +225,18 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
         orgBuildingInfo: buildingDetails.text.trim().isEmpty
             ? null
             : buildingDetails.text.trim(),
+        murugoOrganizationId: organizationId,
       );
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Organization submitted successfully.')),
+        SnackBar(
+          content: Text(
+            _isEditing
+                ? 'Organization updated successfully.'
+                : 'Organization submitted successfully.',
+          ),
+        ),
       );
     } catch (e) {
       if (!mounted) return;
@@ -320,7 +331,9 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
                   },
                   variant: AppButtonVariant.primary,
                   isLoading: formState.isSubmitting,
-                  text: currentStep == 0 ? "Next" : "Submit",
+                  text: currentStep == 0
+                      ? "Next"
+                      : (_isEditing ? "Update" : "Submit"),
                 ),
               ),
             ],
