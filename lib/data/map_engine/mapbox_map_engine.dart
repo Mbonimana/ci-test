@@ -40,7 +40,7 @@ class MapboxMapEngine implements MapEngine {
   void goToCoordinates({
     required double latitude,
     required double longitude,
-    double? zoom = 12,
+    double? zoom = 9,
   }) {
     cameraController.flyTo(latitude: latitude, longitude: longitude);
   }
