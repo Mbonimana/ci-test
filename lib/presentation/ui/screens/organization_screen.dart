@@ -84,12 +84,77 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
     buildingDetails.text = initial.orgBuildingInfo?.toString() ?? '';
     onlineMenuCtrl.text = initial.onlineMenu ?? '';
 
-    if (initial.type != null && initial.type!.isNotEmpty) {
+    if (initial.types.isNotEmpty) {
+      selectedOrgTypes = initial.types.map((t) => t.name).toList();
+      syncSubtypes(orgTypes);
+    } else if (initial.type != null && initial.type!.isNotEmpty) {
       selectedOrgTypes = [initial.type!];
       syncSubtypes(orgTypes);
     }
 
+    _applyInitialSubtypes(orgTypes, initial);
     selectedOrgOptions = _optionsFromOrganization(initial, orgTypes);
+  }
+
+  void _applyInitialSubtypes(
+    List<TypeModel> orgTypes,
+    OrganizationResponseModel initial,
+  ) {
+    if (initial.subTypes.isEmpty) return;
+
+    final requestedIds = _extractSubTypeIds(initial.subTypes);
+    final requestedNames = _extractSubTypeNames(initial.subTypes);
+
+    final available = getSubtypeOptions(orgTypes);
+    selectedSubtypes = available
+        .where(
+          (item) =>
+              requestedIds.contains(item.id) ||
+              requestedNames.contains(item.name.toLowerCase()),
+        )
+        .map((item) => item.id)
+        .toList();
+  }
+
+  Set<int> _extractSubTypeIds(List<dynamic> rawSubTypes) {
+    final ids = <int>{};
+    for (final item in rawSubTypes) {
+      if (item is int) {
+        ids.add(item);
+        continue;
+      }
+      if (item is String) {
+        final parsed = int.tryParse(item);
+        if (parsed != null) ids.add(parsed);
+        continue;
+      }
+      if (item is Map) {
+        final map = Map<String, dynamic>.from(item);
+        final parsed = int.tryParse(
+          (map['id'] ?? map['sub_type_id']).toString(),
+        );
+        if (parsed != null) ids.add(parsed);
+      }
+    }
+    return ids;
+  }
+
+  Set<String> _extractSubTypeNames(List<dynamic> rawSubTypes) {
+    final names = <String>{};
+    for (final item in rawSubTypes) {
+      if (item is String && item.trim().isNotEmpty) {
+        names.add(item.trim().toLowerCase());
+        continue;
+      }
+      if (item is Map) {
+        final map = Map<String, dynamic>.from(item);
+        final value = (map['name'] ?? map['label']).toString().trim();
+        if (value.isNotEmpty && value.toLowerCase() != 'null') {
+          names.add(value.toLowerCase());
+        }
+      }
+    }
+    return names;
   }
 
   String locationName(String id, List<TypeModel> locTypes) {
