@@ -34,12 +34,11 @@ class LocationDetailsSheet extends StatelessWidget {
       children: [
         // Location block
         _SimpleBlock("Location Name", location.name),
+        _SimpleBlock("Physical Address", location.physicalAddress),
         if (location.nickname?.isNotEmpty == true)
           _SimpleBlock("Nickname", location.nickname!),
-        _SimpleBlock("Physical Address", location.physicalAddress),
 
         _SimpleBlock("Short Name", " ${location.shortName}"),
-        _SectionTitle(title: "Coo"),
 
         // Types
         if (location.types.isNotEmpty) ...[
@@ -100,7 +99,7 @@ class OrganizationDetailsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _BaseScrollSheet(
-      title: 'Organization Info',
+      title: 'Organization Details',
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16),
         onPressed: () => Navigator.pop(context),
@@ -122,17 +121,20 @@ class OrganizationDetailsSheet extends StatelessWidget {
 
       children: [
         // simple
-        _SectionTitle(title: "Organization Details"),
-
-        _SimpleBlock("Name", organization.name),
-        _SimpleBlock("Type", _organizationTypeLabel(organization)),
-        _SimpleBlock("Phone", organization.phone ?? "No phone"),
-        _SimpleBlock("Website", organization.website ?? "No website"),
-        if (organization.quickInfo != null)
-          _SimpleBlock("Quick Info", organization.quickInfo!),
+        _SimpleBlock(" Organization Name", organization.name),
+        // Types
+        if (organization.types.isNotEmpty) ...[
+          _SectionTitle(title: "Types"),
+          Wrap(
+            spacing: 6.w,
+            runSpacing: 6.h,
+            children: organization.types
+                .map((t) => _ChipPill(text: t.name))
+                .toList(),
+          ),
+        ],
 
         if (_organizationSubTypes(organization).isNotEmpty) ...[
-          SizedBox(height: 10.h),
           _SectionTitle(title: "Sub Types"),
           Wrap(
             spacing: 6.w,
@@ -142,15 +144,14 @@ class OrganizationDetailsSheet extends StatelessWidget {
                 .toList(),
           ),
         ],
-
-        SizedBox(height: 10.h),
+        _SimpleBlock("Phone", organization.phone ?? "No phone"),
+        _SimpleBlock("Website", organization.website ?? "No website"),
+        if (organization.quickInfo != null)
+          _SimpleBlock("Quick Info", organization.quickInfo!),
 
         if (_workingHoursSummary(organization).isNotEmpty)
           _SimpleBlock("Working Hours", _workingHoursSummary(organization)),
-        if (_workingHoursExtra(organization).isNotEmpty)
-          _SimpleBlock("Notes", _workingHoursExtra(organization)),
-
-        _SectionTitle(title: "Organization has:"),
+        _SectionTitle(title: "Organization Options:"),
 
         Wrap(
           spacing: 6.w,
@@ -213,8 +214,6 @@ class _BaseScrollSheet extends StatelessWidget {
                       title,
                       textAlign: TextAlign.left,
                       style: AppTypography.titleMedium.copyWith(
-                        fontSize: 17.sp,
-                        fontWeight: FontWeight.w700,
                         color: AppColors.brandPrimary,
                       ),
                       maxLines: 1,
@@ -258,8 +257,6 @@ class _SimpleBlock extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 8.w),
-
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -544,26 +541,6 @@ String _workingHoursSummary(OrganizationResponseModel organization) {
   }
 
   return lines.join('\n');
-}
-
-String _workingHoursExtra(OrganizationResponseModel organization) {
-  final notes = <String>[];
-
-  if (organization.orgBuildingInfo != null) {
-    final buildingInfo = _displayValue(organization.orgBuildingInfo);
-    if (buildingInfo.isNotEmpty) {
-      notes.add('Building: $buildingInfo');
-    }
-  }
-
-  if (organization.isTempoUpdated != null) {
-    final tempoUpdated = _displayValue(organization.isTempoUpdated);
-    if (tempoUpdated.isNotEmpty && tempoUpdated != 'null') {
-      notes.add('Tempo updated: $tempoUpdated');
-    }
-  }
-
-  return notes.join('\n');
 }
 
 Map<String, List<dynamic>> _workingHoursMap(
