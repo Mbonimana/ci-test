@@ -83,6 +83,7 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
     quickinfo.text = initial.quickInfo ?? '';
     buildingDetails.text = initial.orgBuildingInfo?.toString() ?? '';
     onlineMenuCtrl.text = initial.onlineMenu ?? '';
+    workingHoursSummary = _workingHoursFromOrganization(initial);
 
     if (initial.types.isNotEmpty) {
       selectedOrgTypes = initial.types.map((t) => t.name).toList();
@@ -269,6 +270,16 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
 
     final orgTypes = await ref.read(organizationTypesProvider.future);
     final notifier = ref.read(organizationFormProvider.notifier);
+    final initialOrganization = widget.initialOrganization;
+    final effectiveWorkingHours =
+        workingHoursSummary ??
+        (initialOrganization != null
+            ? _workingHoursFromOrganization(initialOrganization)
+            : null) ??
+        <String, dynamic>{};
+    final effectiveSelectedOptions = _prefilled || initialOrganization == null
+        ? selectedOrgOptions
+        : _optionsFromOrganization(initialOrganization, orgTypes);
 
     try {
       await notifier.submitOrganization(
@@ -285,8 +296,8 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
         newLocationData: createdLocationData,
         types: _selectedTypeIds(orgTypes),
         subTypes: _selectedSubTypeIds(orgTypes),
-        selectedOptions: selectedOrgOptions,
-        workingHoursData: workingHoursSummary ?? <String, dynamic>{},
+        selectedOptions: effectiveSelectedOptions,
+        workingHoursData: effectiveWorkingHours,
         orgBuildingInfo: buildingDetails.text.trim().isEmpty
             ? null
             : buildingDetails.text.trim(),
@@ -605,28 +616,163 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
     OrganizationResponseModel organization,
     List<TypeModel> orgTypes,
   ) {
-    final selectedNames = <String>{};
-
-    void addIfActive(int? value, String label) {
-      if (value == 1) {
-        selectedNames.add(label);
-      }
-    }
-
-    addIfActive(organization.hasBar, 'Bar');
-    addIfActive(organization.hasFood, 'Food');
-    addIfActive(organization.hasCoffee, 'Coffee');
-    addIfActive(organization.hasWifi, 'Wifi');
-    addIfActive(organization.hasAtm, 'ATM');
-    addIfActive(organization.hasShopping, 'Shopping');
-    addIfActive(organization.isTourism, 'Tourism');
-    addIfActive(organization.isNightLife, 'Nightlife');
-    addIfActive(organization.hasGuhemba, 'Guhemba');
-    addIfActive(organization.hasGuhembaMenu, 'Guhemba Menu');
+    final selectedNames = _selectedOrganizationOptionNames(organization);
 
     return getOrganizationOptions(orgTypes)
-        .where((item) => selectedNames.contains(item['type']))
+        .where((item) => selectedNames.contains(_normalizedText(item['type'])))
         .map<Map<String, dynamic>>((item) => item)
         .toList();
   }
+
+  Map<String, dynamic>? _workingHoursFromOrganization(
+    OrganizationResponseModel organization,
+  ) {
+    for (final candidate in [
+      organization.openingHours,
+      organization.normalOpeningHours,
+      organization.weekendOpeningHours,
+    ]) {
+      final normalized = _normalizeWorkingHoursSource(candidate);
+      if (normalized != null) {
+        return normalized;
+      }
+    }
+
+    if (organization.isActive != null ||
+        organization.isOpen24Hours != null ||
+        organization.isTemporaryClosed != null) {
+      return {
+        'is_active': organization.isActive == 1,
+        'is_open_24_hours': organization.isOpen24Hours == 1,
+        'is_temporary_closed': organization.isTemporaryClosed == 1,
+        'possible_return_date': null,
+        'weekly_hours': const <String, dynamic>{},
+      };
+    }
+
+    return null;
+  }
+
+  Map<String, dynamic>? _normalizeWorkingHoursSource(dynamic source) {
+    if (source is! Map) return null;
+
+    final map = Map<String, dynamic>.from(source);
+    final weeklySource = map['weekly_hours'] ?? map['weeklyHours'] ?? map;
+
+    return {
+      'is_active': _asBool(map['is_active'] ?? map['isActive']),
+      'is_open_24_hours': _asBool(map['is_open_24_hours'] ?? map['isOpen24']),
+      'is_temporary_closed': _asBool(
+        map['is_temporary_closed'] ?? map['isTempClosed'],
+      ),
+      'possible_return_date':
+          map['possible_return_date'] ?? map['possibleReturnDate'],
+      'weekly_hours': _normalizeWeeklyHours(weeklySource),
+    };
+  }
+
+  Map<String, dynamic> _normalizeWeeklyHours(dynamic source) {
+    if (source is! Map) return const <String, dynamic>{};
+
+    final weeklyMap = Map<String, dynamic>.from(source);
+    final result = <String, dynamic>{};
+
+    for (final entry in weeklyMap.entries) {
+      final value = entry.value;
+      if (value is List) {
+        result[entry.key.toString()] = value;
+      } else if (value is String && value.toLowerCase() == 'closed') {
+        result[entry.key.toString()] = 'Closed';
+      } else if (value is Map) {
+        result[entry.key.toString()] = [Map<String, dynamic>.from(value)];
+      }
+    }
+
+    return result;
+  }
+
+  Set<String> _selectedOrganizationOptionNames(
+    OrganizationResponseModel organization,
+  ) {
+    final options = _normalizedOptions(organization.options);
+    final selectedNames = <String>{};
+
+    for (final definition in _organizationOptionDefinitions) {
+      if (definition.isEnabled(options)) {
+        selectedNames.add(_normalizedText(definition.label));
+      }
+    }
+
+    return selectedNames;
+  }
+
+  bool _asBool(dynamic value) {
+    if (value is bool) return value;
+    if (value is num) return value == 1;
+    if (value is String) {
+      final normalized = value.trim().toLowerCase();
+      return normalized == '1' || normalized == 'true' || normalized == 'yes';
+    }
+    return false;
+  }
+
+  String _normalizedText(dynamic value) {
+    return value?.toString().trim().toLowerCase() ?? '';
+  }
+
+  Map<String, dynamic> _normalizedOptions(Map<String, dynamic>? options) {
+    return options == null
+        ? const <String, dynamic>{}
+        : Map<String, dynamic>.from(options);
+  }
 }
+
+class _OrganizationOptionDefinition {
+  final String label;
+  final List<String> optionKeys;
+
+  const _OrganizationOptionDefinition(this.label, this.optionKeys);
+
+  bool isEnabled(Map<String, dynamic> options) {
+    for (final key in optionKeys) {
+      final value = options[key];
+      if (value == 1 || value == true || value?.toString() == '1') {
+        return true;
+      }
+    }
+
+    return false;
+  }
+}
+
+const List<_OrganizationOptionDefinition> _organizationOptionDefinitions = [
+  _OrganizationOptionDefinition('Delivery Available', ['delivery_available']),
+  _OrganizationOptionDefinition('Brunch Available', ['brunch_available']),
+  _OrganizationOptionDefinition('Bar', ['has_bar']),
+  _OrganizationOptionDefinition('Work Friendly', ['work_friendly']),
+  _OrganizationOptionDefinition('Wifi', ['has_wifi']),
+  _OrganizationOptionDefinition('Reservation Required', [
+    'reservation_required',
+  ]),
+  _OrganizationOptionDefinition('ATM', ['has_ATM', 'has_atm']),
+  _OrganizationOptionDefinition('Parking Available', ['has_parking']),
+  _OrganizationOptionDefinition('Coffee', ['has_coffee']),
+  _OrganizationOptionDefinition('Wheelchair Accessible', [
+    'wheelchair_accessible',
+  ]),
+  _OrganizationOptionDefinition('Family Friendly', ['family_friendly']),
+  _OrganizationOptionDefinition('Swimming Pool', ['swimming_pool']),
+  _OrganizationOptionDefinition('Gym', ['has_gym']),
+  _OrganizationOptionDefinition('Spa', ['has_spa']),
+  _OrganizationOptionDefinition('Pool Table', ['pool_table']),
+  _OrganizationOptionDefinition('Tourism', ['is_tourism']),
+  _OrganizationOptionDefinition('Nightlife', ['is_night_life']),
+  _OrganizationOptionDefinition('Food', ['has_food']),
+  _OrganizationOptionDefinition('Shopping', ['has_shopping']),
+  _OrganizationOptionDefinition('Guhemba Menu', ['has_guhemba_menu']),
+  _OrganizationOptionDefinition('Guhemba', ['has_guhemba']),
+  _OrganizationOptionDefinition('Takeaway', ['has_takeaway']),
+  _OrganizationOptionDefinition('Kids Activities', ['kids_activities']),
+  _OrganizationOptionDefinition('Sunday School', ['sunday_school']),
+  _OrganizationOptionDefinition('Outdoor Activities', ['outdoor_activities']),
+];
