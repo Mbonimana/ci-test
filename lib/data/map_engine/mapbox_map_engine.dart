@@ -34,22 +34,26 @@ class MapboxMapEngine implements MapEngine {
   }
 
   @override
-  void goToUserLocation({double? zoom = 12}) => cameraController.goToUserLocation();
+  void goToUserLocation() => cameraController.goToUserLocation();
 
   @override
   void goToCoordinates({
     required double latitude,
     required double longitude,
-    double? zoom = 9,
+    double zoom = 18,
   }) {
-    cameraController.flyTo(latitude: latitude, longitude: longitude);
+    cameraController.flyTo(
+      latitude: latitude,
+      longitude: longitude,
+      zoom: zoom,
+    );
   }
 
   @override
   void setInitialCamera({
     required double latitude,
     required double longitude,
-    double? zoom = 13,
+    double? zoom = 18,
   }) {
     cameraController.setInitialCamera(latitude: latitude, longitude: longitude);
   }
