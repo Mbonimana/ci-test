@@ -113,6 +113,11 @@ class LocationSearchNotifier extends StateNotifier<LocationSearchState> {
     );
   }
 
+  void reset() {
+    _debounce?.cancel();
+    state = LocationSearchState();
+  }
+
   @override
   void dispose() {
     _debounce?.cancel();
@@ -122,19 +127,24 @@ class LocationSearchNotifier extends StateNotifier<LocationSearchState> {
 
 // provider
 final locationSearchProvider =
-    StateNotifierProvider<LocationSearchNotifier, LocationSearchState>((ref) {
+    StateNotifierProvider.autoDispose<
+      LocationSearchNotifier,
+      LocationSearchState
+    >((ref) {
       final repo = ref.watch(locationRepoProvider);
       return LocationSearchNotifier(repo);
     });
 
 // the UI
 class LocationSearchWidget extends ConsumerStatefulWidget {
+  final TextEditingController? controller;
   final String? initialLocationName;
   final ValueChanged<dynamic>? onLocationSelected;
   final bool deferSubmit;
 
   const LocationSearchWidget({
     super.key,
+    this.controller,
     this.initialLocationName,
     this.onLocationSelected,
     this.deferSubmit = false,
@@ -146,12 +156,18 @@ class LocationSearchWidget extends ConsumerStatefulWidget {
 }
 
 class _LocationSearchWidgetState extends ConsumerState<LocationSearchWidget> {
-  late TextEditingController _controller;
+  TextEditingController? _internalController;
+
+  TextEditingController get _controller =>
+      widget.controller ?? _internalController!;
 
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController();
+
+    if (widget.controller == null) {
+      _internalController = TextEditingController();
+    }
 
     if (widget.initialLocationName != null &&
         widget.initialLocationName!.isNotEmpty) {
@@ -160,8 +176,20 @@ class _LocationSearchWidgetState extends ConsumerState<LocationSearchWidget> {
   }
 
   @override
+  void didUpdateWidget(covariant LocationSearchWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.controller == null &&
+        oldWidget.initialLocationName != widget.initialLocationName &&
+        widget.initialLocationName != null &&
+        widget.initialLocationName!.isNotEmpty) {
+      _controller.text = widget.initialLocationName!;
+    }
+  }
+
+  @override
   void dispose() {
-    _controller.dispose();
+    _internalController?.dispose();
     super.dispose();
   }
 
@@ -205,6 +233,9 @@ class _LocationSearchWidgetState extends ConsumerState<LocationSearchWidget> {
 
                 if (result != null) {
                   widget.onLocationSelected?.call(result);
+                  notifier.reset();
+
+                  FocusScope.of(context).unfocus();
                 }
               },
             ),
