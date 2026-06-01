@@ -27,7 +27,11 @@ class OrganizationRepository {
         e,
         st,
       );
-      return ApiResponse.failure(e.toString().replaceFirst('Exception: ', ''));
+      var msg = e.toString();
+      while (msg.startsWith('Exception: ')) {
+        msg = msg.replaceFirst('Exception: ', '');
+      }
+      return ApiResponse.failure(msg);
     }
   }
 
@@ -48,7 +52,11 @@ class OrganizationRepository {
         e,
         st,
       );
-      return ApiResponse.failure(e.toString().replaceFirst('Exception: ', ''));
+      var msg = e.toString();
+      while (msg.startsWith('Exception: ')) {
+        msg = msg.replaceFirst('Exception: ', '');
+      }
+      return ApiResponse.failure(msg);
     }
   }
 }
