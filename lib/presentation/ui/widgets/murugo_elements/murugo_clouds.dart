@@ -39,7 +39,8 @@ class _MurugoCloudsUIState extends State<MurugoCloudsUI> {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 300.h,
+      height: 280.h,
+
       color: AppColors.murugoBlue,
       child: Stack(
         children: [
@@ -83,11 +84,14 @@ class _MurugoCloudsUIState extends State<MurugoCloudsUI> {
                 'assets/murugo/murugo_cloud_label.webp',
                 height: 38.h,
                 fit: BoxFit.fitHeight,
+                
               ),
             ),
           ),
+          
         ],
       ),
+      
     );
   }
 }
