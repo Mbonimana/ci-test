@@ -8,7 +8,9 @@ abstract class MapEngine {
     required List<LocationResponse> locations,
   });
 
-  void goToUserLocation();
+  void goToUserLocation({
+    double? zoom = 12,
+  });
 
   void goToCoordinates({
     required double latitude,
