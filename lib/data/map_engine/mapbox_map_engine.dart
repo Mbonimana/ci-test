@@ -34,7 +34,7 @@ class MapboxMapEngine implements MapEngine {
   }
 
   @override
-  void goToUserLocation() => cameraController.goToUserLocation();
+  void goToUserLocation({double? zoom = 12}) => cameraController.goToUserLocation();
 
   @override
   void goToCoordinates({
