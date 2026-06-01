@@ -8,14 +8,12 @@ abstract class MapEngine {
     required List<LocationResponse> locations,
   });
 
-  void goToUserLocation({
-    double? zoom = 12,
-  });
+  void goToUserLocation();
 
   void goToCoordinates({
     required double latitude,
     required double longitude,
-    double? zoom = 12,
+    double zoom = 18,
   });
 
   void setInitialCamera({required double latitude, required double longitude});

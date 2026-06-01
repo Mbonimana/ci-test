@@ -42,8 +42,8 @@ class ClusterHelper {
         id: sourceId,
         data: jsonEncode(geoJson),
         cluster: true,
-        clusterRadius: 50,
-        clusterMaxZoom: 12,
+        clusterRadius: 80,
+        clusterMaxZoom: 16,
       ),
     );
 
