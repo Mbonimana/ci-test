@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:street_team/core/network/dio_client.dart';
-import 'package:street_team/data/models/location_model.dart';
-import 'package:street_team/data/models/location_response.dart';
+import 'package:street_team/data/models/location_models/location_request_model.dart';
+import 'package:street_team/data/models/location_models/location_response.dart';
 import 'package:street_team/data/services/location_service.dart';
 
 class LocationRepository {

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:street_team/core/config/theme/app_color.dart';
-import 'package:street_team/data/models/location_response.dart';
+import 'package:street_team/data/models/location_models/location_response.dart';
 
 class IconHelper {
   final Map<String, Future<Uint8List>> _cache = {};

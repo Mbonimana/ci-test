@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:street_team/core/config/theme/app_color.dart';
 import 'package:street_team/core/routing/route_names.dart';
-import 'package:street_team/data/models/location_response.dart';
+import 'package:street_team/data/models/location_models/location_response.dart';
 import 'package:street_team/data/models/organization_models/organization_response.dart';
 import 'package:street_team/data/models/types_model.dart';
 import 'package:street_team/presentation/providers/organization_form_helpers.dart';

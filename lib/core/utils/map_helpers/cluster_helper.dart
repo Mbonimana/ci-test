@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:street_team/core/utils/map_helpers/icon_helper.dart';
-import 'package:street_team/data/models/location_response.dart';
+import 'package:street_team/data/models/location_models/location_response.dart';
 
 class ClusterHelper {
   static const sourceId = "locations-source";

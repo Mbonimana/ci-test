@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:street_team/core/config/theme/app_color.dart';
 import 'package:street_team/core/config/theme/typography.dart';
-import 'package:street_team/data/models/location_response.dart';
+import 'package:street_team/data/models/location_models/location_response.dart';
 
 class SearchResultsPanel extends StatelessWidget {
   const SearchResultsPanel({
