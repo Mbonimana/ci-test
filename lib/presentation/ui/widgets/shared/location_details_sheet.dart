@@ -33,16 +33,16 @@ class LocationDetailsSheet extends StatelessWidget {
       ),
       children: [
         // Location block
-        _SimpleBlock("Location Name", location.name),
-        _SimpleBlock("Physical Address", location.physicalAddress),
+        _InfoBlock("Location Name", location.name),
+        _InfoBlock("Physical Address", location.physicalAddress),
         if (location.nickname?.isNotEmpty == true)
-          _SimpleBlock("Nickname", location.nickname!),
+          _InfoBlock("Nickname", location.nickname!),
 
-        _SimpleBlock("Short Name", " ${location.shortName}"),
+        _InfoBlock("Short Name", " ${location.shortName}"),
 
         // Types
+        _SectionTitle(title: "Type(s)"),
         if (location.types.isNotEmpty) ...[
-          _SectionTitle(title: "Types"),
           Wrap(
             spacing: 6.w,
             runSpacing: 6.h,
@@ -121,10 +121,20 @@ class OrganizationDetailsSheet extends StatelessWidget {
 
       children: [
         // simple
-        _SimpleBlock(" Organization Name", organization.name),
+        _InfoBlock(" Organization Name", organization.name),
+
         // Types
-        if (organization.types.isNotEmpty) ...[
-          _SectionTitle(title: "Types"),
+        _SectionTitle(title: "Types"),
+
+        if (organization.types.isEmpty)
+          Padding(
+            padding: EdgeInsets.only(bottom: 6.h),
+            child: Text(
+              "No types available",
+              style: AppTypography.bodyMedium.copyWith(color: Colors.grey),
+            ),
+          )
+        else
           Wrap(
             spacing: 6.w,
             runSpacing: 6.h,
@@ -132,10 +142,21 @@ class OrganizationDetailsSheet extends StatelessWidget {
                 .map((t) => _ChipPill(text: t.name))
                 .toList(),
           ),
-        ],
 
-        if (_organizationSubTypes(organization).isNotEmpty) ...[
-          _SectionTitle(title: "Sub Types"),
+        SizedBox(height: 12.h),
+
+        // Sub Types
+        _SectionTitle(title: "Sub Types"),
+
+        if (_organizationSubTypes(organization).isEmpty)
+          Padding(
+            padding: EdgeInsets.only(bottom: 6.h),
+            child: Text(
+              "-",
+              style: AppTypography.titleSmall.copyWith(color: Colors.grey),
+            ),
+          )
+        else
           Wrap(
             spacing: 6.w,
             runSpacing: 6.h,
@@ -143,14 +164,20 @@ class OrganizationDetailsSheet extends StatelessWidget {
                 .map((subType) => _ChipPill(text: subType, isOutline: true))
                 .toList(),
           ),
-        ],
-        _SimpleBlock("Phone", organization.phone ?? "No phone"),
-        _SimpleBlock("Website", organization.website ?? "No website"),
+        _InfoBlock("Phone", organization.phone ?? "No phone"),
+        _InfoBlock("Website", organization.website ?? "No website"),
         if (organization.quickInfo != null)
-          _SimpleBlock("Quick Info", organization.quickInfo!),
+          _InfoBlock("Quick Info", organization.quickInfo!),
+
+        _InfoBlock(
+          "Online Menu",
+          organization.onlineMenu != null
+              ? organization.onlineMenu!
+              : "No online menu",
+        ),
 
         if (_workingHoursSummary(organization).isNotEmpty)
-          _SimpleBlock("Working Hours", _workingHoursSummary(organization)),
+          _InfoBlock("Working Hours", _workingHoursSummary(organization)),
         _SectionTitle(title: "Organization Options:"),
 
         Wrap(
@@ -226,8 +253,6 @@ class _BaseScrollSheet extends StatelessWidget {
               ),
             ),
           ),
-
-          // SCROLLABLE CONTENT
           Expanded(
             child: SingleChildScrollView(
               padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 30.h),
@@ -242,13 +267,12 @@ class _BaseScrollSheet extends StatelessWidget {
     );
   }
 }
-// ================= SIMPLE BLOCK (NO CARD UI) =================
 
-class _SimpleBlock extends StatelessWidget {
+class _InfoBlock extends StatelessWidget {
   final String label;
   final String value;
 
-  const _SimpleBlock(this.label, this.value);
+  const _InfoBlock(this.label, this.value);
 
   @override
   Widget build(BuildContext context) {
@@ -304,22 +328,17 @@ class _CompactOrgCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(
-        10.r,
-      ), // Added to keep ripple contained
+      borderRadius: BorderRadius.circular(10.r),
       child: Container(
         margin: EdgeInsets.only(bottom: 8.h),
-        // Increased vertical padding from 10 to 14 for extra height
         padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 14.h),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10.r),
-          // Added a very subtle border or shadow to make the increased height feel distinct
           border: Border.all(color: AppColors.placeholderText.withAlpha(25)),
         ),
         child: Row(
           children: [
-            // Increased icon size slightly for better alignment with new height
             Icon(
               Icons.business_rounded,
               size: 18.sp,
@@ -402,7 +421,7 @@ class _ModernEditButton extends StatelessWidget {
   }
 }
 
-// ================= FLAGS =================
+// flags
 
 List<String> _orgFlags(OrganizationResponseModel organization) {
   final flags = <String>[];
@@ -675,11 +694,7 @@ class _SectionTitle extends StatelessWidget {
       padding: EdgeInsets.only(top: 10.h, bottom: 6.h),
       child: Text(
         title,
-        style: TextStyle(
-          fontSize: 13.sp,
-          fontWeight: FontWeight.w700,
-          color: Colors.black87,
-        ),
+        style: TextStyle(fontSize: 13.sp, color: AppColors.brandPrimary),
       ),
     );
   }
