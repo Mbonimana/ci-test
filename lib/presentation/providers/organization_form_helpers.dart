@@ -1,4 +1,4 @@
-import 'package:street_team/data/models/organization_response.dart';
+import 'package:street_team/data/models/organization_models/organization_response.dart';
 import 'package:street_team/data/models/types_model.dart';
 
 List<Map<String, dynamic>> organizationOptions(

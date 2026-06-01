@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:street_team/core/config/theme/app_color.dart';
 import 'package:street_team/core/config/theme/typography.dart';
 import 'package:street_team/data/models/location_response.dart';
-import 'package:street_team/data/models/organization_response.dart';
+import 'package:street_team/data/models/organization_models/organization_response.dart';
 import 'package:street_team/presentation/ui/screens/location_screen.dart';
 import 'package:street_team/presentation/ui/screens/organization_screen.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_button.dart';

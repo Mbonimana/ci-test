@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:street_team/core/network/dio_client.dart';
 import 'package:street_team/core/network/response.dart';
 import 'package:street_team/core/utils/talker_helper.dart';
-import 'package:street_team/data/models/organization_request.dart';
+import 'package:street_team/data/models/organization_models/organization_request.dart';
 import 'package:street_team/data/services/organization_service.dart';
 
 class OrganizationRepository {

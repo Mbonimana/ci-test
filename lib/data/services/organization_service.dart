@@ -4,7 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:street_team/core/network/dio_client.dart';
 import 'package:street_team/core/network/endpoints.dart';
 import 'package:street_team/core/utils/talker_helper.dart';
-import 'package:street_team/data/models/organization_request.dart';
+import 'package:street_team/data/models/organization_models/organization_request.dart';
 import 'package:street_team/data/services/auth/storage/auth_storage_keys.dart';
 import 'package:street_team/data/services/auth/storage/auth_storage_service.dart';
 
