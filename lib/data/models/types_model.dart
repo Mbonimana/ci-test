@@ -1,4 +1,3 @@
-
 class TypeModel {
   final int id;
   final String name;
@@ -28,15 +27,9 @@ class SubTypeModel {
   final int id;
   final String name;
 
-  SubTypeModel({
-    required this.id,
-    required this.name,
-  });
+  SubTypeModel({required this.id, required this.name});
 
   factory SubTypeModel.fromJson(Map<String, dynamic> json) {
-    return SubTypeModel(
-      id: json['id'],
-      name: json['name'] ?? '',
-    );
+    return SubTypeModel(id: json['id'], name: json['name'] ?? '');
   }
 }

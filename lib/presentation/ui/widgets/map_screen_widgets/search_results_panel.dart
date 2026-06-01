@@ -45,14 +45,22 @@ class SearchResultsPanel extends StatelessWidget {
                   dense: true,
                   leading: CircleAvatar(
                     radius: 18.r,
-                    backgroundColor: AppColors.brandPrimary.withValues(alpha: 0.1),
-                    child: Icon(Icons.location_on_outlined, color: AppColors.brandPrimary, size: 18.r),
+                    backgroundColor: AppColors.brandPrimary.withValues(
+                      alpha: 0.1,
+                    ),
+                    child: Icon(
+                      Icons.location_on_outlined,
+                      color: AppColors.brandPrimary,
+                      size: 18.r,
+                    ),
                   ),
                   title: Text(
                     location.mapLabel,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTypography.captionSmall.copyWith(fontWeight: FontWeight.w600),
+                    style: AppTypography.captionSmall.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   subtitle: Text(
                     "${location.physicalAddress} • ${location.primaryTypeName}",
@@ -76,11 +84,17 @@ class SearchResultsPanel extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.search_off_rounded, size: 32.r, color: AppColors.placeholderText),
+          Icon(
+            Icons.search_off_rounded,
+            size: 32.r,
+            color: AppColors.placeholderText,
+          ),
           SizedBox(height: 12.h),
           Text(
             "No results found",
-            style: AppTypography.captionSmall.copyWith(color: AppColors.placeholderText),
+            style: AppTypography.captionSmall.copyWith(
+              color: AppColors.placeholderText,
+            ),
           ),
         ],
       ),

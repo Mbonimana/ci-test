@@ -12,7 +12,7 @@ class AuthNotifier extends StateNotifier<bool> {
   }
 
   final AuthRepo _repo = AuthRepo();
-  
+
   Future<void> checkSession() async {
     state = await _repo.isLoggedIn();
   }

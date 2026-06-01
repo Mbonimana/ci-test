@@ -12,7 +12,7 @@ import 'package:street_team/presentation/providers/location_provider.dart';
 import 'package:street_team/presentation/providers/map_provider.dart';
 import 'package:street_team/presentation/ui/screens/location_screen.dart';
 import 'package:street_team/presentation/ui/screens/organization_screen.dart';
-import 'package:street_team/presentation/ui/widgets/map_screen_widgets/search_results_panel.dart'; 
+import 'package:street_team/presentation/ui/widgets/map_screen_widgets/search_results_panel.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_button.dart';
 import 'package:street_team/presentation/ui/widgets/shared/feedback_widgets/app_snackbar.dart';
 
@@ -166,7 +166,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       mapEngine.goToCoordinates(
                         latitude: loc.latitude,
                         longitude: loc.longitude,
-                        zoom: 20, 
+                        zoom: 20,
                       );
                     },
                   ),

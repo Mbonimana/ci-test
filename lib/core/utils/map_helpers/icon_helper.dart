@@ -10,9 +10,9 @@ class IconHelper {
   final Map<String, Future<Uint8List>> _cache = {};
   static const double _canvasWidth = 80;
   static const double _canvasHeight = 80;
-  static const double _outerRadius = 24; 
-  static const double _innerRadius = 20; 
-  static const double _iconSize = 26; 
+  static const double _outerRadius = 24;
+  static const double _innerRadius = 20;
+  static const double _iconSize = 26;
 
   static const Map<String, String> typeIcons = {
     'food_drink': 'assets/icons/restaurant.svg',

@@ -54,7 +54,7 @@ class AuthService {
         requestOptions: e.requestOptions,
         response: e.response,
         type: e.type,
-        error: apiMessage, 
+        error: apiMessage,
       );
     }
   }

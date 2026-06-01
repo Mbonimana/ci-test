@@ -18,7 +18,7 @@ class AppTextField extends StatefulWidget {
     required this.controller,
     this.keyboardType = TextInputType.text,
     this.obscureText = false,
-    this.numbersOnly = false, 
+    this.numbersOnly = false,
     this.validator,
     this.onChanged,
   });

@@ -161,13 +161,13 @@ class AuthRepo {
   Future<String?> getAccessToken() async {
     return AuthStorageService.read(AuthStorageKeys.streetTeamAccessToken);
   }
-  
+
   //get user identifier(murugo user id)
   Future<String?> getUserIdentifier() async {
     return AuthStorageService.read(AuthStorageKeys.userIdentifier);
   }
 
-   //logout
+  //logout
   Future<void> logout() async {
     await SentryHelper.clearUser();
 
