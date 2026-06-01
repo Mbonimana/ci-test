@@ -13,7 +13,7 @@ class MapCameraController {
   MapCameraController({
     this.initialLatitude = -1.9441,
     this.initialLongitude = 30.0619,
-    this.initialZoom = 13,
+    this.initialZoom = 14,
   });
 
   void attachMap(MapboxMap map) {
@@ -27,7 +27,7 @@ class MapCameraController {
   void setInitialCamera({
     required double latitude,
     required double longitude,
-    double zoom = 13,
+    double zoom = 18,
   }) {
     initialLatitude = latitude;
     initialLongitude = longitude;
@@ -42,14 +42,14 @@ class MapCameraController {
     flyTo(
       latitude: _userLocation!.latitude,
       longitude: _userLocation!.longitude,
-      zoom: 16,
+      zoom: 18,
     );
   }
 
   void flyTo({
     required double latitude,
     required double longitude,
-    double zoom = 16,
+    double zoom = 18,
   }) {
     if (_map == null) {
       return;

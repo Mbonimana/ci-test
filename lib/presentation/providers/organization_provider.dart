@@ -1,67 +1,167 @@
-// import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:street_team/core/utils/talker_helper.dart';
-// import 'package:street_team/data/models/organization_model.dart';
-// import 'package:street_team/data/models/types_model.dart';
-// import 'package:street_team/data/repositories/organization_repository.dart';
-// import 'package:street_team/data/repositories/types_repositoty.dart';
-// import 'package:street_team/data/services/types_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
+import 'package:street_team/core/utils/talker_helper.dart';
+import 'package:street_team/data/models/organization_request.dart';
+import 'package:street_team/data/repositories/organization_repository.dart';
+import 'package:street_team/data/services/location_capture_service.dart';
 
-// /// =====================
-// /// REPOSITORIES
-// /// =====================
+class OrganizationFormState {
+  final bool isSubmitting;
+  final bool isSubmitted;
+  final String? errorMessage;
 
-// final organizationRepositoryProvider = Provider<OrganizationRepository>((ref) {
-//   return OrganizationRepository();
-// });
+  const OrganizationFormState({
+    this.isSubmitting = false,
+    this.isSubmitted = false,
+    this.errorMessage,
+  });
 
-// final typeRepositoryProvider = Provider<TypeRepository>((ref) {
-//   return TypeRepository(TypeService());
-// });
+  OrganizationFormState copyWith({
+    bool? isSubmitting,
+    bool? isSubmitted,
+    String? errorMessage,
+    bool clearError = false,
+  }) {
+    return OrganizationFormState(
+      isSubmitting: isSubmitting ?? this.isSubmitting,
+      isSubmitted: isSubmitted ?? this.isSubmitted,
+      errorMessage: clearError ? null : errorMessage ?? this.errorMessage,
+    );
+  }
+}
 
-// /// =====================
-// /// ORGANIZATIONS
-// /// =====================
+final organizationRepositoryProvider = Provider<OrganizationRepository>((ref) {
+  return OrganizationRepository();
+});
 
-// final organizationsProvider = FutureProvider<List<OrganizationModel>>((
-//   ref,
-// ) async {
-//   final repo = ref.watch(organizationRepositoryProvider);
+final organizationLocationCaptureProvider = Provider<LocationCaptureService>((
+  ref,
+) {
+  return LocationCaptureService();
+});
 
-//   talker.info("Fetching organizations...");
+class OrganizationFormNotifier extends StateNotifier<OrganizationFormState> {
+  final OrganizationRepository _repository;
+  final LocationCaptureService _locationCaptureService;
 
-//   final result = await repo.loadOrganizations();
+  OrganizationFormNotifier(this._repository, this._locationCaptureService)
+    : super(const OrganizationFormState());
 
-//   talker.info("Loaded ${result.length} organizations");
+  Future<void> submitOrganization({
+    required String action,
+    required String name,
+    required String type,
+    required List<int> types,
+    required List<int> subTypes,
+    required List<Map<String, dynamic>> selectedOptions,
+    required Map<String, dynamic> workingHoursData,
+    String? phone,
+    String? quickInfo,
+    String? website,
+    String? onlineMenu,
+    String? murugoLocationId,
+    int? murugoOrganizationId,
+    String? submitterServer,
+    String? submitterAtName,
+    Map<String, dynamic>? userLocation,
+    Map<String, dynamic>? newLocationData,
+    String? orgBuildingInfo,
+  }) async {
+    state = state.copyWith(isSubmitting: true, clearError: true);
+    talker.info('OrganizationFormNotifier.submitOrganization started');
 
-//   return result;
-// });
+    try {
+      talker.debug('Resolving submitter metadata...');
+      final resolvedSubmitterServer =
+          submitterServer ??
+          await _locationCaptureService.resolveSubmitterServer();
+      final resolvedSubmitterAtName =
+          submitterAtName ??
+          await _locationCaptureService.resolveSubmitterName();
 
-// /// =====================
-// /// TYPES (FIXED: ApiResponse HANDLING)
-// /// =====================
+      talker.debug('Building user location for organization submit...');
+      final resolvedUserLocation =
+          userLocation ?? await _locationCaptureService.buildUserLocation();
 
-// final organizationTypesListProvider = FutureProvider<List<TypeModel>>((
-//   ref,
-// ) async {
-//   final repo = ref.watch(typeRepositoryProvider);
+      final effectiveAction = newLocationData != null ? 'NEW' : action;
+      talker.debug(
+        'Organization submit action resolved: $effectiveAction '
+        '(input action: $action)',
+      );
 
-//   final response = await repo.getOrganizationTypes();
+      final model = OrganizationRequestModel(
+        action: effectiveAction,
+        name: name,
+        type: type,
+        phone: phone,
+        quickInfo: quickInfo,
+        website: website,
+        onlineMenu: onlineMenu,
+        murugoOrganizationId: murugoOrganizationId,
+        murugoLocationId: murugoLocationId,
+        submitterServer: resolvedSubmitterServer,
+        submitterAtName: resolvedSubmitterAtName,
+        types: types,
+        subTypes: subTypes,
+        userLocation: resolvedUserLocation,
+        newLocationData: newLocationData,
+        workingHoursData: workingHoursData,
+        selectedOptions: selectedOptions,
+        orgBuildingInfo: orgBuildingInfo,
+      );
 
-//   if (response.success && response.data != null) {
-//     return response.data!;
-//   }
+      talker.debug('Organization request payload prepared: ${model.toJson()}');
 
-//   throw Exception(response.message ?? "Failed to load organization types");
-// });
+      final isUpdateAction =
+          action.toUpperCase() == 'UPDATE' || action.toUpperCase() == 'EDIT';
+      final response = isUpdateAction && murugoOrganizationId != null
+          ? await _repository.updateOrganization(
+              murugoOrganizationId.toString(),
+              model,
+            )
+          : await _repository.submitOrganization(model);
 
-// final locationTypesListProvider = FutureProvider<List<TypeModel>>((ref) async {
-//   final repo = ref.watch(typeRepositoryProvider);
+      if (!response.success) {
+        final message = response.message ?? 'Failed to submit organization';
+        talker.error('Organization submit rejected: $message');
+        state = state.copyWith(
+          isSubmitting: false,
+          isSubmitted: false,
+          errorMessage: message,
+        );
+        throw Exception(message);
+      }
 
-//   final response = await repo.getLocationTypes();
+      talker.info('Organization submit completed successfully.');
 
-//   if (response.success && response.data != null) {
-//     return response.data!;
-//   }
+      state = state.copyWith(
+        isSubmitting: false,
+        isSubmitted: true,
+        clearError: true,
+      );
+    } catch (e, st) {
+      final message = e.toString().replaceFirst('Exception: ', '');
+      talker.error('Organization submit failed in provider: $message', e, st);
+      state = state.copyWith(
+        isSubmitting: false,
+        isSubmitted: false,
+        errorMessage: message,
+      );
+      throw Exception(message);
+    }
+  }
 
-//   throw Exception(response.message ?? "Failed to load location types");
-// });
+  void reset() {
+    state = const OrganizationFormState();
+  }
+}
+
+final organizationFormProvider =
+    StateNotifierProvider<OrganizationFormNotifier, OrganizationFormState>((
+      ref,
+    ) {
+      return OrganizationFormNotifier(
+        ref.watch(organizationRepositoryProvider),
+        ref.watch(organizationLocationCaptureProvider),
+      );
+    });

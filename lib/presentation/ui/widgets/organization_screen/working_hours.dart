@@ -12,18 +12,34 @@ class TimeRange {
 
 class WorkingHours extends StatefulWidget {
   final Function(Map<String, dynamic>) onSaved;
-  const WorkingHours({super.key, required this.onSaved});
+
+  // Added initial values parameters so the widget can remember and restore state
+  final bool initialIsActive;
+  final bool initialIsOpen24;
+  final bool initialIsTempClosed;
+  final String? initialPossibleReturnDate;
+  final Map<String, dynamic>? initialWeeklyHours;
+
+  const WorkingHours({
+    super.key,
+    required this.onSaved,
+    this.initialIsActive = false,
+    this.initialIsOpen24 = false,
+    this.initialIsTempClosed = false,
+    this.initialPossibleReturnDate,
+    this.initialWeeklyHours,
+  });
 
   @override
   State<WorkingHours> createState() => _WorkingHoursState();
 }
 
 class _WorkingHoursState extends State<WorkingHours> {
-  bool isActive = false;
-  bool isOpen24 = false;
-  bool isTempClosed = false;
+  late bool isActive;
+  late bool isOpen24;
+  late bool isTempClosed;
   bool isExpanded = false;
-  String? reportSummary; // Hidden initially
+  String? reportSummary;
   TimeOfDay? globalOpen = const TimeOfDay(hour: 9, minute: 0);
   TimeOfDay? globalClose = const TimeOfDay(hour: 17, minute: 0);
   DateTime? possibleReturnDate;
@@ -43,7 +59,69 @@ class _WorkingHoursState extends State<WorkingHours> {
   @override
   void initState() {
     super.initState();
+    // Initialize state from widget properties
+    isActive = widget.initialIsActive;
+    isOpen24 = widget.initialIsOpen24;
+    isTempClosed = widget.initialIsTempClosed;
+
+    if (widget.initialPossibleReturnDate != null) {
+      possibleReturnDate = DateTime.tryParse(widget.initialPossibleReturnDate!);
+    }
+
+    // If initial weekly hours were provided, populate the internal weekly hours
+    if (widget.initialWeeklyHours != null) {
+      _applyInitialWeeklyHours(widget.initialWeeklyHours!);
+    }
+
+    _syncState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _syncToParent());
+  }
+
+  void _applyInitialWeeklyHours(Map<String, dynamic> data) {
+    try {
+      for (var i = 0; i < _days.length; i++) {
+        final dayName = _days[i];
+        final dynamic value = data[dayName];
+        if (value == null) continue;
+        if (value is String && value.toLowerCase() == 'closed') {
+          _weeklyHours[i + 1] = [];
+          continue;
+        }
+        if (value is List) {
+          final List<TimeRange> ranges = [];
+          for (final item in value) {
+            if (item is Map) {
+              final openStr = (item['open'] ?? item['open_time'] ?? '')
+                  .toString()
+                  .trim();
+              final closeStr = (item['close'] ?? item['close_time'] ?? '')
+                  .toString()
+                  .trim();
+              TimeOfDay? open;
+              TimeOfDay? close;
+              if (openStr.isNotEmpty && openStr.contains(':')) {
+                final parts = openStr.split(':');
+                open = TimeOfDay(
+                  hour: int.tryParse(parts[0]) ?? 0,
+                  minute: int.tryParse(parts[1]) ?? 0,
+                );
+              }
+              if (closeStr.isNotEmpty && closeStr.contains(':')) {
+                final parts = closeStr.split(':');
+                close = TimeOfDay(
+                  hour: int.tryParse(parts[0]) ?? 0,
+                  minute: int.tryParse(parts[1]) ?? 0,
+                );
+              }
+              ranges.add(TimeRange(open: open, close: close));
+            }
+          }
+          if (ranges.isNotEmpty) _weeklyHours[i + 1] = ranges;
+        }
+      }
+    } catch (_) {
+      // ignore parsing issues and fall back to defaults
+    }
   }
 
   String _format(TimeOfDay? t) {
@@ -56,23 +134,24 @@ class _WorkingHoursState extends State<WorkingHours> {
     return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
   }
 
+  /// Output keys synchronized with backend snake_case keys
   void _syncToParent() {
     Map<String, dynamic> jsonOutput = {
-      "isActive": isActive,
-      "isOpen24": isOpen24,
-      "isTempClosed": isTempClosed,
-      "possibleReturnDate": isTempClosed
+      "is_active": isActive,
+      "is_open_24_hours": isOpen24,
+      "is_temporary_closed": isTempClosed,
+      "possible_return_date": isTempClosed
           ? _formatDate(possibleReturnDate)
           : null,
-      "weeklyHours": {},
+      "weekly_hours": {},
     };
 
     _weeklyHours.forEach((day, ranges) {
       String dayName = _days[day - 1];
       if (ranges.isEmpty) {
-        jsonOutput["weeklyHours"][dayName] = "Closed";
+        jsonOutput["weekly_hours"][dayName] = "Closed";
       } else {
-        jsonOutput["weeklyHours"][dayName] = ranges
+        jsonOutput["weekly_hours"][dayName] = ranges
             .map((r) => {"open": _format(r.open), "close": _format(r.close)})
             .toList();
       }
@@ -334,7 +413,7 @@ class _WorkingHoursState extends State<WorkingHours> {
                 children: [
                   if (!active)
                     Padding(
-                      padding: EdgeInsets.only(top: 10),
+                      padding: const EdgeInsets.only(top: 10),
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: Text(
@@ -394,7 +473,6 @@ class _WorkingHoursState extends State<WorkingHours> {
                               }),
                               child: Text(
                                 "+ Add",
-
                                 style: AppTypography.captionSmall.copyWith(
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.brandPrimary,

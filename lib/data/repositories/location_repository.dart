@@ -12,6 +12,8 @@ class LocationRepository {
 
   Future<LocationModel> getLocationById(String id) {
     return _service.getLocationById(id);
+    
+    
   }
 
   Future<Response> submitLocation(LocationModel model) {

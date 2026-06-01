@@ -59,7 +59,7 @@ class HomeScreen extends ConsumerWidget {
                   // SizedBox(height: 15.h),
                   // CategorySelector(stateData: homeState),
 
-                  SizedBox(height: 30.h),
+                  SizedBox(height: 40.h),
                   SizedBox(
                     width: double.infinity,
                     height: 55.h,

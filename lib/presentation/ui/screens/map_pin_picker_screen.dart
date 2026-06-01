@@ -19,12 +19,21 @@ class MapPinPickerScreen extends ConsumerStatefulWidget {
 
 class _MapPinPickerScreenState extends ConsumerState<MapPinPickerScreen> {
   MapboxMap? _mapboxMap;
-  double _currentLat = 0.0;
-  double _currentLng = 0.0;
+  double _currentLat = -1.9441;
+  double _currentLng = 30.0619;
   bool _isInitialJumpDone = false;
 
   // ValueNotifier to update UI text without rebuilding the MapWidget
   final ValueNotifier<List<double>> _coordNotifier = ValueNotifier([0.0, 0.0]);
+
+  void _setInitialCamera() {
+    _mapboxMap?.setCamera(
+      CameraOptions(
+        center: Point(coordinates: Position(_currentLng, _currentLat)),
+        zoom: 12,
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -44,6 +53,19 @@ class _MapPinPickerScreenState extends ConsumerState<MapPinPickerScreen> {
         _currentLng = latLng.longitude;
 
         _coordNotifier.value = [_currentLat, _currentLng];
+
+        if (_mapboxMap != null) {
+          _mapboxMap?.setCamera(
+            CameraOptions(
+              center: Point(
+                coordinates: Position(latLng.longitude, latLng.latitude),
+              ),
+              zoom: 18,
+            ),
+          );
+
+          _isInitialJumpDone = true;
+        }
       }
     });
 
@@ -51,7 +73,6 @@ class _MapPinPickerScreenState extends ConsumerState<MapPinPickerScreen> {
       next.whenData((latLng) {
         mapEngine.cameraController.setUserLocation(latLng);
 
-    
         if (!_isInitialJumpDone && _mapboxMap != null) {
           _currentLat = latLng.latitude;
           _currentLng = latLng.longitude;
@@ -63,7 +84,7 @@ class _MapPinPickerScreenState extends ConsumerState<MapPinPickerScreen> {
               center: Point(
                 coordinates: Position(latLng.longitude, latLng.latitude),
               ),
-              zoom: 16.0,
+              zoom: 18,
             ),
           );
 
@@ -85,6 +106,7 @@ class _MapPinPickerScreenState extends ConsumerState<MapPinPickerScreen> {
               onMapCreated: (map) {
                 _mapboxMap = map;
                 mapEngine.cameraController.attachMap(map);
+                _setInitialCamera();
               },
               onStyleLoadedListener: (data) async {
                 if (_mapboxMap == null) return;

@@ -35,4 +35,10 @@ class Endpoints {
   // Get location by ID
   static String getLocationById(String id) =>
       '$apiBaseUrl/api/v2/locations/$id?app_key=$publicKey';
+
+  // Organizations endpoints
+  static const String submitOrganization =
+      '$apiBaseUrl/api/v2/add-street-team-data';
+  static String updateOrganization(String id) =>
+      '$apiBaseUrl/api/organizations/$id';
 }

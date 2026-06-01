@@ -54,7 +54,7 @@ class _OrganizationOptionsViewState extends State<_OrganizationOptionsView> {
   List<Map<String, dynamic>> allOptions = [];
   Set<int> selectedIds = {};
   bool isExpanded = false;
-  bool _prefilled = false;
+  String _prefillSignature = '';
 
   // Check if "Online Menu"
   bool get hasOnlineMenu => selectedIds.contains(29);
@@ -68,6 +68,26 @@ class _OrganizationOptionsViewState extends State<_OrganizationOptionsView> {
     super.initState();
     loadOptions();
     onlineMenuCtrl.addListener(_notify);
+  }
+
+  @override
+  void didUpdateWidget(covariant _OrganizationOptionsView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    final newSignature = _buildPrefillSignature();
+    if (newSignature == _prefillSignature) {
+      return;
+    }
+
+    _prefillSignature = newSignature;
+    if (allOptions.isNotEmpty) {
+      _applyInitialValues();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _notify();
+        }
+      });
+    }
   }
 
   @override
@@ -89,32 +109,36 @@ class _OrganizationOptionsViewState extends State<_OrganizationOptionsView> {
 
       setState(() {
         allOptions = List<Map<String, dynamic>>.from(rawList);
+        _applyInitialValues();
+        _prefillSignature = _buildPrefillSignature();
       });
-
-      _applyInitialValues();
-      _notify();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _notify();
+        }
+      });
     } catch (e) {
       debugPrint('FAILED TO LOAD OPTIONS: $e');
     }
   }
 
   void _applyInitialValues() {
-    if (_prefilled) {
-      return;
-    }
+    selectedIds = widget.initialSelectedOptions
+        .where((item) => item['id'] != null)
+        .map<int>((item) => item['id'] as int)
+        .toSet();
+    onlineMenuCtrl.text = widget.initialOnlineMenu ?? '';
+  }
 
-    if (widget.initialSelectedOptions.isNotEmpty) {
-      selectedIds = widget.initialSelectedOptions
-          .where((item) => item['id'] != null)
-          .map<int>((item) => item['id'] as int)
-          .toSet();
-    }
+  String _buildPrefillSignature() {
+    final optionIds =
+        widget.initialSelectedOptions
+            .map((item) => item['id'])
+            .whereType<int>()
+            .toList()
+          ..sort();
 
-    if (widget.initialOnlineMenu != null) {
-      onlineMenuCtrl.text = widget.initialOnlineMenu!;
-    }
-
-    _prefilled = true;
+    return '${optionIds.join(',')}|${widget.initialOnlineMenu ?? ''}';
   }
 
   void _notify() {

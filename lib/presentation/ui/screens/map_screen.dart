@@ -12,7 +12,7 @@ import 'package:street_team/presentation/providers/location_provider.dart';
 import 'package:street_team/presentation/providers/map_provider.dart';
 import 'package:street_team/presentation/ui/screens/location_screen.dart';
 import 'package:street_team/presentation/ui/screens/organization_screen.dart';
-import 'package:street_team/presentation/ui/widgets/map_screen_widgets/search_results_panel.dart'; // Ensure this path is correct
+import 'package:street_team/presentation/ui/widgets/map_screen_widgets/search_results_panel.dart'; 
 import 'package:street_team/presentation/ui/widgets/shared/app_button.dart';
 import 'package:street_team/presentation/ui/widgets/shared/feedback_widgets/app_snackbar.dart';
 
@@ -166,7 +166,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       mapEngine.goToCoordinates(
                         latitude: loc.latitude,
                         longitude: loc.longitude,
-                        zoom: 16, // Zoom in close so they see the icon
+                        zoom: 20, 
                       );
                     },
                   ),
@@ -247,49 +247,61 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                 ),
                               ],
                             ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                AppButton(
-                                  text: "New Location",
-                                  icon: Icons.location_on_outlined,
-                                  onPressed: () {
-                                    ref
-                                        .read(locationFormProvider.notifier)
-                                        .resetFormState();
-                                    ref
-                                            .read(
-                                              pickedLocationProvider.notifier,
-                                            )
-                                            .state =
-                                        null;
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.translucent,
+                              onTap: () {
+                                if (showCreateActions) {
+                                  setState(() => showCreateActions = false);
+                                }
+                              },
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  AppButton(
+                                    text: "New Location",
+                                    icon: Icons.location_on_outlined,
+                                    onPressed: () {
+                                      setState(() => showCreateActions = false);
 
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            const LocationDetailsScreen(),
-                                      ),
-                                    );
-                                  },
-                                  variant: AppButtonVariant.secondary,
-                                ),
-                                SizedBox(height: 10.h),
-                                AppButton(
-                                  text: "New Organization",
-                                  icon: Icons.business_outlined,
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) =>
-                                            const OrganizationScreen(),
-                                      ),
-                                    );
-                                  },
-                                  variant: AppButtonVariant.secondary,
-                                ),
-                              ],
+                                      ref
+                                          .read(locationFormProvider.notifier)
+                                          .resetFormState();
+                                      ref
+                                              .read(
+                                                pickedLocationProvider.notifier,
+                                              )
+                                              .state =
+                                          null;
+
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const LocationDetailsScreen(),
+                                        ),
+                                      );
+                                    },
+                                    variant: AppButtonVariant.secondary,
+                                  ),
+                                  SizedBox(height: 10.h),
+                                  AppButton(
+                                    text: "New Organization",
+                                    icon: Icons.business_outlined,
+                                    onPressed: () {
+                                      setState(() => showCreateActions = false);
+
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const OrganizationScreen(),
+                                        ),
+                                      );
+                                    },
+                                    variant: AppButtonVariant.secondary,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
