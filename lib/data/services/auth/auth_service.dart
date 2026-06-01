@@ -6,7 +6,9 @@ import 'package:street_team/core/utils/talker_helper.dart';
 import 'package:street_team/data/services/auth/storage/auth_storage_service.dart';
 
 class AuthService {
-  final Dio _dio = DioClient.dio;
+  final Dio _dio;
+
+  AuthService({Dio? dio}) : _dio = dio ?? DioClient.dio;
 
   // Authenticate on Murugo
   Future<Response<dynamic>> authenticateMurugo({
