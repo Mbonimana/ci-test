@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:street_team/core/config/theme/app_color.dart';
 import 'package:street_team/core/config/theme/typography.dart';
 
@@ -7,6 +8,7 @@ class AppTextField extends StatefulWidget {
   final TextEditingController controller;
   final TextInputType keyboardType;
   final bool obscureText;
+  final bool numbersOnly;
   final String? Function(String?)? validator;
   final ValueChanged<String>? onChanged;
 
@@ -16,6 +18,7 @@ class AppTextField extends StatefulWidget {
     required this.controller,
     this.keyboardType = TextInputType.text,
     this.obscureText = false,
+    this.numbersOnly = false, 
     this.validator,
     this.onChanged,
   });
@@ -25,13 +28,11 @@ class AppTextField extends StatefulWidget {
 }
 
 class _AppTextFieldState extends State<AppTextField> {
-  // Local state to track visibility
   late bool _isObscured;
 
   @override
   void initState() {
     super.initState();
-    // Initialize with the value passed from the constructor
     _isObscured = widget.obscureText;
   }
 
@@ -41,15 +42,21 @@ class _AppTextFieldState extends State<AppTextField> {
       controller: widget.controller,
       validator: widget.validator,
       onChanged: widget.onChanged,
-      keyboardType: widget.keyboardType,
-      obscureText: _isObscured, // Use the local state here
+      keyboardType: widget.numbersOnly
+          ? TextInputType.number
+          : widget.keyboardType,
+      obscureText: _isObscured,
       cursorColor: AppColors.brandPrimary,
       cursorWidth: 2.0,
+
+      inputFormatters: widget.numbersOnly
+          ? [FilteringTextInputFormatter.digitsOnly]
+          : null,
+
       decoration: InputDecoration(
         isDense: true,
         hintText: widget.hint,
         filled: true,
-        // Add the eye icon only if obscureText was initially true
         suffixIcon: widget.obscureText
             ? IconButton(
                 icon: Icon(
