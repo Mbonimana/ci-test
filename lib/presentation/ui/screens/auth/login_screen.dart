@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:street_team/core/config/env_config.dart';
 import 'package:street_team/core/config/theme/app_color.dart';
+import 'package:street_team/core/config/theme/typography.dart';
 import 'package:street_team/presentation/providers/auth/auth_provider.dart';
 import 'package:street_team/presentation/ui/screens/home_screen.dart';
 import 'package:street_team/presentation/ui/widgets/loading_states/loading_indicator.dart';
@@ -90,107 +91,108 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const MurugoCloudsUI(),
 
                 Expanded(
-                  child: SafeArea(
-                    top: false,
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
-                      child: Form(
-                        key: _formKey,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Form(
+                      key: _formKey,
 
-                        autovalidateMode: AutovalidateMode.onUserInteraction,
-                        child: Column(
-                          children: [
-                        
-
-                            // LOGO
-                            Center(
-                              child: Image.asset(
-                                'assets/icons/street_team.png',
-                                width: 100.w,
-                                height: 100.h,
-                                fit: BoxFit.contain,
-                              ),
-                            ),
-                            SizedBox(height: 20.h),
-                            AppTextField(
-                              controller: _emailController,
-                              hint: 'Email',
-                              keyboardType: TextInputType.emailAddress,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Email is required';
-                                }
-                                if (!RegExp(
-                                  r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                                ).hasMatch(value)) {
-                                  return 'Please enter a valid email';
-                                }
-                                return null;
-                              },
-                            ),
-                            SizedBox(height: 20.h),
-                            AppTextField(
-                              controller: _passwordController,
-                              hint: 'Password',
-                              obscureText: true,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Password is required';
-                                }
-                                // if (value.length < 6) {
-                                //   return 'Password must be at least 6 characters';
-                                // }
-                                return null;
-                              },
-                            ),
-                            SizedBox(height: 20.h),
-                            AppButton(
-                              text: 'Login',
-                              onPressed: _onLoginPressed,
-                            ),
-                            SizedBox(height: 20.h),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      child: Column(
+                        children: [
+                          // LOGO
+                          Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                InkWell(
-                                  onTap: _launchRegister,
-                                  splashColor: Colors.transparent,
-                                  highlightColor: Colors.transparent,
-                                  child: const Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      vertical: 8.0,
-                                    ),
-                                    child: Text(
-                                      'Create Account?',
-                                      style: TextStyle(
-                                        color: AppColors.brandPrimary,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
+                                Image.asset(
+                                  'assets/icons/sta_icon.png',
+                                  width: 100.w,
+                                  height: 100.h,
+                                  fit: BoxFit.contain,
                                 ),
-
-                                InkWell(
-                                  onTap: _launchForgotPassword,
-                                  splashColor: Colors.transparent,
-                                  highlightColor: Colors.transparent,
-                                  child: const Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      vertical: 8.0,
-                                    ),
-                                    child: Text(
-                                      'Forgot Password?',
-                                      style: TextStyle(
-                                        color: AppColors.brandPrimary,
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                                Text(
+                                  'Street Team is part of the Murugo Cloud',
+                                  style: AppTypography.titleMedium.copyWith(
+                                    color: AppColors.placeholderText.withAlpha(
+                                      250,
                                     ),
                                   ),
                                 ),
                               ],
                             ),
-                          ],
-                        ),
+                          ),
+                          SizedBox(height: 20.h),
+                          AppTextField(
+                            controller: _emailController,
+                            hint: 'Email',
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Email is required';
+                              }
+                              if (!RegExp(
+                                r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                              ).hasMatch(value)) {
+                                return 'Please enter a valid email';
+                              }
+                              return null;
+                            },
+                          ),
+                          SizedBox(height: 20.h),
+                          AppTextField(
+                            controller: _passwordController,
+                            hint: 'Password',
+                            obscureText: true,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Password is required';
+                              }
+                              // if (value.length < 6) {
+                              //   return 'Password must be at least 6 characters';
+                              // }
+                              return null;
+                            },
+                          ),
+                          SizedBox(height: 20.h),
+                          AppButton(text: 'Login', onPressed: _onLoginPressed),
+                          SizedBox(height: 20.h),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              InkWell(
+                                onTap: _launchRegister,
+                                splashColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
+                                child: const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 8.0),
+                                  child: Text(
+                                    'Create Account?',
+                                    style: TextStyle(
+                                      color: AppColors.brandPrimary,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              InkWell(
+                                onTap: _launchForgotPassword,
+                                splashColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
+                                child: const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 8.0),
+                                  child: Text(
+                                    'Forgot Password?',
+                                    style: TextStyle(
+                                      color: AppColors.brandPrimary,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   ),
