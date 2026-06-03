@@ -314,9 +314,8 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
     }
 
     return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus();
-      },
+      behavior: HitTestBehavior.opaque, 
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
 
       child: PopScope(
         canPop: false,
