@@ -106,6 +106,8 @@ class _MapPinPickerScreenState extends ConsumerState<MapPinPickerScreen> {
               onMapCreated: (map) {
                 _mapboxMap = map;
                 mapEngine.cameraController.attachMap(map);
+                map.compass.updateSettings(CompassSettings(enabled: false));
+                map.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
                 _setInitialCamera();
               },
               onStyleLoadedListener: (data) async {
