@@ -13,7 +13,6 @@ class TimeRange {
 class WorkingHours extends StatefulWidget {
   final Function(Map<String, dynamic>) onSaved;
 
-  // Added initial values parameters so the widget can remember and restore state
   final bool initialIsActive;
   final bool initialIsOpen24;
   final bool initialIsTempClosed;
@@ -133,8 +132,7 @@ class _WorkingHoursState extends State<WorkingHours> {
     if (date == null) return "--/--/----";
     return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
   }
-
-  /// Output keys synchronized with backend snake_case keys
+ // Output keys synchronized with backend snake_case keys
   void _syncToParent() {
     Map<String, dynamic> jsonOutput = {
       "is_active": isActive,
@@ -181,6 +179,24 @@ class _WorkingHoursState extends State<WorkingHours> {
     });
   }
 
+  void _updateReportSummary() {
+    if (reportSummary == null) return;
+    StringBuffer report = StringBuffer();
+    _weeklyHours.forEach((day, ranges) {
+      String dayName = _days[day - 1];
+      if (ranges.isEmpty) {
+        report.writeln("$dayName: Closed");
+      } else {
+        String times = ranges
+            .map((r) => "${_format(r.open)} – ${_format(r.close)}")
+            .join(", ");
+        report.writeln("$dayName: $times");
+      }
+    });
+    reportSummary = report.toString();
+  }
+
+  // Safe method called during state transitions/init (does not overwrite custom hours)
   void _syncState() {
     if (isTempClosed) {
       _weeklyHours.updateAll((key, value) => []);
@@ -194,7 +210,22 @@ class _WorkingHoursState extends State<WorkingHours> {
         ],
       );
     }
+    _updateReportSummary();
     _syncToParent();
+  }
+
+  // Explicitly called ONLY when user manually interacts with global pickers
+  void _applyGlobalTimesToAllDays() {
+    if (isOpen24 || isTempClosed) return;
+    setState(() {
+      _weeklyHours.forEach((day, ranges) {
+        if (ranges.isNotEmpty) {
+          _weeklyHours[day] = [TimeRange(open: globalOpen, close: globalClose)];
+        }
+      });
+      _updateReportSummary();
+      _syncToParent();
+    });
   }
 
   int _minutes(TimeOfDay time) => time.hour * 60 + time.minute;
@@ -334,7 +365,7 @@ class _WorkingHoursState extends State<WorkingHours> {
                   ? null
                   : (t) {
                       setState(() => globalOpen = t);
-                      _syncState();
+                      _applyGlobalTimesToAllDays(); // Instantly updates all days safely
                     },
             ),
           ],
@@ -354,7 +385,7 @@ class _WorkingHoursState extends State<WorkingHours> {
                   ? null
                   : (t) {
                       setState(() => globalClose = t);
-                      _syncState();
+                      _applyGlobalTimesToAllDays(); // Instantly updates all days safely
                     },
               minTime: globalOpen,
             ),
@@ -502,12 +533,7 @@ class _WorkingHoursState extends State<WorkingHours> {
             toggle(active, (val) {
               setState(
                 () => _weeklyHours[day] = val
-                    ? [
-                        TimeRange(
-                          open: const TimeOfDay(hour: 9, minute: 0),
-                          close: const TimeOfDay(hour: 17, minute: 0),
-                        ),
-                      ]
+                    ? [TimeRange(open: globalOpen, close: globalClose)]
                     : [],
               );
               _syncToParent();
@@ -518,7 +544,6 @@ class _WorkingHoursState extends State<WorkingHours> {
     );
   }
 
-  // Helpers
   Widget checkbox(String title, bool value, Function(bool?) onChanged) =>
       Expanded(
         child: Row(
