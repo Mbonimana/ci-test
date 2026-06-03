@@ -176,15 +176,19 @@ class _MapboxMapViewState extends State<_MapboxMapView> {
       key: const ValueKey('mapbox-map-widget'),
       styleUri: widget.style,
       textureView: true,
+
       viewport: _viewportState,
       onMapCreated: (createdMap) {
         _map = createdMap;
         widget.cameraController.attachMap(createdMap);
+        createdMap.compass.updateSettings(CompassSettings(enabled: false));
+        createdMap.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
 
         createdMap.setOnMapTapListener((context) {
           unawaited(_processMapTap(context.touchPosition));
         });
       },
+
       onStyleLoadedListener: _handleStyleLoaded,
     );
   }
