@@ -53,7 +53,7 @@ class ClusterHelper {
         id: clusterLayerId,
         sourceId: sourceId,
         filter: ['has', 'point_count'],
-        circleColor: 0xFF00B2FF,
+        circleColor: 0xFF294057,
         circleRadiusExpression: [
           'step',
           ['get', 'point_count'],
