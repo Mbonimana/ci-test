@@ -17,7 +17,7 @@ Future<void> main() async {
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
-      statusBarColor: Color(0x00000000),
+      statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light, // Android
       statusBarBrightness: Brightness.light, // iOS
     ),
