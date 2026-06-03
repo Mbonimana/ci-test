@@ -124,17 +124,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           SizedBox(height: 20.h),
                           AppTextField(
                             controller: _emailController,
-                            hint: 'Email',
-                            keyboardType: TextInputType.emailAddress,
+                            hint: 'Email or Username',
+                            // keyboardType: TextInputType.emailAddress,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Email is required';
+                                return 'Email or Username is required';
                               }
-                              if (!RegExp(
-                                r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                              ).hasMatch(value)) {
-                                return 'Please enter a valid email';
-                              }
+                              // if (!RegExp(
+                              //   r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                              // ).hasMatch(value)) {
+                              //   return 'Please enter a valid email';
+                              // }
                               return null;
                             },
                           ),
