@@ -84,14 +84,11 @@ class _MurugoCloudsUIState extends State<MurugoCloudsUI> {
                 'assets/murugo/murugo_cloud_label.webp',
                 height: 38.h,
                 fit: BoxFit.fitHeight,
-                
               ),
             ),
           ),
-          
         ],
       ),
-      
     );
   }
 }

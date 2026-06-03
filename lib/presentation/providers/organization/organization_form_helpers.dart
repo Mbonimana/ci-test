@@ -1,9 +1,7 @@
-import 'package:street_team/data/models/organization_response.dart';
+import 'package:street_team/data/models/organization_models/organization_response.dart';
 import 'package:street_team/data/models/types_model.dart';
 
-List<Map<String, dynamic>> organizationOptions(
-  List<TypeModel> orgTypes,
-) {
+List<Map<String, dynamic>> organizationOptions(List<TypeModel> orgTypes) {
   return orgTypes.map((org) {
     final List<dynamic> subTypesList =
         (org as dynamic).subTypes ?? (org as dynamic).sub_types ?? [];

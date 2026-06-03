@@ -49,6 +49,7 @@ class HomeScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(height: 240.h),
+
                   // Text(
                   //   "Select Type",
                   //   style: AppTypography.titleMedium.copyWith(
@@ -58,7 +59,6 @@ class HomeScreen extends ConsumerWidget {
 
                   // SizedBox(height: 15.h),
                   // CategorySelector(stateData: homeState),
-
                   SizedBox(height: 40.h),
                   SizedBox(
                     width: double.infinity,

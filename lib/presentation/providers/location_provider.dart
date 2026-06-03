@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:street_team/data/models/location_model.dart';
-import 'package:street_team/data/models/location_response.dart';
+import 'package:street_team/data/models/location_models/location_request_model.dart';
+import 'package:street_team/data/models/location_models/location_response.dart';
 import 'package:street_team/data/repositories/location_repository.dart';
 
 // Repository provider

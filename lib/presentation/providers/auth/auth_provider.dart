@@ -7,12 +7,12 @@ final authProvider = StateNotifierProvider<AuthNotifier, bool>(
 );
 
 class AuthNotifier extends StateNotifier<bool> {
-  AuthNotifier() : super(false) {
+  AuthNotifier({AuthRepo? repo}) : _repo = repo ?? AuthRepo(), super(false) {
     checkSession();
   }
 
-  final AuthRepo _repo = AuthRepo();
-  
+  final AuthRepo _repo;
+
   Future<void> checkSession() async {
     state = await _repo.isLoggedIn();
   }

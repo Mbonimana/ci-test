@@ -115,10 +115,11 @@ class _CategorySelectorState extends ConsumerState<CategorySelector> {
                                       children: [
                                         Text(
                                           name,
-                                          style: AppTypography.labelSmall.copyWith(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                          style: AppTypography.labelSmall
+                                              .copyWith(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                         ),
                                         SizedBox(width: 6.w),
 
@@ -257,7 +258,6 @@ class _Tab extends StatelessWidget {
               title,
               style: AppTypography.titleMedium.copyWith(
                 color: active ? Colors.white : AppColors.brandSecondary,
-                
               ),
             ),
           ),

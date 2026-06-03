@@ -4,7 +4,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:street_team/core/config/env_config.dart';
 import 'package:street_team/core/utils/map_helpers/permission_request.dart';
-import 'package:street_team/data/models/location_model.dart';
+import 'package:street_team/data/models/location_models/location_request_model.dart';
 import 'package:street_team/data/services/auth/storage/auth_storage_keys.dart';
 import 'package:street_team/data/services/auth/storage/auth_storage_service.dart';
 
