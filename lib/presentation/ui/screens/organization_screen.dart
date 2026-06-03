@@ -311,7 +311,8 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
     }
 
     return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
+      behavior: HitTestBehavior.opaque, 
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Stack(
         children: [
           Scaffold(
