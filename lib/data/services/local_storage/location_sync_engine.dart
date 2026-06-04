@@ -22,13 +22,16 @@ class InitialSyncState {
 class SyncEngine {
   SyncEngine();
 
-  Future<void> performDeltaSync({
+  /// last successful sync timestamp to prevent downloading the entire database again.
+  Future<void> syncModifiedData({
     required void Function(InitialSyncState) onStateChanged,
     required Future<void> Function() onFallbackToColdSync,
     required void Function() onInvalidate,
   }) async {
+    // Retrieve the metadata timestamp of the last successful sync
     final timestamp = await LocalDatabaseHelper.getLastSyncTimestamp();
 
+    // If no previous sync timestamp exists, automatically fallback to a full cold sync
     if (timestamp == null) {
       await onFallbackToColdSync();
       return;
@@ -50,22 +53,20 @@ class SyncEngine {
 
       if (updatedItems.isNotEmpty) {
         final localMap = await LocalDatabaseHelper.readLocations();
-
         for (var json in updatedItems) {
           final String id = json['murugo_location_id'].toString();
           localMap[id] = json;
         }
 
         await LocalDatabaseHelper.writeLocations(localMap);
+
         onInvalidate();
       }
 
       await LocalDatabaseHelper.saveLastSyncTimestamp(
         DateTime.now().toUtc().toIso8601String(),
       );
-    } catch (_) {
-      // Handle network exceptions silently in the background
-    }
+    } catch (_) {}
   }
 
   Future<void> checkAndSync({
@@ -75,6 +76,7 @@ class SyncEngine {
     final existingData = await LocalDatabaseHelper.readLocations();
     final timestamp = await LocalDatabaseHelper.getLastSyncTimestamp();
 
+    // If local database is already populated, skip download and mark as completed
     if (existingData.isNotEmpty && timestamp != null) {
       onStateChanged(
         InitialSyncState(
@@ -86,6 +88,7 @@ class SyncEngine {
       return;
     }
 
+    // Initialize the loading UI overlay state
     onStateChanged(
       InitialSyncState(
         status: InitialSyncStatus.syncing,
@@ -98,6 +101,7 @@ class SyncEngine {
       final Map<String, dynamic> allMergedLocations = {};
       final dio = DioClient.dio;
 
+      // Fetch Page 1 dynamically first to discover total page count from metadata
       final response = await dio.get("${Endpoints.getLocations}&page=1");
       final meta = response.data['meta'];
       final int lastPage = meta['last_page'] ?? 1;
@@ -125,6 +129,8 @@ class SyncEngine {
           final String id = json['murugo_location_id'].toString();
           allMergedLocations[id] = json;
         }
+
+        // Notify UI of current download progress page
         onStateChanged(
           InitialSyncState(
             status: InitialSyncStatus.syncing,
@@ -134,12 +140,13 @@ class SyncEngine {
         );
       }
 
+      // Write the complete initial map database to file storage
       await LocalDatabaseHelper.writeLocations(allMergedLocations);
       await LocalDatabaseHelper.saveLastSyncTimestamp(
         DateTime.now().toUtc().toIso8601String(),
       );
 
-      onInvalidate(); // Triggers listener invalidation on the state layer
+      onInvalidate();
       onStateChanged(
         InitialSyncState(
           status: InitialSyncStatus.completed,
@@ -160,7 +167,6 @@ class SyncEngine {
   }
 }
 
-// Sync Engine Provider
 final syncEngineProvider = Provider<SyncEngine>((ref) {
   return SyncEngine();
 });
