@@ -103,9 +103,6 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
     if (initial.types.isNotEmpty) {
       selectedOrgTypes = initial.types.map((t) => t.name).toList();
       syncSubtypes(orgTypes);
-    } else if (initial.type != null && initial.type!.isNotEmpty) {
-      selectedOrgTypes = [initial.type!];
-      syncSubtypes(orgTypes);
     }
 
     _applyInitialSubtypes(orgTypes, initial);
@@ -311,7 +308,7 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
     }
 
     return GestureDetector(
-      behavior: HitTestBehavior.opaque, 
+      behavior: HitTestBehavior.opaque,
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Stack(
         children: [
