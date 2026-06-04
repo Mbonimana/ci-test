@@ -22,11 +22,13 @@ import 'package:street_team/presentation/ui/widgets/shared/app_text_field.dart';
 class OrganizationScreen extends ConsumerStatefulWidget {
   final OrganizationResponseModel? initialOrganization;
   final String? initialLocationName;
+  final String? initialLocationId;
 
   const OrganizationScreen({
     super.key,
     this.initialOrganization,
     this.initialLocationName,
+    this.initialLocationId,
   });
 
   @override
@@ -61,6 +63,15 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
   Map<String, dynamic>? workingHoursSummary;
   List<Map<String, dynamic>> selectedOrgOptions = [];
   String? selectedMurugoLocationId;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.initialLocationId != null) {
+      selectedMurugoLocationId = widget.initialLocationId;
+    }
+  }
 
   @override
   void dispose() {
@@ -239,14 +250,12 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
 
       if (!mounted) return;
 
-      // ✅ close loading dialog FIRST
       Navigator.of(context).pop();
 
       if (Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
       }
 
-      // optional small safety delay to avoid route conflict
       await Future.delayed(const Duration(milliseconds: 100));
 
       if (!mounted) return;
@@ -261,7 +270,6 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
         ),
       );
 
-      //  final navigation
       context.go(RouteNames.mapScreen);
     } catch (e) {
       if (mounted && Navigator.of(context).canPop()) {
@@ -285,7 +293,6 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
     final orgTypesAsync = ref.watch(organizationTypesProvider);
     final locTypesAsync = ref.watch(locationTypesProvider);
 
-    //  loading state if either source is retrieving data
     if (orgTypesAsync.isLoading || locTypesAsync.isLoading) {
       return const Scaffold(body: LoadingIndicator());
     }
@@ -296,7 +303,6 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
 
     final orgTypes = orgTypesAsync.value ?? [];
 
-    // initial field prefilling after the first frame
     if (!_prefilled && orgTypes.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -339,7 +345,6 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // STEP INDICATOR (Step 1 ------ Step 2)
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 40,
@@ -358,7 +363,6 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
                       ],
                     ),
                   ),
-                  // Navigator Button
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -374,7 +378,6 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
                         _save();
                       },
                       variant: AppButtonVariant.primary,
-                      // isLoading: formState.isSubmitting,
                       text: currentStep == 0
                           ? "Next"
                           : (_isEditing ? "Update" : "Submit"),
@@ -400,7 +403,6 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
     );
   }
 
-  // step 1 fields
   Widget _buildStepOne(List<TypeModel> orgTypes) {
     final subtypeOptions = subtypeOptionsForSelection(
       orgTypes,
@@ -417,7 +419,6 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
         const AppFormLable(text: 'Location '),
         SizedBox(height: 15.h),
 
-        // Search row
         LocationSearchWidget(
           controller: locationCtrl,
           initialLocationName: widget.initialLocationName,
@@ -428,7 +429,6 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
               selectedMurugoLocationId = location.id.toString();
               locationCtrl.text = location.mapLabel;
             } else if (location is Map<String, dynamic>) {
-              // Returned new location data from LocationDetailsScreen
               createdLocationData = Map<String, dynamic>.from(location);
               selectedMurugoLocationId = null;
               locationCtrl.text =
@@ -509,7 +509,6 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
         const AppFormLable(text: "Organization Options"),
         Builder(
           builder: (context) {
-            // Safely cast weekly hours maps which may be Map<dynamic,dynamic>
             final rawWeekly =
                 workingHoursSummary?['weekly_hours'] ??
                 workingHoursSummary?['weeklyHours'];
@@ -570,7 +569,6 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
     );
   }
 
-  // ui components
   Widget _stepNode(int step, String label) {
     bool isActive = currentStep == step;
     return GestureDetector(
