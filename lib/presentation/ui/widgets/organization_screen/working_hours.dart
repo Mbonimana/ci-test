@@ -132,7 +132,8 @@ class _WorkingHoursState extends State<WorkingHours> {
     if (date == null) return "--/--/----";
     return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
   }
- // Output keys synchronized with backend snake_case keys
+
+  // Output keys synchronized with backend snake_case keys
   void _syncToParent() {
     Map<String, dynamic> jsonOutput = {
       "is_active": isActive,
