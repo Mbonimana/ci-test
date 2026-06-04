@@ -7,6 +7,30 @@ import 'package:street_team/data/models/organization_models/organization_respons
 import 'package:street_team/presentation/ui/screens/location_screen.dart';
 import 'package:street_team/presentation/ui/screens/organization_screen.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_button.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+/// launhthe native system dialer
+Future<void> _makeCall(String phoneNumber) async {
+  final Uri url = Uri(scheme: 'tel', path: phoneNumber.replaceAll(' ', ''));
+  try {
+    await launchUrl(url);
+  } catch (_) {
+    // Graceful fallback if dialer launch fails
+  }
+}
+
+/// Opens the target URL inside the device's native browser app immediately
+Future<void> _openBrowser(String urlString) async {
+  String normalizedUrl = urlString.trim();
+  if (!normalizedUrl.startsWith('http://') &&
+      !normalizedUrl.startsWith('https://')) {
+    normalizedUrl = 'https://$normalizedUrl';
+  }
+  final Uri url = Uri.parse(normalizedUrl);
+  try {
+    await launchUrl(url, mode: LaunchMode.externalApplication);
+  } catch (_) {}
+}
 
 class LocationDetailsSheet extends StatelessWidget {
   final LocationResponse location;
@@ -68,10 +92,8 @@ class LocationDetailsSheet extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (_) => OrganizationScreen(
-                      initialLocationName:
-                          location.name, 
-                      initialLocationId: location.id
-                          .toString(),
+                      initialLocationName: location.name,
+                      initialLocationId: location.id.toString(),
                     ),
                   ),
                 );
@@ -215,17 +237,43 @@ class OrganizationDetailsSheet extends StatelessWidget {
                 .map((subType) => _ChipPill(text: subType, isOutline: true))
                 .toList(),
           ),
-        _InfoBlock("Phone", organization.phone ?? "No phone"),
-        _InfoBlock("Website", organization.website ?? "No website"),
+
+        // Phone number block
+        if (organization.phone != null && organization.phone!.isNotEmpty)
+          _InfoBlock(
+            "Phone",
+            organization.phone!,
+            isLink: true,
+            onTap: () => _makeCall(organization.phone!),
+          )
+        else
+          _InfoBlock("Phone", "-"),
+
+        // Website link block
+        if (organization.website != null && organization.website!.isNotEmpty)
+          _InfoBlock(
+            "Website",
+            organization.website!,
+            isLink: true,
+            onTap: () => _openBrowser(organization.website!),
+          )
+        else
+          _InfoBlock("Website", "-"),
+
         if (organization.quickInfo != null)
           _InfoBlock("Quick Info", organization.quickInfo!),
 
-        _InfoBlock(
-          "Online Menu",
-          organization.onlineMenu != null
-              ? organization.onlineMenu!
-              : "No online menu",
-        ),
+        // Online Menu link block
+        if (organization.onlineMenu != null &&
+            organization.onlineMenu!.isNotEmpty)
+          _InfoBlock(
+            "Online Menu",
+            organization.onlineMenu!,
+            isLink: true,
+            onTap: () => _openBrowser(organization.onlineMenu!),
+          )
+        else
+          _InfoBlock("Online Menu", "No online menu"),
 
         if (_workingHoursSummary(organization).isNotEmpty)
           _InfoBlock("Working Hours", _workingHoursSummary(organization)),
@@ -322,11 +370,23 @@ class _BaseScrollSheet extends StatelessWidget {
 class _InfoBlock extends StatelessWidget {
   final String label;
   final String value;
+  final VoidCallback? onTap;
+  final bool isLink;
 
-  const _InfoBlock(this.label, this.value);
+  const _InfoBlock(this.label, this.value, {this.onTap, this.isLink = false});
 
   @override
   Widget build(BuildContext context) {
+    final Widget valueWidget = Text(
+      value,
+      style: AppTypography.bodyMedium.copyWith(
+        color: isLink ? Colors.blue.shade700 : AppColors.brandSecondary,
+        fontSize: 15.sp,
+        fontWeight: FontWeight.w600,
+        decoration: isLink ? TextDecoration.underline : TextDecoration.none,
+      ),
+    );
+
     return Padding(
       padding: EdgeInsets.only(bottom: 10.h),
       child: Row(
@@ -345,14 +405,13 @@ class _InfoBlock extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 2.h),
-                Text(
-                  value,
-                  style: AppTypography.bodyMedium.copyWith(
-                    color: AppColors.brandSecondary,
-                    fontSize: 15.sp,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                onTap != null
+                    ? InkWell(
+                        onTap: onTap,
+                        borderRadius: BorderRadius.circular(4.r),
+                        child: valueWidget,
+                      )
+                    : valueWidget,
               ],
             ),
           ),
