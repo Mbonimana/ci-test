@@ -54,9 +54,60 @@ class LocationDetailsSheet extends StatelessWidget {
 
         SizedBox(height: 16.h),
 
-        //orgs
-        _SectionTitle(
-          title: "Organizations (${location.organizations.length})",
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _SectionTitle(
+              title: "Organizations (${location.organizations.length})",
+            ),
+            InkWell(
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => OrganizationScreen(
+                      initialLocationName:
+                          location.name, 
+                      initialLocationId: location.id
+                          .toString(),
+                    ),
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(20.r),
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                decoration: BoxDecoration(
+                  color: AppColors.brandPrimary,
+                  borderRadius: BorderRadius.circular(20.r),
+                  border: Border.all(
+                    color: AppColors.brandPrimary.withAlpha(50),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.add_rounded,
+                      size: 14.sp,
+                      color: AppColors.brandPrimary,
+                    ),
+                    SizedBox(width: 4.w),
+                    Text(
+                      "Add Organization",
+                      style: AppTypography.captionSmall.copyWith(
+                        color: AppColors.buttonTextPrimary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 11.sp,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
 
         SizedBox(height: 8.h),
@@ -324,7 +375,6 @@ class _CompactOrgCard extends StatelessWidget {
   });
 
   @override
-  @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
@@ -422,7 +472,6 @@ class _ModernEditButton extends StatelessWidget {
 }
 
 // flags
-
 List<String> _orgFlags(OrganizationResponseModel organization) {
   final flags = <String>[];
 
