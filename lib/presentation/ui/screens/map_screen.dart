@@ -72,7 +72,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     final mapEngine = ref.watch(mapEngineProvider);
     final userLocationAsync = ref.watch(userLocationProvider);
 
-    final locationsAsync = ref.watch(locationsProvider);
+    // Keep active listeners on the providers
     final filteredLocations = ref.watch(filteredLocationsProvider);
     final isSearching = ref.watch(isSearchingProvider);
 
@@ -88,29 +88,22 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         },
         child: Stack(
           children: [
-            //  Map Layer
             Positioned.fill(
               child: userLocationAsync.when(
-                data: (userLocation) => locationsAsync.when(
-                  data: (_) => mapEngine.buildMap(
-                    userLocation: userLocation,
-                    locations: filteredLocations,
-                  ),
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (error, _) => Center(child: Text("Error: $error")),
+                data: (userLocation) => mapEngine.buildMap(
+                  userLocation: userLocation,
+                  locations: filteredLocations,
                 ),
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (e, _) => Center(child: Text(e.toString())),
               ),
             ),
 
-            // 2. Interactive Overlays (Inside SafeArea to avoid status bar overlap)
             Positioned.fill(
               child: SafeArea(
                 child: Stack(
                   children: [
-                    // Search Bar (Adjusted to 16.h as SafeArea handles status bar padding)
+                    // Search Bar
                     Positioned(
                       top: 16.h,
                       left: 20.w,
@@ -166,7 +159,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       ),
                     ),
 
-                    // Search Results Panel (Adjusted top position)
+                    // Search Results Panel
                     if (isSearching)
                       Positioned(
                         top: 74.h,
@@ -218,17 +211,23 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                         onPressed: () async {
                           AppSnackbar.show(
                             context: context,
-                            message: "Discovering...",
+                            message: "Syncing latest map data...",
                             variant: SnackbarVariant.warning,
                           );
                           try {
                             await ref
-                                .read(otherResultsProvider.notifier)
-                                .fetchNextPage();
+                                .read(initialSyncProvider.notifier)
+                                .syncModifiedData();
+
+                            AppSnackbar.show(
+                              context: context,
+                              message: "Sync complete. Map data is up to date.",
+                              variant: SnackbarVariant.success,
+                            );
                           } catch (e) {
                             AppSnackbar.show(
                               context: context,
-                              message: e.toString(),
+                              message: "Sync failed. Please check connection.",
                               variant: SnackbarVariant.error,
                             );
                           }
