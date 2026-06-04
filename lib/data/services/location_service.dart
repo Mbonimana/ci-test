@@ -114,6 +114,18 @@ class LocationService {
     }
   }
 
+  Future<List<LocationResponse>> getLocationsSince(String lastUpdatedAt) async {
+    try {
+      final String url = Endpoints.syncLocations(lastUpdatedAt);
+      final response = await _dio.get(url);
+
+      final List data = response.data['data'];
+      return data.map((json) => LocationResponse.fromJson(json)).toList();
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   Future<List<LocationResponse>> getDiscoveryResults(int page) async {
     return await getPaginatedLocations(page: page);
   }
