@@ -30,7 +30,7 @@ Future<void> main() async {
     Sentry.captureException(details.exception, stackTrace: details.stack);
   };
 
-//sentry init
+  //sentry init
   await SentryFlutter.init(
     (options) {
       options.dsn = EnvConfig.sentryDsn;

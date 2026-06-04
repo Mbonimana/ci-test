@@ -55,7 +55,6 @@ class EnvConfig {
     'SUBMITTER_SERVER',
     defaultValue: 'Street Team App',
   );
-  
 
   static bool get isDevelopment => environment == 'development';
   static bool get isBeta => environment == 'beta';

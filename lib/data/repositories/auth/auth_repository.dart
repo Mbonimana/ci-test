@@ -11,7 +11,9 @@ import 'package:street_team/data/services/auth/storage/auth_storage_keys.dart';
 import 'package:street_team/data/services/auth/storage/auth_storage_service.dart';
 
 class AuthRepo {
-  final AuthService _service = AuthService();
+  final AuthService _service;
+
+  AuthRepo({AuthService? service}) : _service = service ?? AuthService();
 
   // login
   Future<ApiResponse<void>> login({
@@ -161,13 +163,13 @@ class AuthRepo {
   Future<String?> getAccessToken() async {
     return AuthStorageService.read(AuthStorageKeys.streetTeamAccessToken);
   }
-  
+
   //get user identifier(murugo user id)
   Future<String?> getUserIdentifier() async {
     return AuthStorageService.read(AuthStorageKeys.userIdentifier);
   }
 
-   //logout
+  //logout
   Future<void> logout() async {
     await SentryHelper.clearUser();
 

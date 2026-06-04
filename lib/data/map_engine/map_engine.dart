@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart' as geo;
-import 'package:street_team/data/models/location_response.dart';
+import 'package:street_team/data/models/location_models/location_response.dart';
 
 abstract class MapEngine {
   Widget buildMap({

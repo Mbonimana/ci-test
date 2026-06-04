@@ -9,7 +9,7 @@ import 'package:street_team/core/utils/map_helpers/cluster_helper.dart';
 import 'package:street_team/core/utils/map_helpers/icon_helper.dart';
 import 'package:street_team/core/utils/map_helpers/label_style_helper.dart';
 import 'package:street_team/data/map_engine/map_engine.dart';
-import 'package:street_team/data/models/location_response.dart';
+import 'package:street_team/data/models/location_models/location_response.dart';
 import 'package:street_team/presentation/ui/widgets/shared/location_details_sheet.dart';
 
 class MapboxMapEngine implements MapEngine {

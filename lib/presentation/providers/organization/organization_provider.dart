@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:street_team/core/utils/talker_helper.dart';
-import 'package:street_team/data/models/organization_request.dart';
+import 'package:street_team/data/models/organization_models/organization_request.dart';
 import 'package:street_team/data/repositories/organization_repository.dart';
 import 'package:street_team/data/services/location_capture_service.dart';
 

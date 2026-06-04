@@ -3,15 +3,15 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:street_team/core/network/dio_client.dart';
 import 'package:street_team/core/network/endpoints.dart';
-import 'package:street_team/data/models/location_model.dart';
-import 'package:street_team/data/models/location_response.dart';
+import 'package:street_team/data/models/location_models/location_request_model.dart';
+import 'package:street_team/data/models/location_models/location_response.dart';
 import 'package:street_team/data/services/auth/storage/auth_storage_keys.dart';
 import 'package:street_team/data/services/auth/storage/auth_storage_service.dart';
 
 class LocationService {
-  final Dio _dio = DioClient.dio;
+  final Dio _dio;
 
-  LocationService(Dio dio);
+  LocationService([Dio? dio]) : _dio = dio ?? DioClient.dio;
 
   String _handleError(dynamic e) {
     if (e is DioException) {
