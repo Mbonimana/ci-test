@@ -130,7 +130,7 @@ class OrganizationDetailsSheet extends StatelessWidget {
           Padding(
             padding: EdgeInsets.only(bottom: 6.h),
             child: Text(
-              "No types available",
+              "-",
               style: AppTypography.bodyMedium.copyWith(color: Colors.grey),
             ),
           )
@@ -510,8 +510,10 @@ String _organizationTypeLabel(OrganizationResponseModel organization) {
     return organization.types.map((type) => type.name).join(', ');
   }
 
-  final legacyType = organization.type?.trim() ?? '';
-  return legacyType.isEmpty ? 'N/A' : legacyType;
+  final firstType = organization.types.isNotEmpty
+      ? organization.types.first.name
+      : '';
+  return firstType.isEmpty ? 'N/A' : firstType;
 }
 
 List<String> _organizationSubTypes(OrganizationResponseModel organization) {
