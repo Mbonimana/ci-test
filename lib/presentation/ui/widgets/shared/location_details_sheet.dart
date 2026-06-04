@@ -273,7 +273,7 @@ class OrganizationDetailsSheet extends StatelessWidget {
             onTap: () => _openBrowser(organization.onlineMenu!),
           )
         else
-          _InfoBlock("Online Menu", "No online menu"),
+          _InfoBlock("Online Menu", "-"),
 
         if (_workingHoursSummary(organization).isNotEmpty)
           _InfoBlock("Working Hours", _workingHoursSummary(organization)),
