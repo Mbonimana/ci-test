@@ -60,7 +60,7 @@ class IconHelper {
     canvas.drawCircle(
       center,
       32,
-      Paint()..color = AppColors.mapMarkerBackground,
+      Paint()..color = AppColors.textSecondary,
     );
 
     // White Icon
@@ -85,7 +85,7 @@ class IconHelper {
     canvas.drawCircle(
       center,
       38,
-      Paint()..color = AppColors.mapMarkerBackground,
+      Paint()..color = AppColors.textPrimary
     );
 
     final iconPath = typeIcons[typeKey] ?? typeIcons['default']!;
@@ -110,7 +110,7 @@ class IconHelper {
     canvas.drawCircle(
       center,
       _innerRadius,
-      Paint()..color = AppColors.mapMarkerBackground,
+      Paint()..color = AppColors.textSecondary,
     );
 
     final iconPath = typeIcons[type] ?? typeIcons['default']!;

@@ -32,7 +32,11 @@ class _AppDropdownState<T> extends State<AppDropdown<T>> {
     return Column(
       children: [
         GestureDetector(
-          onTap: widget.onToggle,
+          onTap: () {
+         
+            FocusManager.instance.primaryFocus?.unfocus();
+            widget.onToggle();
+          },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
             decoration: BoxDecoration(
