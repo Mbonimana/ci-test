@@ -6,9 +6,21 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' hide Size;
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:street_team/core/config/env_config.dart';
 import 'package:street_team/core/routing/app_router.dart';
+import 'package:street_team/data/services/local_storage/background_sync.dart';
+import 'package:workmanager/workmanager.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Workmanager().initialize(callbackDispatcher);
+
+  //  periodic background sync task to run every 2 hours
+  await Workmanager().registerPeriodicTask(
+    "street_team_2hr_sync_task",
+    "deltaSyncTask",
+    frequency: const Duration(hours: 2),
+
+    constraints: Constraints(networkType: NetworkType.connected),
+  );
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -56,22 +68,20 @@ class MyApp extends ConsumerWidget {
       designSize: const Size(411, 869),
       minTextAdapt: true,
       splitScreenMode: true,
-
       builder: (_, _) {
         return MaterialApp.router(
           title: 'Street Team',
           debugShowCheckedModeBanner: false,
 
-          //router
+          // router
           routerConfig: router,
 
-          //theme
+          // theme
           theme: ThemeData(
             useMaterial3: false,
             scaffoldBackgroundColor: Colors.white,
             splashFactory: InkRipple.splashFactory,
             visualDensity: VisualDensity.adaptivePlatformDensity,
-
             appBarTheme: const AppBarTheme(
               backgroundColor: Colors.white,
               elevation: 0,
@@ -89,7 +99,6 @@ class MyApp extends ConsumerWidget {
               data: MediaQuery.of(
                 context,
               ).copyWith(textScaler: const TextScaler.linear(1.0)),
-
               child: child!,
             );
           },
