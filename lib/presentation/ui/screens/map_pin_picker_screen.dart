@@ -30,7 +30,7 @@ class _MapPinPickerScreenState extends ConsumerState<MapPinPickerScreen> {
     _mapboxMap?.setCamera(
       CameraOptions(
         center: Point(coordinates: Position(_currentLng, _currentLat)),
-        zoom: 12,
+        zoom: 15,
       ),
     );
   }
