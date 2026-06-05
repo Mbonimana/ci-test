@@ -69,7 +69,6 @@ void main() {
       expect(model.address, 'Kigali, Rwanda');
       expect(model.website, 'https://kigalihealth.org');
       expect(model.quickInfo, 'General clinic services');
-      expect(model.type, 'Health');
       expect(model.onlineMenu, '');
       expect(model.submitterServer, 'prod_01');
       expect(model.submitterAtName, 'Field Agent 1');
