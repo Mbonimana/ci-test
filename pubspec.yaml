@@ -26,7 +26,7 @@ dependencies:
   latlong2: ^0.10.1
   lottie: ^3.3.3
   mapbox_maps_flutter: ^2.23.0
-  pretty_dio_logger: ^1.4.0
+
   sentry_flutter: ^9.19.0
   talker_flutter: ^5.1.16
   url_launcher: ^6.3.2
