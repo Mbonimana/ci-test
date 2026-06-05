@@ -205,7 +205,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                       ),
 
                     Positioned(
-                      bottom: 20.h,
+                      bottom: 48.h,
                       left: 20.w,
                       child: AppButton(
                         onPressed: () async {
@@ -239,7 +239,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
                     // Action buttons
                     Positioned(
-                      bottom: 40.h,
+                      bottom: 60.h,
                       right: 20.w,
                       child: SizedBox(
                         width: 250.w,
@@ -343,7 +343,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
                             // GPS Button
                             Positioned(
-                              bottom: 70.h,
+                              bottom: 80.h,
                               right: 10.h,
                               child: Opacity(
                                 opacity: _isPermissionGranted ? 1.0 : 0.5,
