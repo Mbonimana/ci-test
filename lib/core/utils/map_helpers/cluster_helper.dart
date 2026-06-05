@@ -42,8 +42,8 @@ class ClusterHelper {
         id: sourceId,
         data: jsonEncode(geoJson),
         cluster: true,
-        clusterRadius: 80,
-        clusterMaxZoom: 16,
+        clusterRadius: 60, 
+        clusterMaxZoom: 17, 
       ),
     );
 
@@ -68,7 +68,7 @@ class ClusterHelper {
       ),
     );
 
-    //  Cluster Numbers
+    // Cluster Numbers
     await map.style.addLayer(
       SymbolLayer(
         id: clusterCountId,
@@ -96,11 +96,18 @@ class ClusterHelper {
         textFieldExpression: ['get', 'name'],
         textSize: 11,
         textAnchor: TextAnchor.TOP,
-        textOffset: [0, 2.5],
+        textOffset: [0, 1.5],
         textColor: 0xFF1E293B,
+        
+        // Avoid icons and text overriding each other
         iconAllowOverlap: false,
         textAllowOverlap: false,
         iconIgnorePlacement: false,
+        textIgnorePlacement: false,
+
+        // Hide text if there is a collision, but keep the icon visible
+        textOptional: true,
+        iconOptional: false,
       ),
     );
   }

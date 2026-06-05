@@ -26,7 +26,7 @@ class IconHelper {
     'community': 'assets/icons/sports.svg',
     'religion': 'assets/icons/hotel.svg',
     'sports': 'assets/icons/sports.svg',
-    'financial': 'assets/icons/bank.svg',
+    'financial': 'assets/icons/business.svg',
     'tech': 'assets/icons/technology.svg',
     'industry': 'assets/icons/location.svg',
     'transport': 'assets/icons/gas-station.svg',
