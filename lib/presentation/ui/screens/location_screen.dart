@@ -210,7 +210,10 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Location Permission denied'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Location Permission denied'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -314,7 +317,7 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
     }
 
     return GestureDetector(
-      behavior: HitTestBehavior.opaque, 
+      behavior: HitTestBehavior.opaque,
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
 
       child: PopScope(

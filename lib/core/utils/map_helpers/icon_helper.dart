@@ -57,11 +57,7 @@ class IconHelper {
 
     // Standard Circle
     canvas.drawCircle(center, 38, Paint()..color = Colors.white);
-    canvas.drawCircle(
-      center,
-      32,
-      Paint()..color = AppColors.textSecondary,
-    );
+    canvas.drawCircle(center, 32, Paint()..color = AppColors.textSecondary);
 
     // White Icon
     final iconPath = typeIcons[typeKey] ?? typeIcons['default']!;
@@ -82,11 +78,7 @@ class IconHelper {
 
     //  marker circle
     canvas.drawCircle(center, 45, Paint()..color = Colors.white);
-    canvas.drawCircle(
-      center,
-      38,
-      Paint()..color = AppColors.textPrimary
-    );
+    canvas.drawCircle(center, 38, Paint()..color = AppColors.textPrimary);
 
     final iconPath = typeIcons[typeKey] ?? typeIcons['default']!;
     await _drawSvgWhite(canvas, iconPath, center);

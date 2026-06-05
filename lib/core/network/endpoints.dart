@@ -28,6 +28,9 @@ class Endpoints {
   // Get paginated locations
   static const String getLocations =
       '$apiBaseUrl/api/v2/paginated-locations?app_key=$publicKey';
+  // Sync locations with last updated timestamp
+  static String syncLocations(String lastUpdatedAt) =>
+      '$getLocations&last_updated_at=$lastUpdatedAt';
   // Search locations
   static String searchLocation = '$apiBaseUrl/api/search-location';
   // Update location

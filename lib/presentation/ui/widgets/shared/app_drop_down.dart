@@ -33,7 +33,6 @@ class _AppDropdownState<T> extends State<AppDropdown<T>> {
       children: [
         GestureDetector(
           onTap: () {
-         
             FocusManager.instance.primaryFocus?.unfocus();
             widget.onToggle();
           },

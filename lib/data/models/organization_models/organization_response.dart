@@ -8,7 +8,7 @@ class OrganizationResponseModel {
   final String? address;
   final String? website;
   final String? quickInfo;
-  final String? type;
+
   final String? onlineMenu;
   final String? submitterServer;
   final String? submitterAtName;
@@ -50,7 +50,6 @@ class OrganizationResponseModel {
     this.address,
     this.website,
     this.quickInfo,
-    this.type,
     this.onlineMenu,
     this.submitterServer,
     this.submitterAtName,
@@ -94,7 +93,7 @@ class OrganizationResponseModel {
       address: json['address'],
       website: _asString(json['website']),
       quickInfo: _asString(json['quick_info']),
-      type: _asString(json['type']),
+
       onlineMenu: _asString(json['online_menu']),
       submitterServer: _asString(json['submitter_server']),
       submitterAtName: _asString(json['submitter_at_name']),
