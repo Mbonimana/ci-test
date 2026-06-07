@@ -1,8 +1,6 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:street_team/presentation/providers/organization/organization_form_helpers.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_drop_down.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_form_lable.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_text_field.dart';
@@ -51,7 +49,7 @@ class _OrganizationOptionsView extends StatefulWidget {
 class _OrganizationOptionsViewState extends State<_OrganizationOptionsView> {
   final TextEditingController onlineMenuCtrl = TextEditingController();
 
-  List<Map<String, dynamic>> allOptions = [];
+  late final List<Map<String, dynamic>> allOptions;
   Set<int> selectedIds = {};
   bool isExpanded = false;
   String _prefillSignature = '';
@@ -66,8 +64,15 @@ class _OrganizationOptionsViewState extends State<_OrganizationOptionsView> {
   @override
   void initState() {
     super.initState();
-    loadOptions();
+    allOptions = organizationFeatureOptionsCatalog();
+    _applyInitialValues();
+    _prefillSignature = _buildPrefillSignature();
     onlineMenuCtrl.addListener(_notify);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _notify();
+      }
+    });
   }
 
   @override
@@ -80,14 +85,12 @@ class _OrganizationOptionsViewState extends State<_OrganizationOptionsView> {
     }
 
     _prefillSignature = newSignature;
-    if (allOptions.isNotEmpty) {
-      _applyInitialValues();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _notify();
-        }
-      });
-    }
+    _applyInitialValues();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _notify();
+      }
+    });
   }
 
   @override
@@ -95,31 +98,6 @@ class _OrganizationOptionsViewState extends State<_OrganizationOptionsView> {
     onlineMenuCtrl.removeListener(_notify);
     onlineMenuCtrl.dispose();
     super.dispose();
-  }
-
-  Future<void> loadOptions() async {
-    try {
-      final data = await rootBundle.loadString(
-        'assets/organization_options.json',
-      );
-      final decoded = json.decode(data);
-      final List rawList = decoded['org_options'] ?? [];
-
-      if (!mounted) return;
-
-      setState(() {
-        allOptions = List<Map<String, dynamic>>.from(rawList);
-        _applyInitialValues();
-        _prefillSignature = _buildPrefillSignature();
-      });
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _notify();
-        }
-      });
-    } catch (e) {
-      debugPrint('FAILED TO LOAD OPTIONS: $e');
-    }
   }
 
   void _applyInitialValues() {
