@@ -157,7 +157,7 @@ class _OrganizationOptionsViewState extends State<_OrganizationOptionsView> {
           SizedBox(height: 15.h),
           AppTextField(
             controller: onlineMenuCtrl,
-            hint: "https://menu.com/...",
+            hint: "https://johnscafe.com/menu",
             keyboardType: TextInputType.url,
           ),
         ],
