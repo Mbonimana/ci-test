@@ -140,13 +140,18 @@ Map<String, dynamic>? workingHoursFromOrganization(
 
 List<Map<String, dynamic>> organizationOptionsFromOrganization(
   OrganizationResponseModel organization,
-  List<TypeModel> orgTypes,
 ) {
   final selectedNames = selectedOrganizationOptionNames(organization);
 
-  return organizationOptions(orgTypes)
-      .where((item) => selectedNames.contains(_normalizedText(item['type'])))
+  return organizationFeatureOptionsCatalog()
+      .where((item) => selectedNames.contains(_normalizedText(item['name'])))
       .map<Map<String, dynamic>>((item) => item)
+      .toList();
+}
+
+List<Map<String, dynamic>> organizationFeatureOptionsCatalog() {
+  return _organizationFeatureCatalog
+      .map<Map<String, dynamic>>((item) => {'id': item.id, 'name': item.label})
       .toList();
 }
 
@@ -160,6 +165,10 @@ Set<String> selectedOrganizationOptionNames(
     if (definition.isEnabled(options, organization)) {
       selectedNames.add(_normalizedText(definition.label));
     }
+  }
+
+  if ((organization.onlineMenu ?? '').trim().isNotEmpty) {
+    selectedNames.add('online menu');
   }
 
   return selectedNames;
@@ -295,6 +304,42 @@ const List<_OrganizationOptionDefinition> _organizationOptionDefinitions = [
   _OrganizationOptionDefinition('Kids Activities', ['kids_activities']),
   _OrganizationOptionDefinition('Sunday School', ['sunday_school']),
   _OrganizationOptionDefinition('Outdoor Activities', ['outdoor_activities']),
+];
+
+class _OrganizationFeatureCatalogEntry {
+  final int id;
+  final String label;
+
+  const _OrganizationFeatureCatalogEntry(this.id, this.label);
+}
+
+const List<_OrganizationFeatureCatalogEntry> _organizationFeatureCatalog = [
+  _OrganizationFeatureCatalogEntry(2, 'Delivery Available'),
+  _OrganizationFeatureCatalogEntry(4, 'Brunch Available'),
+  _OrganizationFeatureCatalogEntry(6, 'Bar'),
+  _OrganizationFeatureCatalogEntry(7, 'Work Friendly'),
+  _OrganizationFeatureCatalogEntry(8, 'Wifi'),
+  _OrganizationFeatureCatalogEntry(9, 'Reservation Required'),
+  _OrganizationFeatureCatalogEntry(10, 'ATM'),
+  _OrganizationFeatureCatalogEntry(11, 'Parking Available'),
+  _OrganizationFeatureCatalogEntry(12, 'Coffee'),
+  _OrganizationFeatureCatalogEntry(13, 'Wheelchair Accessible'),
+  _OrganizationFeatureCatalogEntry(14, 'Family Friendly'),
+  _OrganizationFeatureCatalogEntry(15, 'Swimming Pool'),
+  _OrganizationFeatureCatalogEntry(16, 'Gym'),
+  _OrganizationFeatureCatalogEntry(17, 'Spa'),
+  _OrganizationFeatureCatalogEntry(18, 'Pool Table'),
+  _OrganizationFeatureCatalogEntry(19, 'Tourism'),
+  _OrganizationFeatureCatalogEntry(20, 'Nightlife'),
+  _OrganizationFeatureCatalogEntry(21, 'Food'),
+  _OrganizationFeatureCatalogEntry(22, 'Shopping'),
+  _OrganizationFeatureCatalogEntry(23, 'Guhemba Menu'),
+  _OrganizationFeatureCatalogEntry(24, 'Guhemba'),
+  _OrganizationFeatureCatalogEntry(25, 'Takeaway'),
+  _OrganizationFeatureCatalogEntry(26, 'Kids Activities'),
+  _OrganizationFeatureCatalogEntry(27, 'Sunday School'),
+  _OrganizationFeatureCatalogEntry(28, 'Outdoor Activities'),
+  _OrganizationFeatureCatalogEntry(29, 'Online Menu'),
 ];
 
 int? _legacyHasBar(OrganizationResponseModel organization) =>
