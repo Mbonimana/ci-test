@@ -43,6 +43,10 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
   final shortNameController = TextEditingController();
   final nicknameController = TextEditingController();
 
+  // Inline Validation State
+  String? _nameError;
+  String? _addressError;
+
   // Dropdown State
   bool isTypeDropdownExpanded = false;
 
@@ -135,6 +139,31 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
   }
 
   Future<void> submitLocation() async {
+    // Validate Inline Fields First
+    bool isValid = true;
+    setState(() {
+      _nameError = null;
+      _addressError = null;
+    });
+
+    if (nameController.text.trim().isEmpty) {
+      setState(() {
+        _nameError = "Location name is required";
+      });
+      isValid = false;
+    }
+
+    if (addressController.text.trim().isEmpty) {
+      setState(() {
+        _addressError = "Physical address is required";
+      });
+      isValid = false;
+    }
+
+    if (!isValid) {
+      return;
+    }
+
     final coords = ref.read(pickedLocationProvider);
 
     if (coords == null) {
@@ -211,7 +240,7 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Location Permission denied'),
+            content: Text(' Error: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -244,6 +273,23 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
   @override
   void initState() {
     super.initState();
+
+    // Clear validation error when  begin typing
+    nameController.addListener(() {
+      if (_nameError != null && nameController.text.trim().isNotEmpty) {
+        setState(() {
+          _nameError = null;
+        });
+      }
+    });
+
+    addressController.addListener(() {
+      if (_addressError != null && addressController.text.trim().isNotEmpty) {
+        setState(() {
+          _addressError = null;
+        });
+      }
+    });
 
     final initialLocation = widget.initialLocation;
 
@@ -457,8 +503,19 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
 
                   AppTextField(
                     controller: nameController,
-                    hint: "Location name",
+                    hint: "Kigali City Tower",
                   ),
+
+                  if (_nameError != null) ...[
+                    SizedBox(height: 4.h),
+                    Text(
+                      _nameError!,
+                      style: AppTypography.captionSmall.copyWith(
+                        color: Colors.red,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
 
                   SizedBox(height: 10.h),
 
@@ -468,8 +525,19 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
 
                   AppTextField(
                     controller: addressController,
-                    hint: "Physical address",
+                    hint: "City Center, Kn 2 st",
                   ),
+
+                  if (_addressError != null) ...[
+                    SizedBox(height: 4.h),
+                    Text(
+                      _addressError!,
+                      style: AppTypography.captionSmall.copyWith(
+                        color: Colors.red,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
 
                   SizedBox(height: 10.h),
 
@@ -479,7 +547,7 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
 
                   AppTextField(
                     controller: shortNameController,
-                    hint: "Short name",
+                    hint: "KCT",
                   ),
 
                   SizedBox(height: 10.h),
@@ -490,7 +558,7 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
 
                   AppTextField(
                     controller: nicknameController,
-                    hint: "Nick name",
+                    hint: "City Tower",
                   ),
 
                   SizedBox(height: 10.h),
