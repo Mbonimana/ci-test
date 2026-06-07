@@ -222,7 +222,7 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
       Navigator.pop(context);
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text("Location saved")));
+      ).showSnackBar(const SnackBar(content: Text("Location submitted successfully")));
       _clearSharedLocationState();
 
       if (_isEditing) {
