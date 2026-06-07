@@ -117,7 +117,7 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
     }
 
     _applyInitialSubtypes(orgTypes, initial);
-    selectedOrgOptions = organizationOptionsFromOrganization(initial, orgTypes);
+    selectedOrgOptions = organizationOptionsFromOrganization(initial);
   }
 
   void _applyInitialSubtypes(
@@ -214,7 +214,7 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
         <String, dynamic>{};
     final effectiveSelectedOptions = _prefilled || initialOrganization == null
         ? selectedOrgOptions
-        : organizationOptionsFromOrganization(initialOrganization, orgTypes);
+        : organizationOptionsFromOrganization(initialOrganization);
 
     try {
       if (!mounted) return;
