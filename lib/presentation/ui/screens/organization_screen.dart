@@ -52,6 +52,12 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
     return selectedOrgOptions.any((e) => e["name"] == "Online Menu");
   }
 
+  // Validation Error Messages
+  String? locationError;
+  String? orgNameError;
+  String? orgTypeError;
+  String? phoneError;
+
   final locationCtrl = TextEditingController();
   final orgNameCtrl = TextEditingController();
   final onlineMenuCtrl = TextEditingController();
@@ -71,10 +77,29 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
     if (widget.initialLocationId != null) {
       selectedMurugoLocationId = widget.initialLocationId;
     }
+
+    // Attach listeners to clear inline validation messages instantly while typing
+    orgNameCtrl.addListener(_onOrgNameChanged);
+    phone.addListener(_onPhoneChanged);
+  }
+
+  void _onOrgNameChanged() {
+    if (orgNameError != null && orgNameCtrl.text.trim().isNotEmpty) {
+      setState(() => orgNameError = null);
+    }
+  }
+
+  void _onPhoneChanged() {
+    if (phoneError != null && phone.text.trim().isNotEmpty) {
+      setState(() => phoneError = null);
+    }
   }
 
   @override
   void dispose() {
+    orgNameCtrl.removeListener(_onOrgNameChanged);
+    phone.removeListener(_onPhoneChanged);
+
     locationCtrl.dispose();
     orgNameCtrl.dispose();
     onlineMenuCtrl.dispose();
@@ -86,6 +111,52 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
     ref.read(locationSearchProvider.notifier).reset();
 
     super.dispose();
+  }
+
+  /// Runs the inline validation check for Step 1
+  bool _validateStepOne() {
+    bool isValid = true;
+
+    setState(() {
+      //Location Validation
+      if ((selectedMurugoLocationId ?? '').isEmpty &&
+          createdLocationData == null) {
+        locationError = "Please select a valid location.";
+        isValid = false;
+      } else {
+        locationError = null;
+      }
+
+      // Org Name Validation
+      if (orgNameCtrl.text.trim().isEmpty) {
+        orgNameError = "Organization name is required.";
+        isValid = false;
+      } else {
+        orgNameError = null;
+      }
+
+      //  Org Type Validation
+      if (selectedOrgTypes.isEmpty) {
+        orgTypeError = "Please select at least one organization type.";
+        isValid = false;
+      } else {
+        orgTypeError = null;
+      }
+
+      // Phone Validation
+      final phoneVal = phone.text.trim();
+      if (phoneVal.isEmpty) {
+        phoneError = "Phone number is required.";
+        isValid = false;
+      } else if (phoneVal.length < 3) {
+        phoneError = "Please enter a valid phone number (min 3 digits).";
+        isValid = false;
+      } else {
+        phoneError = null;
+      }
+    });
+
+    return isValid;
   }
 
   void _applyInitialPrefill(List<TypeModel> orgTypes) {
@@ -155,6 +226,7 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
       } else {
         selectedOrgTypes.add(name);
       }
+      orgTypeError = null;
       syncSubtypes(orgTypes);
     });
   }
@@ -181,25 +253,8 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
     final orgName = orgNameCtrl.text.trim();
     final organizationId = widget.initialOrganization?.murugoOrganizationId;
 
-    if (orgName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Organization name is required.')),
-      );
-      return;
-    }
-
-    if (selectedOrgTypes.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Select at least one organization type.')),
-      );
-      return;
-    }
-
-    if ((selectedMurugoLocationId ?? '').isEmpty &&
-        createdLocationData == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Select a valid location first.')),
-      );
+    if (!_validateStepOne()) {
+      setState(() => currentStep = 0);
       return;
     }
 
@@ -372,7 +427,9 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
                       onPressed: () {
                         if (formState.isSubmitting) return;
                         if (currentStep == 0) {
-                          setState(() => currentStep = 1);
+                          if (_validateStepOne()) {
+                            setState(() => currentStep = 1);
+                          }
                           return;
                         }
                         _save();
@@ -424,29 +481,36 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
           initialLocationName: widget.initialLocationName,
           deferSubmit: true,
           onLocationSelected: (dynamic location) {
-            if (location is LocationResponse) {
-              createdLocationData = null;
-              selectedMurugoLocationId = location.id.toString();
-              locationCtrl.text = location.mapLabel;
-            } else if (location is Map<String, dynamic>) {
-              createdLocationData = Map<String, dynamic>.from(location);
-              selectedMurugoLocationId = null;
-              locationCtrl.text =
-                  createdLocationData?['location_name']
-                          ?.toString()
-                          .trim()
-                          .isNotEmpty ==
-                      true
-                  ? createdLocationData!['location_name'].toString()
-                  : createdLocationData?['physical_address']?.toString() ?? '';
-            }
+            setState(() {
+              locationError = null;
+              if (location is LocationResponse) {
+                createdLocationData = null;
+                selectedMurugoLocationId = location.id.toString();
+                locationCtrl.text = location.mapLabel;
+              } else if (location is Map<String, dynamic>) {
+                createdLocationData = Map<String, dynamic>.from(location);
+                selectedMurugoLocationId = null;
+                locationCtrl.text =
+                    createdLocationData?['location_name']
+                            ?.toString()
+                            .trim()
+                            .isNotEmpty ==
+                        true
+                    ? createdLocationData!['location_name'].toString()
+                    : createdLocationData?['physical_address']?.toString() ??
+                          '';
+              }
+            });
           },
         ),
+        _buildValidationError(locationError),
 
         SizedBox(height: 15.h),
         const AppFormLable(text: 'Organization Name'),
         SizedBox(height: 12.h),
-        AppTextField(controller: orgNameCtrl, hint: "Enter organization name"),
+        AppTextField(controller: orgNameCtrl, hint: "  John's Cafe"),
+        _buildValidationError(orgNameError),
+
         SizedBox(height: 15.h),
         const AppFormLable(text: "Organization Type(s)"),
         SizedBox(height: 12.h),
@@ -464,6 +528,7 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
             expandSubtypes = false;
           }),
         ),
+        _buildValidationError(orgTypeError),
 
         SizedBox(height: 15.h),
         const AppFormLable(text: 'Organization Sub-type(s)'),
@@ -487,13 +552,15 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
         SizedBox(height: 15.h),
         AppTextField(
           controller: phone,
-          hint: "Enter phone number",
+          hint: "250 780 000 000",
           numbersOnly: true,
         ),
+        _buildValidationError(phoneError),
+
         SizedBox(height: 15.h),
         const AppFormLable(text: "Website"),
         SizedBox(height: 15.h),
-        AppTextField(controller: website, hint: "Enter website URL"),
+        AppTextField(controller: website, hint: "https://johnscafe.com"),
       ],
     );
   }
@@ -504,7 +571,10 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
       children: [
         const AppFormLable(text: "Quick Info"),
         SizedBox(height: 12.h),
-        AppTextField(controller: quickinfo, hint: "Quick Info"),
+        AppTextField(
+          controller: quickinfo,
+          hint: " e.g:A cozy place for coffee lovers",
+        ),
         SizedBox(height: 15.h),
         const AppFormLable(text: "Organization Options"),
         Builder(
@@ -560,10 +630,7 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
         SizedBox(height: 12.h),
         const AppFormLable(text: "Building Details"),
         SizedBox(height: 12.h),
-        AppTextField(
-          controller: buildingDetails,
-          hint: 'eg: Floor 5 on Bloc C ',
-        ),
+        AppTextField(controller: buildingDetails, hint: ' Floor 5 on Bloc C '),
         SizedBox(height: 12.h),
       ],
     );
@@ -572,7 +639,12 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
   Widget _stepNode(int step, String label) {
     bool isActive = currentStep == step;
     return GestureDetector(
-      onTap: () => setState(() => currentStep = step),
+      onTap: () {
+        if (step == 1 && currentStep == 0) {
+          if (!_validateStepOne()) return;
+        }
+        setState(() => currentStep = step);
+      },
       child: Column(
         children: [
           Container(
@@ -591,6 +663,22 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Custom inline validation rendering widget
+  Widget _buildValidationError(String? error) {
+    if (error == null) return const SizedBox.shrink();
+    return Padding(
+      padding: EdgeInsets.only(top: 6.h, left: 4.w),
+      child: Text(
+        error,
+        style: TextStyle(
+          color: Colors.red.withAlpha(200),
+          fontSize: 12.sp,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }
