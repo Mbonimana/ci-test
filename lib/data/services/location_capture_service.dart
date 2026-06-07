@@ -15,10 +15,8 @@ class LocationCaptureService {
       throw Exception("Location permission denied");
     }
 
-    final position = await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.bestForNavigation,
-      ),
+    final position = await getCurrentPositionWithTimeout(
+      accuracy: LocationAccuracy.high,
     );
 
     final placemarks = await placemarkFromCoordinates(
