@@ -269,12 +269,12 @@ class _LocationSearchWidgetState extends ConsumerState<LocationSearchWidget> {
                         style: AppTypography.captionSmall.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Colors.green.shade800,
-                          fontSize: 12.sp,
+                          fontSize: 10.sp,
                         ),
                       ),
                       SizedBox(height: 1.h),
                       Text(
-                        "ID: ${searchState.selectedLocation!.id} • ${searchState.selectedLocation!.name}",
+                        " ${searchState.selectedLocation!.name}",
                         style: AppTypography.captionSmall.copyWith(
                           color: Colors.green.shade700,
                           fontSize: 11.sp,

@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:street_team/core/config/env_config.dart';
 import 'package:street_team/core/utils/map_helpers/permission_request.dart';
 import 'package:street_team/data/models/location_models/location_request_model.dart';
@@ -16,9 +18,7 @@ class LocationCaptureService {
     }
 
     final position = await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.bestForNavigation,
-      ),
+      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
     );
 
     final placemarks = await placemarkFromCoordinates(
@@ -64,5 +64,29 @@ class LocationCaptureService {
 
   Future<String> resolveSubmitterServer() async {
     return EnvConfig.submitterServer;
+  }
+}
+
+class LocationCache {
+  static const String _keyLatitude = 'cached_latitude';
+  static const String _keyLongitude = 'cached_longitude';
+
+  // Save coordinates to local storage
+  static Future<void> saveLocation(double latitude, double longitude) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_keyLatitude, latitude);
+    await prefs.setDouble(_keyLongitude, longitude);
+  }
+
+  // Retrieve coordinates from local storage
+  static Future<LatLng?> getCachedLocation() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lat = prefs.getDouble(_keyLatitude);
+    final lng = prefs.getDouble(_keyLongitude);
+
+    if (lat != null && lng != null) {
+      return LatLng(lat, lng);
+    }
+    return null;
   }
 }
