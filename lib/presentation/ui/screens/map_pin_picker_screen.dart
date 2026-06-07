@@ -7,6 +7,7 @@ import 'package:street_team/core/config/theme/app_color.dart';
 import 'package:street_team/core/config/theme/typography.dart';
 import 'package:street_team/core/utils/map_helpers/label_style_helper.dart';
 import 'package:street_team/data/map_engine/mapbox_map_engine.dart';
+import 'package:street_team/data/services/location_capture_service.dart';
 import 'package:street_team/presentation/providers/map_provider.dart';
 import 'package:street_team/presentation/ui/widgets/shared/app_button.dart';
 
@@ -24,13 +25,58 @@ class _MapPinPickerScreenState extends ConsumerState<MapPinPickerScreen> {
   bool _isInitialJumpDone = false;
 
   // ValueNotifier to update UI text without rebuilding the MapWidget
-  final ValueNotifier<List<double>> _coordNotifier = ValueNotifier([0.0, 0.0]);
+  final ValueNotifier<List<double>> _coordNotifier = ValueNotifier([
+    -1.9441,
+    30.0619,
+  ]);
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeLocation();
+    });
+  }
+
+  Future<void> _initializeLocation() async {
+    final cachedLoc = await LocationCache.getCachedLocation();
+    if (cachedLoc != null) {
+      _updateCoords(cachedLoc.latitude, cachedLoc.longitude, zoom: 20);
+      _isInitialJumpDone = true;
+    } else {
+      final userLoc = ref.read(userLocationProvider).asData?.value;
+      if (userLoc != null) {
+        _updateCoords(userLoc.latitude, userLoc.longitude, zoom: 20);
+        _isInitialJumpDone = true;
+      }
+    }
+    ref.invalidate(userLocationProvider);
+  }
+
+  void _updateCoords(double lat, double lng, {double zoom = 20}) {
+    if (!mounted) return;
+    setState(() {
+      _currentLat = lat;
+      _currentLng = lng;
+      _coordNotifier.value = [lat, lng];
+    });
+    _moveCamera(lat, lng, zoom: zoom);
+  }
+
+  void _moveCamera(double lat, double lng, {double zoom = 20}) {
+    _mapboxMap?.setCamera(
+      CameraOptions(
+        center: Point(coordinates: Position(lng, lat)),
+        zoom: zoom,
+      ),
+    );
+  }
 
   void _setInitialCamera() {
     _mapboxMap?.setCamera(
       CameraOptions(
         center: Point(coordinates: Position(_currentLng, _currentLat)),
-        zoom: 12,
+        zoom: _isInitialJumpDone ? 20 : 12,
       ),
     );
   }
@@ -45,50 +91,13 @@ class _MapPinPickerScreenState extends ConsumerState<MapPinPickerScreen> {
   Widget build(BuildContext context) {
     final mapEngine = ref.watch(mapEngineProvider) as MapboxMapEngine;
 
-    final userLocation = ref.watch(userLocationProvider);
-
-    userLocation.whenData((latLng) {
-      if (!_isInitialJumpDone) {
-        _currentLat = latLng.latitude;
-        _currentLng = latLng.longitude;
-
-        _coordNotifier.value = [_currentLat, _currentLng];
-
-        if (_mapboxMap != null) {
-          _mapboxMap?.setCamera(
-            CameraOptions(
-              center: Point(
-                coordinates: Position(latLng.longitude, latLng.latitude),
-              ),
-              zoom: 18,
-            ),
-          );
-
-          _isInitialJumpDone = true;
-        }
-      }
-    });
-
     ref.listen<AsyncValue<geo.LatLng>>(userLocationProvider, (prev, next) {
       next.whenData((latLng) {
         mapEngine.cameraController.setUserLocation(latLng);
 
-        if (!_isInitialJumpDone && _mapboxMap != null) {
-          _currentLat = latLng.latitude;
-          _currentLng = latLng.longitude;
-
-          _coordNotifier.value = [_currentLat, _currentLng];
-
-          _mapboxMap?.setCamera(
-            CameraOptions(
-              center: Point(
-                coordinates: Position(latLng.longitude, latLng.latitude),
-              ),
-              zoom: 18,
-            ),
-          );
-
+        if (!_isInitialJumpDone) {
           _isInitialJumpDone = true;
+          _updateCoords(latLng.latitude, latLng.longitude, zoom: 20);
         }
       });
     });
@@ -97,7 +106,7 @@ class _MapPinPickerScreenState extends ConsumerState<MapPinPickerScreen> {
       backgroundColor: AppColors.backgroundBase,
       body: Stack(
         children: [
-          //  Map Layer
+          // Map Layer
           Positioned.fill(
             child: MapWidget(
               key: const ValueKey("sync_picker_map"),
@@ -117,7 +126,6 @@ class _MapPinPickerScreenState extends ConsumerState<MapPinPickerScreen> {
                   LocationComponentSettings(
                     enabled: true,
                     pulsingEnabled: true,
-                    showAccuracyRing: true,
                   ),
                 );
 
@@ -141,35 +149,33 @@ class _MapPinPickerScreenState extends ConsumerState<MapPinPickerScreen> {
                 alignment: Alignment.center,
                 children: [
                   Container(
-                    width: 280.w,
-                    height: 280.w,
+                    width: 250.w,
+                    height: 250.w,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.lightBlue.withAlpha(30),
                     ),
                   ),
+                  // Inner medium circle
                   Container(
-                    width: 120.w,
-                    height: 120.w,
+                    width: 100.w,
+                    height: 100.w,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.lightBlue.withAlpha(56),
                     ),
                   ),
-                  Padding(
-                    padding: EdgeInsets.only(bottom: 40.h),
-                    child: Icon(
-                      Icons.location_on,
-                      size: 52.sp,
-                      color: AppColors.brandPrimary,
-                    ),
+                  Icon(
+                    Icons.location_on,
+                    size: 40.sp,
+                    color: AppColors.brandSecondary,
                   ),
                 ],
               ),
             ),
           ),
 
-          //  Floating UI Controls
+          // Floating UI Controls
           Positioned(
             top: 60.h,
             left: 20.w,
@@ -190,7 +196,7 @@ class _MapPinPickerScreenState extends ConsumerState<MapPinPickerScreen> {
             ),
           ),
 
-          //  Floating Bottom Panel
+          // Floating Bottom Panel
           Positioned(
             bottom: 30.h,
             left: 20.w,
