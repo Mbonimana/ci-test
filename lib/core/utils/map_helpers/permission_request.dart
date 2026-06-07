@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:geolocator/geolocator.dart';
 
 Future<bool> requestLocationPermission() async {
@@ -15,4 +17,13 @@ Future<bool> requestLocationPermission() async {
 
   return permission == LocationPermission.always ||
       permission == LocationPermission.whileInUse;
+}
+
+Future<Position> getCurrentPositionWithTimeout({
+  LocationAccuracy accuracy = LocationAccuracy.high,
+  Duration timeout = const Duration(seconds: 12),
+}) async {
+  return Geolocator.getCurrentPosition(
+    locationSettings: LocationSettings(accuracy: accuracy),
+  ).timeout(timeout);
 }
