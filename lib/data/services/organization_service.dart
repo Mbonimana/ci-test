@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:street_team/core/network/dio_client.dart';
 import 'package:street_team/core/network/endpoints.dart';
+import 'package:street_team/core/network/network_error_handler.dart';
 import 'package:street_team/core/utils/talker_helper.dart';
 import 'package:street_team/data/models/organization_models/organization_request.dart';
 import 'package:street_team/data/services/auth/storage/auth_storage_keys.dart';
@@ -25,6 +26,8 @@ class OrganizationService {
   }
 
   String _handleError(dynamic e) {
+    final normalized = NetworkErrorHandler.toUserMessage(e);
+
     if (e is DioException) {
       final response = e.response;
       if (e.type == DioExceptionType.connectionTimeout ||
@@ -32,18 +35,18 @@ class OrganizationService {
           e.type == DioExceptionType.receiveTimeout ||
           e.type == DioExceptionType.connectionError ||
           e.error is SocketException) {
-        return 'Network error: Check your internet connection and try again.';
+        return normalized;
       }
 
       if (response != null) {
         final message = _extractServerMessage(response.data);
-        return 'Request failed [${response.statusCode}]: $message';
+        return message.isNotEmpty ? message : normalized;
       }
 
-      return 'Request failed: ${e.message ?? e.error ?? 'Unknown dio error'}';
+      return normalized;
     }
 
-    return 'Unexpected error: $e';
+    return normalized;
   }
 
   Future<Response<dynamic>> submitOrganization(

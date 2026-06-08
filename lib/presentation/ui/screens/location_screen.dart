@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart' as geo;
 import 'package:street_team/core/config/theme/app_color.dart';
 import 'package:street_team/core/config/theme/typography.dart';
+import 'package:street_team/core/network/network_error_handler.dart';
 import 'package:street_team/core/routing/route_names.dart';
 import 'package:street_team/data/models/location_models/location_request_model.dart';
 import 'package:street_team/data/models/location_models/location_response.dart';
@@ -220,9 +221,9 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
       if (!mounted) return;
 
       Navigator.pop(context);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Location submitted successfully")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Location submitted successfully")),
+      );
       _clearSharedLocationState();
 
       if (_isEditing) {
@@ -238,11 +239,9 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
       if (mounted) Navigator.pop(context);
 
       if (mounted) {
+        final message = NetworkErrorHandler.toUserMessage(e);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(' Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text(message), backgroundColor: Colors.red),
         );
       }
     }
@@ -545,10 +544,7 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
 
                   SizedBox(height: 8.h),
 
-                  AppTextField(
-                    controller: shortNameController,
-                    hint: "KCT",
-                  ),
+                  AppTextField(controller: shortNameController, hint: "KCT"),
 
                   SizedBox(height: 10.h),
 
