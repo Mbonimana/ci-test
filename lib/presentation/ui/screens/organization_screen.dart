@@ -352,7 +352,75 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
     }
     if (orgTypesAsync.hasError || locTypesAsync.hasError) {
       final error = orgTypesAsync.error ?? locTypesAsync.error;
-      return Scaffold(body: Center(child: Text("Error loading data: $error")));
+      final errorMessage = NetworkErrorHandler.toUserMessage(error);
+
+      return Scaffold(
+        backgroundColor: AppColors.backgroundBase,
+        appBar: AppBar(
+          title: const Text('Organization Details'),
+          leading: Padding(
+            padding: EdgeInsets.only(left: 12.w),
+            child: AppButton(
+              onPressed: () => Navigator.maybePop(context),
+              variant: AppButtonVariant.leadingIcon,
+              icon: Icons.arrow_back_ios_new_rounded,
+            ),
+          ),
+          centerTitle: true,
+          backgroundColor: Colors.transparent,
+          foregroundColor: AppColors.brandPrimary,
+          elevation: 0,
+        ),
+        body: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24.w),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.wifi_off_rounded,
+                    size: 60.sp,
+                    color: AppColors.brandPrimary.withAlpha(160),
+                  ),
+                  SizedBox(height: 16.h),
+                  Text(
+                    "Connection Failed",
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.brandPrimary,
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                  Text(
+                    errorMessage,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  SizedBox(height: 20.h),
+                  SizedBox(
+                    width: 160.w,
+                    child: AppButton(
+                      onPressed: () {
+                        // Force invalidation to re-execute provider futures
+                        ref.invalidate(organizationTypesProvider);
+                        ref.invalidate(locationTypesProvider);
+                      },
+                      variant: AppButtonVariant.primary,
+                      text: "Retry ",
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
     }
 
     final orgTypes = orgTypesAsync.value ?? [];
