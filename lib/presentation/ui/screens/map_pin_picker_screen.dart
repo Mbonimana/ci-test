@@ -168,7 +168,7 @@ class _MapPinPickerScreenState extends ConsumerState<MapPinPickerScreen> {
                   Icon(
                     Icons.location_on,
                     size: 40.sp,
-                    color: AppColors.brandSecondary,
+                    color: AppColors.brandPrimary,
                   ),
                 ],
               ),
