@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:street_team/core/config/theme/app_color.dart';
+import 'package:street_team/core/network/network_error_handler.dart';
 import 'package:street_team/core/routing/route_names.dart';
 import 'package:street_team/data/models/location_models/location_response.dart';
 import 'package:street_team/data/models/organization_models/organization_response.dart';
@@ -331,14 +332,12 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
         Navigator.of(context).pop();
       }
 
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString().replaceFirst('Exception: ', '')),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        final message = NetworkErrorHandler.toUserMessage(e);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 
