@@ -277,7 +277,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
                     // Sync/Refresh Button
                     Positioned(
-                      bottom: 48.h,
+                      bottom: 20.h,
                       left: 20.w,
                       child: AppButton(
                         onPressed: () async {
