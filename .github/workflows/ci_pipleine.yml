@@ -46,7 +46,7 @@ jobs:
 
       - name: Build ARM64 APK only
         run: |
-          flutter build apk --release --target-platform android-arm64 \
+          flutter build apk --release --no-pub --target-platform android-arm64 \
             --dart-define=ENV="${{ secrets.ENV }}" \
             --dart-define=APP_NAME="${{ secrets.APP_NAME }}" \
             --dart-define=SENTRY_DSN="${{ secrets.SENTRY_DSN }}" \
