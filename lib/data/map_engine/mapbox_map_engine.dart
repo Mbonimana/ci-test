@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart' as geo;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
@@ -99,9 +99,8 @@ class _MapboxMapViewState extends State<_MapboxMapView> {
   void didUpdateWidget(covariant _MapboxMapView oldWidget) {
     super.didUpdateWidget(oldWidget);
     // If locations change, update the source
-    if (oldWidget.locations != widget.locations &&
-        _styleLoaded &&
-        _map != null) {
+    final locationsChanged = !listEquals(oldWidget.locations, widget.locations);
+    if (locationsChanged && _styleLoaded && _map != null) {
       ClusterHelper.setup(_map!, widget.locations, widget.iconHelper);
     }
   }

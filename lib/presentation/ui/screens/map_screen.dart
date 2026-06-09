@@ -6,9 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart' as geo;
 import 'package:street_team/core/config/theme/app_color.dart';
 import 'package:street_team/core/config/theme/typography.dart';
 import 'package:street_team/core/routing/route_names.dart';
+import 'package:street_team/data/services/location_capture_service.dart';
 import 'package:street_team/presentation/providers/location_provider.dart';
 import 'package:street_team/presentation/providers/map_provider.dart';
 import 'package:street_team/presentation/ui/screens/location_screen.dart';
@@ -30,14 +32,35 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   Timer? _debounce;
   bool _isPermissionGranted = false;
 
+  bool _hasCenteredOnUser = false;
+
+  static const _fallbackLocation = geo.LatLng(-1.9441, 30.0619);
+
   @override
   void initState() {
     super.initState();
-    _checkInitialPermission();
+    // Request permission and fetch user location right after the first frame builds
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _requestPermissionAndCenter();
+    });
   }
 
-  Future<void> _checkInitialPermission() async {
-    final permission = await Geolocator.checkPermission();
+  Future<void> _requestPermissionAndCenter() async {
+    final cachedLoc = await LocationCache.getCachedLocation();
+    if (cachedLoc != null && mounted) {
+      final mapEngine = ref.read(mapEngineProvider);
+      mapEngine.goToCoordinates(
+        latitude: cachedLoc.latitude,
+        longitude: cachedLoc.longitude,
+        zoom: 18,
+      );
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
     if (permission == LocationPermission.whileInUse ||
         permission == LocationPermission.always) {
       if (mounted) {
@@ -45,6 +68,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           _isPermissionGranted = true;
         });
       }
+      ref.invalidate(userLocationProvider);
     }
   }
 
@@ -72,13 +96,34 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     final mapEngine = ref.watch(mapEngineProvider);
     final userLocationAsync = ref.watch(userLocationProvider);
 
-    // Keep active listeners on the providers
     final filteredLocations = ref.watch(filteredLocationsProvider);
     final isSearching = ref.watch(isSearchingProvider);
-
     final searchResultsAsync = ref.watch(remoteSearchResultsProvider);
+    // Watch for location updates, but only fly to the user on initial load
+    ref.listen<AsyncValue<geo.LatLng>>(userLocationProvider, (previous, next) {
+      next.whenData((latLng) {
+        if (mounted) {
+          setState(() {
+            _isPermissionGranted = true;
+          });
+
+          if (!_hasCenteredOnUser) {
+            _hasCenteredOnUser = true;
+            mapEngine.goToCoordinates(
+              latitude: latLng.latitude,
+              longitude: latLng.longitude,
+              zoom: 18,
+            );
+          }
+        }
+      });
+    });
+
+    final currentCoordinates =
+        userLocationAsync.asData?.value ?? _fallbackLocation;
 
     return Scaffold(
+      extendBody: true,
       backgroundColor: AppColors.backgroundBase,
       resizeToAvoidBottomInset: false,
       body: GestureDetector(
@@ -88,17 +133,45 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         },
         child: Stack(
           children: [
+            // Map builds immediately with whatever coordinate is available
             Positioned.fill(
-              child: userLocationAsync.when(
-                data: (userLocation) => mapEngine.buildMap(
-                  userLocation: userLocation,
-                  locations: filteredLocations,
-                ),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Center(child: Text(e.toString())),
+              child: mapEngine.buildMap(
+                userLocation: currentCoordinates,
+                locations: filteredLocations,
               ),
             ),
 
+            if (userLocationAsync.isLoading &&
+                userLocationAsync.asData?.value == null)
+              const Positioned(
+                top: 80,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Card(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          SizedBox(width: 12),
+                          Text("Acquiring GPS Signal..."),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+            // Main UI overlays
             Positioned.fill(
               child: SafeArea(
                 child: Stack(
@@ -204,8 +277,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                         ),
                       ),
 
+                    // Sync/Refresh Button
                     Positioned(
-                      bottom: 48.h,
+                      bottom: 20.h,
                       left: 20.w,
                       child: AppButton(
                         onPressed: () async {
@@ -239,7 +313,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
                     // Action buttons
                     Positioned(
-                      bottom: 60.h,
+                      bottom: 20.h,
                       right: 20.w,
                       child: SizedBox(
                         width: 250.w,
@@ -247,6 +321,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                         child: Stack(
                           alignment: Alignment.bottomRight,
                           children: [
+                            //
                             AnimatedPositioned(
                               duration: const Duration(milliseconds: 250),
                               curve: Curves.easeOut,
@@ -361,68 +436,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                     if (permission ==
                                         LocationPermission.deniedForever) {
                                       if (mounted) {
-                                        showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) => AlertDialog(
-                                            title: const Text(
-                                              "Location Required",
-                                            ),
-                                            content: const Text(
-                                              "Location permissions are permanently denied. Please enable location permissions in your system settings to find your position.",
-                                            ),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () =>
-                                                    Navigator.pop(context),
-                                                child: const Text("Cancel"),
-                                              ),
-                                              TextButton(
-                                                onPressed: () async {
-                                                  Navigator.pop(context);
-                                                  await Geolocator.openAppSettings();
-
-                                                  final newPermission =
-                                                      await Geolocator.checkPermission();
-                                                  if (newPermission ==
-                                                          LocationPermission
-                                                              .whileInUse ||
-                                                      newPermission ==
-                                                          LocationPermission
-                                                              .always) {
-                                                    setState(
-                                                      () =>
-                                                          _isPermissionGranted =
-                                                              true,
-                                                    );
-                                                    ref.invalidate(
-                                                      userLocationProvider,
-                                                    );
-
-                                                    final currentPosition =
-                                                        await Geolocator.getCurrentPosition(
-                                                          locationSettings:
-                                                              const LocationSettings(
-                                                                accuracy:
-                                                                    LocationAccuracy
-                                                                        .bestForNavigation,
-                                                              ),
-                                                        );
-                                                    mapEngine.goToCoordinates(
-                                                      latitude: currentPosition
-                                                          .latitude,
-                                                      longitude: currentPosition
-                                                          .longitude,
-                                                      zoom: 18,
-                                                    );
-                                                  }
-                                                },
-                                                child: const Text(
-                                                  "Open Settings",
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
+                                        _showPermissionDeniedDialog();
                                       }
                                     } else if (permission ==
                                             LocationPermission.whileInUse ||
@@ -431,21 +445,36 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                       setState(
                                         () => _isPermissionGranted = true,
                                       );
+
+                                      // Triggers loading state in Riverpod without unmounting the Map
                                       ref.invalidate(userLocationProvider);
 
-                                      final currentPosition =
-                                          await Geolocator.getCurrentPosition(
-                                            locationSettings:
-                                                const LocationSettings(
-                                                  accuracy: LocationAccuracy
-                                                      .bestForNavigation,
-                                                ),
-                                          );
-                                      mapEngine.goToCoordinates(
-                                        latitude: currentPosition.latitude,
-                                        longitude: currentPosition.longitude,
-                                        zoom: 18,
-                                      );
+                                      try {
+                                        final currentPosition =
+                                            await Geolocator.getCurrentPosition(
+                                              locationSettings:
+                                                  const LocationSettings(
+                                                    accuracy:
+                                                        LocationAccuracy.high,
+                                                    timeLimit: Duration(
+                                                      seconds: 10,
+                                                    ),
+                                                  ),
+                                            );
+
+                                        mapEngine.goToCoordinates(
+                                          latitude: currentPosition.latitude,
+                                          longitude: currentPosition.longitude,
+                                          zoom: 18,
+                                        );
+                                      } catch (e) {
+                                        AppSnackbar.show(
+                                          context: context,
+                                          message:
+                                              "Failed to fetch GPS coordinates.",
+                                          variant: SnackbarVariant.error,
+                                        );
+                                      }
                                     }
                                   },
                                   variant: AppButtonVariant.leadingIcon,
@@ -477,6 +506,31 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showPermissionDeniedDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: const Text("Location Required"),
+        content: const Text(
+          "Location permissions are permanently denied. Please enable location permissions in your system settings to find your position.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await Geolocator.openAppSettings();
+            },
+            child: const Text("Open Settings"),
+          ),
+        ],
       ),
     );
   }

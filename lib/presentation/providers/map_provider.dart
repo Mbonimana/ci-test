@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart' as geo;
 import 'package:street_team/core/utils/map_helpers/permission_request.dart';
 import 'package:street_team/data/map_engine/map_engine.dart';
 import 'package:street_team/data/map_engine/mapbox_map_engine.dart';
+import 'package:street_team/data/services/location_capture_service.dart';
 
 final mapEngineProvider = Provider<MapEngine>((ref) {
   return MapboxMapEngine();
@@ -21,16 +22,20 @@ final userLocationProvider = StreamProvider<geo.LatLng>((ref) async* {
   }
 
   final currentPosition = await Geolocator.getCurrentPosition(
-    locationSettings: const LocationSettings(
-      accuracy: LocationAccuracy.bestForNavigation,
-    ),
+    locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+  );
+
+  // Save to persistent storage for next startup
+  await LocationCache.saveLocation(
+    currentPosition.latitude,
+    currentPosition.longitude,
   );
 
   yield geo.LatLng(currentPosition.latitude, currentPosition.longitude);
 
   yield* Geolocator.getPositionStream(
     locationSettings: const LocationSettings(
-      accuracy: LocationAccuracy.bestForNavigation,
+      accuracy: LocationAccuracy.high,
 
       distanceFilter: 5,
     ),

@@ -16,3 +16,4 @@ Future<bool> requestLocationPermission() async {
   return permission == LocationPermission.always ||
       permission == LocationPermission.whileInUse;
 }
+

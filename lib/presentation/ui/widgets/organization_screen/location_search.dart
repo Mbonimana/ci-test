@@ -243,67 +243,67 @@ class _LocationSearchWidgetState extends ConsumerState<LocationSearchWidget> {
           ],
         ),
 
-        if (searchState.selectedLocation != null) ...[
-          SizedBox(height: 8.h),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
-            decoration: BoxDecoration(
-              color: Colors.green.shade50,
-              borderRadius: BorderRadius.circular(10.r),
-              border: Border.all(color: Colors.green.shade200),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.check_circle_rounded,
-                  color: Colors.green.shade600,
-                  size: 20.sp,
-                ),
-                SizedBox(width: 10.w),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Location Captured Successfully",
-                        style: AppTypography.captionSmall.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green.shade800,
-                          fontSize: 12.sp,
-                        ),
-                      ),
-                      SizedBox(height: 1.h),
-                      Text(
-                        "ID: ${searchState.selectedLocation!.id} • ${searchState.selectedLocation!.name}",
-                        style: AppTypography.captionSmall.copyWith(
-                          color: Colors.green.shade700,
-                          fontSize: 11.sp,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(
-                    Icons.close_rounded,
-                    color: Colors.green.shade800,
-                    size: 16.sp,
-                  ),
-                  onPressed: () {
-                    _controller.clear();
-                    notifier.reset();
-                    widget.onLocationSelected?.call(null);
-                  },
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  splashRadius: 16.r,
-                ),
-              ],
-            ),
-          ),
-        ],
+        // if (searchState.selectedLocation != null) ...[
+        //   SizedBox(height: 8.h),
+        //   Container(
+        //     padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+        //     decoration: BoxDecoration(
+        //       color: Colors.green.shade50,
+        //       borderRadius: BorderRadius.circular(10.r),
+        //       border: Border.all(color: Colors.green.shade200),
+        //     ),
+        // child: Row(
+        //   children: [
+        //     Icon(
+        //       Icons.check_circle_rounded,
+        //       color: Colors.green.shade600,
+        //       size: 20.sp,
+        //     ),
+        //     SizedBox(width: 10.w),
+        //     Expanded(
+        //       child: Column(
+        //         crossAxisAlignment: CrossAxisAlignment.start,
+        //         children: [
+        //           Text(
+        //             "Location Captured Successfully",
+        //             style: AppTypography.captionSmall.copyWith(
+        //               fontWeight: FontWeight.bold,
+        //               color: Colors.green.shade800,
+        //               fontSize: 10.sp,
+        //             ),
+        //           ),
+        //           SizedBox(height: 1.h),
+        //           Text(
+        //             " ${searchState.selectedLocation!.name}",
+        //             style: AppTypography.captionSmall.copyWith(
+        //               color: Colors.green.shade700,
+        //               fontSize: 11.sp,
+        //             ),
+        //             maxLines: 1,
+        //             overflow: TextOverflow.ellipsis,
+        //           ),
+        //         ],
+        //       ),
+        //     ),
+        //     IconButton(
+        //       icon: Icon(
+        //         Icons.close_rounded,
+        //         color: Colors.green.shade800,
+        //         size: 16.sp,
+        //       ),
+        //       onPressed: () {
+        //         _controller.clear();
+        //         notifier.reset();
+        //         widget.onLocationSelected?.call(null);
+        //       },
+        //       padding: EdgeInsets.zero,
+        //       constraints: const BoxConstraints(),
+        //       splashRadius: 16.r,
+        //     ),
+        //   ],
+        // ),
+        //   ),
+        // ],
 
         // Results Dropdown
         if (searchState.isLoading)

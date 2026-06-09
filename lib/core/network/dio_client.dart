@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:street_team/core/network/network_error_handler.dart';
 import 'package:street_team/core/utils/logger_helper.dart';
 import 'package:street_team/data/services/auth/storage/auth_storage_keys.dart';
 import 'package:street_team/data/services/auth/storage/auth_storage_service.dart';
@@ -49,13 +50,15 @@ class DioClient {
             },
 
             onError: (error, handler) {
+              final userMessage = NetworkErrorHandler.toUserMessage(error);
+
               AppLogger.error(
                 statusCode: error.response?.statusCode,
                 url: error.requestOptions.uri.toString(),
-                error: error.response?.data ?? error.message,
+                error: userMessage,
               );
 
-              return handler.next(error);
+              return handler.next(error.copyWith(message: userMessage));
             },
           ),
         );

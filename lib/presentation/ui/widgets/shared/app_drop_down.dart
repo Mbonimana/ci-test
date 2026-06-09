@@ -23,7 +23,7 @@ class AppDropdown<T> extends StatefulWidget {
   });
 
   @override
-  State<AppDropdown<T>> createState() => _AppDropdownState();
+  State<AppDropdown<T>> createState() => _AppDropdownState<T>();
 }
 
 class _AppDropdownState<T> extends State<AppDropdown<T>> {
@@ -58,7 +58,6 @@ class _AppDropdownState<T> extends State<AppDropdown<T>> {
                                 const SizedBox(width: 6),
                             itemBuilder: (context, i) {
                               final item = widget.selectedItems[i];
-                              // selected item chip with a close icon
                               return Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 10,
@@ -78,7 +77,6 @@ class _AppDropdownState<T> extends State<AppDropdown<T>> {
                                           ),
                                     ),
                                     const SizedBox(width: 4),
-                                    // close icon to remove item from selected items
                                     InkWell(
                                       onTap: () => widget.onSelect(item),
                                       child: const Icon(
@@ -94,7 +92,6 @@ class _AppDropdownState<T> extends State<AppDropdown<T>> {
                           ),
                         ),
                 ),
-                // dropdown arrow icon
                 const Icon(
                   Icons.arrow_drop_down,
                   color: AppColors.brandPrimary,
@@ -116,28 +113,56 @@ class _AppDropdownState<T> extends State<AppDropdown<T>> {
                 ),
               ],
             ),
-            child: SingleChildScrollView(
-              child: Column(
-                children: widget.items.map((item) {
-                  final isSelected = widget.selectedItems.contains(item);
-                  return ListTile(
-                    dense: true,
-                    title: Text(
-                      widget.itemLabel(item),
-                      style: AppTypography.bodyMedium.copyWith(
-                        fontWeight: isSelected
-                            ? FontWeight.w800
-                            : FontWeight.w500,
-                        color: AppColors.textPrimary,
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (ScrollNotification notification) {
+                // OverscrollNotification captures movements past the list boundaries
+                if (notification is OverscrollNotification) {
+                  final overscroll = notification.overscroll;
+
+                  if (overscroll != 0.0) {
+                    // Locate the closest parent scrollable safely without throwing exceptions
+                    final parentScrollable = Scrollable.maybeOf(context);
+                    final parentPosition = parentScrollable?.position;
+
+                    if (parentPosition != null && parentPosition.hasPixels) {
+                      // Adjust parent's position by the extra overscroll amount
+                      parentPosition.jumpTo(
+                        (parentPosition.pixels + overscroll).clamp(
+                          parentPosition.minScrollExtent,
+                          parentPosition.maxScrollExtent,
+                        ),
+                      );
+                    }
+                  }
+                }
+                return false; 
+              },
+              child: SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                child: Column(
+                  children: widget.items.map((item) {
+                    final isSelected = widget.selectedItems.contains(item);
+                    return ListTile(
+                      dense: true,
+                      title: Text(
+                        widget.itemLabel(item),
+                        style: AppTypography.bodyMedium.copyWith(
+                          fontWeight: isSelected
+                              ? FontWeight.w800
+                              : FontWeight.w500,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
-                    ),
-                    //display check icon if item is selected
-                    trailing: isSelected
-                        ? const Icon(Icons.check, color: AppColors.brandPrimary)
-                        : null,
-                    onTap: () => widget.onSelect(item),
-                  );
-                }).toList(),
+                      trailing: isSelected
+                          ? const Icon(
+                              Icons.check,
+                              color: AppColors.brandPrimary,
+                            )
+                          : null,
+                      onTap: () => widget.onSelect(item),
+                    );
+                  }).toList(),
+                ),
               ),
             ),
           ),

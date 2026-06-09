@@ -72,7 +72,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             onPressed: () {
                               if (syncState.status ==
                                   InitialSyncStatus.completed) {
-                                context.go(RouteNames.mapScreen);
+                                context.push(RouteNames.mapScreen);
                               } else {
                                 ref
                                     .read(initialSyncProvider.notifier)

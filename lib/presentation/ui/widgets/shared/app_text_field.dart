@@ -86,7 +86,7 @@ class _AppTextFieldState extends State<AppTextField> {
         ),
         fillColor: AppColors.placeholderText.withAlpha(25),
         hintStyle: AppTypography.captionSmall.copyWith(
-          color: AppColors.textSecondary.withAlpha(120),
+          color: AppColors.textSecondary.withAlpha(50),
         ),
       ),
     );

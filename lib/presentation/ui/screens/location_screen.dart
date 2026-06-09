@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart' as geo;
 import 'package:street_team/core/config/theme/app_color.dart';
 import 'package:street_team/core/config/theme/typography.dart';
+import 'package:street_team/core/network/network_error_handler.dart';
 import 'package:street_team/core/routing/route_names.dart';
 import 'package:street_team/data/models/location_models/location_request_model.dart';
 import 'package:street_team/data/models/location_models/location_response.dart';
@@ -43,6 +44,10 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
   final shortNameController = TextEditingController();
   final nicknameController = TextEditingController();
 
+  // Inline Validation State
+  String? _nameError;
+  String? _addressError;
+
   // Dropdown State
   bool isTypeDropdownExpanded = false;
 
@@ -57,6 +62,29 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
 
   bool get _isEditing =>
       widget.editId != null || widget.initialLocation != null;
+
+  /// Helper function to format the physical address into camel/title case segments
+  String _formatPhysicalAddress(String address) {
+    String text = address.trim();
+
+    // Remove a trailing period if it exists
+    if (text.endsWith('.')) {
+      text = text.substring(0, text.length - 1).trim();
+    }
+
+    if (text.isEmpty) return '';
+
+    // Split words by any sequence of spaces, capitalize first letter, lowercase the rest
+    return text
+        .split(RegExp(r'\s+'))
+        .map((word) {
+          if (word.isEmpty) return '';
+          final firstChar = word[0].toUpperCase();
+          final remainingChars = word.substring(1).toLowerCase();
+          return '$firstChar$remainingChars';
+        })
+        .join(' ');
+  }
 
   void _applyInitialLocation(LocationResponse initialLocation) {
     if (_hasAppliedInitialLocation) {
@@ -135,6 +163,31 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
   }
 
   Future<void> submitLocation() async {
+    // Validate Inline Fields First
+    bool isValid = true;
+    setState(() {
+      _nameError = null;
+      _addressError = null;
+    });
+
+    if (nameController.text.trim().isEmpty) {
+      setState(() {
+        _nameError = "Location name is required";
+      });
+      isValid = false;
+    }
+
+    if (addressController.text.trim().isEmpty) {
+      setState(() {
+        _addressError = "Physical address is required";
+      });
+      isValid = false;
+    }
+
+    if (!isValid) {
+      return;
+    }
+
     final coords = ref.read(pickedLocationProvider);
 
     if (coords == null) {
@@ -144,13 +197,16 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
       return;
     }
 
+    // Format the address details right before sending or yielding
+    final formattedAddress = _formatPhysicalAddress(addressController.text);
+
     if (widget.deferSubmit) {
       // Return the new location payload to the caller without sending to server.
       final newLocation = {
         'location_name': nameController.text,
         'short_name': shortNameController.text,
         'nickname': nicknameController.text,
-        'physical_address': addressController.text,
+        'physical_address': formattedAddress,
         'latitude': coords.latitude,
         'longitude': coords.longitude,
         'location_types': selectedLocationTypes.map((e) => e.id).toList(),
@@ -173,7 +229,7 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
 
       final model = LocationModel(
         name: nameController.text,
-        physicalAddress: addressController.text,
+        physicalAddress: formattedAddress,
         shortName: shortNameController.text,
         nickname: nicknameController.text,
         latitude: coords.latitude,
@@ -191,9 +247,9 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
       if (!mounted) return;
 
       Navigator.pop(context);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Location saved")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Location submitted successfully")),
+      );
       _clearSharedLocationState();
 
       if (_isEditing) {
@@ -209,11 +265,9 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
       if (mounted) Navigator.pop(context);
 
       if (mounted) {
+        final message = NetworkErrorHandler.toUserMessage(e);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Location Permission denied'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text(message), backgroundColor: Colors.red),
         );
       }
     }
@@ -244,6 +298,23 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
   @override
   void initState() {
     super.initState();
+
+    // Clear validation error when  begin typing
+    nameController.addListener(() {
+      if (_nameError != null && nameController.text.trim().isNotEmpty) {
+        setState(() {
+          _nameError = null;
+        });
+      }
+    });
+
+    addressController.addListener(() {
+      if (_addressError != null && addressController.text.trim().isNotEmpty) {
+        setState(() {
+          _addressError = null;
+        });
+      }
+    });
 
     final initialLocation = widget.initialLocation;
 
@@ -457,8 +528,19 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
 
                   AppTextField(
                     controller: nameController,
-                    hint: "Location name",
+                    hint: "Kigali City Tower",
                   ),
+
+                  if (_nameError != null) ...[
+                    SizedBox(height: 4.h),
+                    Text(
+                      _nameError!,
+                      style: AppTypography.captionSmall.copyWith(
+                        color: Colors.red,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
 
                   SizedBox(height: 10.h),
 
@@ -468,8 +550,19 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
 
                   AppTextField(
                     controller: addressController,
-                    hint: "Physical address",
+                    hint: "City Center, Kn 2 st",
                   ),
+
+                  if (_addressError != null) ...[
+                    SizedBox(height: 4.h),
+                    Text(
+                      _addressError!,
+                      style: AppTypography.captionSmall.copyWith(
+                        color: Colors.red,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
 
                   SizedBox(height: 10.h),
 
@@ -477,10 +570,7 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
 
                   SizedBox(height: 8.h),
 
-                  AppTextField(
-                    controller: shortNameController,
-                    hint: "Short name",
-                  ),
+                  AppTextField(controller: shortNameController, hint: "KCT"),
 
                   SizedBox(height: 10.h),
 
@@ -490,7 +580,7 @@ class _LocationDetailsScreenState extends ConsumerState<LocationDetailsScreen> {
 
                   AppTextField(
                     controller: nicknameController,
-                    hint: "Nick name",
+                    hint: "City Tower",
                   ),
 
                   SizedBox(height: 10.h),

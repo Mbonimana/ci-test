@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:street_team/core/network/network_error_handler.dart';
 import 'package:street_team/core/utils/talker_helper.dart';
 import 'package:street_team/data/models/organization_models/organization_request.dart';
 import 'package:street_team/data/repositories/organization_repository.dart';
@@ -140,8 +141,13 @@ class OrganizationFormNotifier extends StateNotifier<OrganizationFormState> {
         clearError: true,
       );
     } catch (e, st) {
-      final message = e.toString().replaceFirst('Exception: ', '');
-      talker.error('Organization submit failed in provider: $message', e, st);
+      final message = NetworkErrorHandler.toUserMessage(e);
+      if (message == NetworkErrorHandler.noInternetMessage ||
+          message == NetworkErrorHandler.timeoutMessage) {
+        talker.warning('Organization submit failed in provider: $message');
+      } else {
+        talker.error('Organization submit failed in provider: $message', e, st);
+      }
       state = state.copyWith(
         isSubmitting: false,
         isSubmitted: false,
