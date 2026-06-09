@@ -32,7 +32,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   Timer? _debounce;
   bool _isPermissionGranted = false;
 
-  // Use a sensible default center coordinate (e.g. Kigali) if GPS hasn't loaded yet
+  bool _hasCenteredOnUser = false;
+
   static const _fallbackLocation = geo.LatLng(-1.9441, 30.0619);
 
   @override
@@ -45,7 +46,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 
   Future<void> _requestPermissionAndCenter() async {
-    //  check  app's persistent cache
     final cachedLoc = await LocationCache.getCachedLocation();
     if (cachedLoc != null && mounted) {
       final mapEngine = ref.read(mapEngineProvider);
@@ -99,19 +99,22 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     final filteredLocations = ref.watch(filteredLocationsProvider);
     final isSearching = ref.watch(isSearchingProvider);
     final searchResultsAsync = ref.watch(remoteSearchResultsProvider);
-
-    // Watch for location updates to fly the map camera to the target coordinates smoothly
+    // Watch for location updates, but only fly to the user on initial load
     ref.listen<AsyncValue<geo.LatLng>>(userLocationProvider, (previous, next) {
       next.whenData((latLng) {
         if (mounted) {
           setState(() {
             _isPermissionGranted = true;
           });
-          mapEngine.goToCoordinates(
-            latitude: latLng.latitude,
-            longitude: latLng.longitude,
-            zoom: 18,
-          );
+
+          if (!_hasCenteredOnUser) {
+            _hasCenteredOnUser = true;
+            mapEngine.goToCoordinates(
+              latitude: latLng.latitude,
+              longitude: latLng.longitude,
+              zoom: 18,
+            );
+          }
         }
       });
     });
@@ -138,7 +141,6 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               ),
             ),
 
-            // Optional non-blocking loading indicator shown while fetching location
             if (userLocationAsync.isLoading &&
                 userLocationAsync.asData?.value == null)
               const Positioned(
