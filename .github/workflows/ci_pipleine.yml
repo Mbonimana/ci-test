@@ -47,19 +47,19 @@ jobs:
       - name: Build ARM64 APK only
         run: |
           flutter build apk --release --target-platform android-arm64 \
-            --dart-define=ENV=${{ secrets.ENV }} \
-            --dart-define=APP_NAME=${{ secrets.APP_NAME }} \
-            --dart-define=SENTRY_DSN=${{ secrets.SENTRY_DSN }} \
-            --dart-define=MAP_BOX_ACCESS_TOKEN=${{ secrets.MAP_BOX_ACCESS_TOKEN }} \
-            --dart-define=BASE_URL=${{ secrets.BASE_URL }} \
-            --dart-define=MURUGO_BASE_URL=${{ secrets.MURUGO_BASE_URL }} \
-            --dart-define=APP_KEY=${{ secrets.APP_KEY }} \
-            --dart-define=MURUGO_CLIENT_ID=${{ secrets.MURUGO_CLIENT_ID }} \
-            --dart-define=MURUGO_CLIENT_SECRET=${{ secrets.MURUGO_CLIENT_SECRET }} \
-            --dart-define=STREET_TEAM_CLIENT_ID=${{ secrets.STREET_TEAM_CLIENT_ID }} \
-            --dart-define=STREET_TEAM_CLIENT_SECRET=${{ secrets.STREET_TEAM_CLIENT_SECRET }} \
-            --dart-define=SUBMITTER_SERVER=${{ secrets.SUBMITTER_SERVER }} \
-            --dart-define=PUBLIC_KEY=${{ secrets.PUBLIC_KEY }}
+            --dart-define=ENV="${{ secrets.ENV }}" \
+            --dart-define=APP_NAME="${{ secrets.APP_NAME }}" \
+            --dart-define=SENTRY_DSN="${{ secrets.SENTRY_DSN }}" \
+            --dart-define=MAP_BOX_ACCESS_TOKEN="${{ secrets.MAP_BOX_ACCESS_TOKEN }}" \
+            --dart-define=BASE_URL="${{ secrets.BASE_URL }}" \
+            --dart-define=MURUGO_BASE_URL="${{ secrets.MURUGO_BASE_URL }}" \
+            --dart-define=APP_KEY="${{ secrets.APP_KEY }}" \
+            --dart-define=MURUGO_CLIENT_ID="${{ secrets.MURUGO_CLIENT_ID }}" \
+            --dart-define=MURUGO_CLIENT_SECRET="${{ secrets.MURUGO_CLIENT_SECRET }}" \
+            --dart-define=STREET_TEAM_CLIENT_ID="${{ secrets.STREET_TEAM_CLIENT_ID }}" \
+            --dart-define=STREET_TEAM_CLIENT_SECRET="${{ secrets.STREET_TEAM_CLIENT_SECRET }}" \
+            --dart-define=SUBMITTER_SERVER="${{ secrets.SUBMITTER_SERVER }}" \
+            --dart-define=PUBLIC_KEY="${{ secrets.PUBLIC_KEY }}"
 
       - name: Upload ARM64 APK artifact
         uses: actions/upload-artifact@v4
