@@ -11,6 +11,8 @@ class AppTextField extends StatefulWidget {
   final bool numbersOnly;
   final String? Function(String?)? validator;
   final ValueChanged<String>? onChanged;
+  final bool isMultiline;
+  final int? maxLength; // property for character limit
 
   const AppTextField({
     super.key,
@@ -21,6 +23,8 @@ class AppTextField extends StatefulWidget {
     this.numbersOnly = false,
     this.validator,
     this.onChanged,
+    this.isMultiline = false,
+    this.maxLength,
   });
 
   @override
@@ -38,14 +42,28 @@ class _AppTextFieldState extends State<AppTextField> {
 
   @override
   Widget build(BuildContext context) {
+    // Obscured fields must have maxLines set to 1 in Flutter
+    final int? effectiveMaxLines = _isObscured
+        ? 1
+        : (widget.isMultiline ? null : 1);
+
+    final int effectiveMinLines = _isObscured
+        ? 1
+        : (widget.isMultiline ? 1 : 1);
+
     return TextFormField(
       controller: widget.controller,
       validator: widget.validator,
       onChanged: widget.onChanged,
+      maxLength: widget.maxLength,
       keyboardType: widget.numbersOnly
           ? TextInputType.number
-          : widget.keyboardType,
+          : (widget.isMultiline
+                ? TextInputType.multiline
+                : widget.keyboardType),
       obscureText: _isObscured,
+      maxLines: effectiveMaxLines,
+      minLines: effectiveMinLines,
       cursorColor: AppColors.brandPrimary,
       cursorWidth: 2.0,
 
@@ -57,6 +75,8 @@ class _AppTextFieldState extends State<AppTextField> {
         isDense: true,
         hintText: widget.hint,
         filled: true,
+        // uncomment to hide the default character counter when maxLength is set
+        // counterText: '',
         suffixIcon: widget.obscureText
             ? IconButton(
                 icon: Icon(

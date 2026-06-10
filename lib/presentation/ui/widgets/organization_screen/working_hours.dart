@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart'; 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:street_team/core/config/theme/app_color.dart';
@@ -247,11 +248,82 @@ class _WorkingHoursState extends State<WorkingHours> {
     required TimeOfDay initialTime,
     TimeOfDay? minTime,
   }) async {
-    final TimeOfDay? picked = await showTimePicker(
+    bool isConfirmed = false;
+    TimeOfDay selectedTime = initialTime;
+    await showCupertinoModalPopup<void>(
       context: context,
-      initialTime: initialTime,
+      builder: (BuildContext context) {
+        return Container(
+          height: 250.h,
+          color: CupertinoColors.systemBackground.resolveFrom(context),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              children: [
+                Container(
+                  color: AppColors.placeholderText.withAlpha(25),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CupertinoButton(
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: AppColors.statusError,
+                          ),
+                        ),
+                        onPressed: () {
+                          isConfirmed = false;
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      CupertinoButton(
+                        child: const Text(
+                          'Done',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.brandPrimary,
+                          ),
+                        ),
+                        onPressed: () {
+                          isConfirmed = true;
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: CupertinoDatePicker(
+                    mode: CupertinoDatePickerMode.time,
+                    use24hFormat: true,
+                    initialDateTime: DateTime(
+                      2024,
+                      1,
+                      1,
+                      initialTime.hour,
+                      initialTime.minute,
+                    ),
+                    onDateTimeChanged: (DateTime newDateTime) {
+                      selectedTime = TimeOfDay(
+                        hour: newDateTime.hour,
+                        minute: newDateTime.minute,
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
-    if (picked != null && minTime != null && !_isAfter(picked, minTime)) {
+
+    if (!isConfirmed) {
+      return null;
+    }
+
+    if (minTime != null && !_isAfter(selectedTime, minTime)) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -262,7 +334,7 @@ class _WorkingHoursState extends State<WorkingHours> {
       }
       return null;
     }
-    return picked;
+    return selectedTime;
   }
 
   @override
