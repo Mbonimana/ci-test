@@ -1,5 +1,5 @@
 name: street_team
-description: "A new Flutter project."
+description: "A flutter Project for Street Team App v2"
 
 publish_to: 'none'
 
@@ -49,7 +49,7 @@ flutter:
     - assets/animation/loading_animation.json
 
     - assets/icons/
-    - assets/icons/Street_team.png
+    - assets/icons/street_team.png
     - assets/murugo/murugo_cloud_label.webp
     - assets/murugo/murugo_clouds.webp
     - assets/murugo/murugo_sun.svg

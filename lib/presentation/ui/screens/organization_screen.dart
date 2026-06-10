@@ -641,6 +641,8 @@ class _OrganizationScreenState extends ConsumerState<OrganizationScreen> {
         AppTextField(
           controller: quickinfo,
           hint: " e.g:A cozy place for coffee lovers",
+          isMultiline: true,
+          maxLength: 255,
         ),
         SizedBox(height: 15.h),
         const AppFormLable(text: "Organization Options"),
